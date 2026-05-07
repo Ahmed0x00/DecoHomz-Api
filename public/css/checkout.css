@@ -1,0 +1,71 @@
+/* CHECKOUT PAGE */
+nav .nav-right{font-size:12px;color:#aaa}
+nav .nav-right a{color:#B8860B;text-decoration:none}
+
+.checkout-wrap{display:grid;grid-template-columns:1fr 360px;gap:24px;padding:32px 40px;align-items:start;max-width:1100px;margin:0 auto}
+
+.form-block{background:#fff;border:1px solid #EDE8E2;border-radius:10px;padding:24px;margin-bottom:16px}
+.block-title{font-size:13px;font-weight:700;color:#2C1F14;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.block-title svg{width:15px;height:15px;stroke:#B8860B;fill:none}
+
+.delivery-opts{display:flex;flex-direction:column;gap:10px}
+.delivery-opt{display:flex;align-items:center;justify-content:space-between;border:1.5px solid #E0D8CE;border-radius:8px;padding:14px 16px;cursor:pointer;transition:border .2s}
+.delivery-opt.selected{border-color:#2C1F14;background:#F9F6F2}
+.delivery-opt-left{display:flex;align-items:center;gap:12px}
+.delivery-opt input[type=radio]{accent-color:#2C1F14;width:15px;height:15px}
+.opt-name{font-size:13px;font-weight:600;color:#2C1F14}
+.opt-desc{font-size:11px;color:#aaa;margin-top:1px}
+.opt-price{font-size:13px;font-weight:700;color:#2C1F14}
+.opt-price.free{color:#4A7C3F}
+
+.payment-tabs{display:flex;gap:0;margin-bottom:18px;border:1px solid #E0D8CE;border-radius:8px;overflow:hidden}
+.pay-tab{flex:1;padding:10px;text-align:center;font-size:12px;cursor:pointer;color:#888;background:#fff;border:none;border-right:1px solid #E0D8CE}
+.pay-tab:last-child{border-right:none}
+.pay-tab.active{background:#2C1F14;color:#fff;font-weight:600}
+.card-icons{display:flex;gap:6px;margin-bottom:16px}
+.c-icon{background:#F5F0E8;border-radius:4px;padding:4px 10px;font-size:10px;color:#888;font-weight:700;border:1px solid #E0D8CE}
+.card-security{display:flex;align-items:center;gap:6px;font-size:11px;color:#aaa;margin-top:12px}
+.card-security svg{width:13px;height:13px;stroke:#aaa;fill:none}
+.alt-pay{background:#F9F6F2;border-radius:8px;padding:16px;font-size:12px;color:#666;line-height:1.7;display:none}
+.alt-pay.show{display:block}
+
+.summary-box{background:#fff;border:1px solid #EDE8E2;border-radius:10px;padding:22px;position:sticky;top:20px}
+.sum-items{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid #F5F0E8}
+.sum-item{display:flex;align-items:center;gap:10px}
+.sum-thumb{width:44px;height:44px;background:#F5F0E8;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
+.sum-thumb svg{width:70%;height:70%}
+.sum-thumb .qty-badge{position:absolute;top:-5px;right:-5px;background:#2C1F14;color:#fff;border-radius:50%;font-size:9px;width:16px;height:16px;display:flex;align-items:center;justify-content:center}
+.sum-item-info{flex:1}
+.sum-item-name{font-size:12px;font-weight:600;color:#2C1F14}
+.sum-item-meta{font-size:11px;color:#aaa}
+.sum-item-price{font-size:12px;font-weight:700;color:#2C1F14;white-space:nowrap}
+.sum-total{display:flex;justify-content:space-between;font-size:15px;font-weight:700;border-top:1px solid #EDE8E2;padding-top:14px;margin-top:4px}
+.coupon-row{display:flex;gap:8px;margin:14px 0}
+.coupon-row input{flex:1;border:1px solid #E0D8CE;border-radius:6px;padding:8px 10px;font-size:12px}
+.coupon-row button{background:#F5F0E8;color:#2C1F14;border:1px solid #E0D8CE;border-radius:6px;padding:8px 12px;font-size:12px;cursor:pointer;font-weight:600}
+.btn-place{background:#2C1F14;color:#fff;border:none;width:100%;padding:13px;font-size:13px;border-radius:6px;cursor:pointer;font-weight:700;margin-top:4px;display:block}
+.secure-note{display:flex;align-items:center;gap:6px;justify-content:center;margin-top:10px;font-size:11px;color:#aaa}
+.secure-note svg{width:12px;height:12px;stroke:#aaa;fill:none}
+.sum-row .v.free{color:#4A7C3F}
+
+@media(max-width:768px){
+.checkout-wrap{grid-template-columns:1fr;padding:16px 20px}
+.summary-box{position:static}
+
+.checkout-wrap.step-1-active .sum-title,
+.checkout-wrap.step-1-active .sum-items,
+.checkout-wrap.step-1-active .coupon-row,
+.checkout-wrap.step-1-active .sum-row {
+    display: none;
+}
+.checkout-wrap.step-1-active .sum-total {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+.payment-tabs{overflow-x:auto;flex-wrap:nowrap}
+.pay-tab{white-space:nowrap}
+.delivery-opts{gap:8px}
+.alt-pay{overflow-x:auto}
+}

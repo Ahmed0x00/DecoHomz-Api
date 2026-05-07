@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop — DecoHomz</title>
+  <link rel="stylesheet" href="css/shared.css">
+  <link rel="stylesheet" href="css/shop.css">
+</head>
+
+<body>
+
+  <div class="topbar">Free Delivery on Orders Above EGP 2,000 — Shop Now</div>
+  <nav><div class="nav-inner">
+    <div class="logo">Deco<span>Homz</span></div>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="shop.html" class="active">Shop</a></li>
+      <li><a href="categories.html">Categories</a></li>
+      <li><a href="new-arrivals.html">New Arrivals</a></li>
+      <li><a href="deals.html">Deals</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <div class="search-container">
+        <svg class="search-trigger" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+      </div>
+      <div class="cart-trigger" title="Shopping Cart">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <path d="M16 10a4 4 0 0 1-8 0" />
+        </svg>
+        <div class="badge badge-cart">0</div>
+      </div>
+      <div class="user-trigger" title="Account" onclick="location.href='account.html'">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      </div>
+    </div>
+  </div></nav>
+  <div class="breadcrumb">Home › <span>Living Room</span></div>
+
+  <div class="shop-layout">
+    <div class="sidebar">
+      <div class="filter-group">
+        <div class="filter-title">Category</div>
+        <div class="filter-item"><input type="checkbox" checked><label>Living Room <span>(48)</span></label></div>
+        <div class="filter-item"><input type="checkbox"><label>Bedroom <span>(32)</span></label></div>
+        <div class="filter-item"><input type="checkbox"><label>Dining <span>(21)</span></label></div>
+        <div class="filter-item"><input type="checkbox"><label>Office <span>(17)</span></label></div>
+        <div class="filter-item"><input type="checkbox"><label>Outdoor <span>(14)</span></label></div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-title">Price (EGP)</div>
+        <div class="price-range">
+          <input type="number" placeholder="Min" value="500">
+          <span>–</span>
+          <input type="number" placeholder="Max" value="20000">
+        </div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-title">Material</div>
+        <div class="filter-item"><input type="checkbox" checked><label>Wood</label></div>
+        <div class="filter-item"><input type="checkbox"><label>Metal</label></div>
+        <div class="filter-item"><input type="checkbox"><label>Fabric</label></div>
+        <div class="filter-item"><input type="checkbox"><label>Marble</label></div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-title">Color</div>
+        <div class="color-row">
+          <div class="color-dot active" style="background:#C4A882"></div>
+          <div class="color-dot" style="background:#5C3D2A"></div>
+          <div class="color-dot" style="background:#E8E0D4"></div>
+          <div class="color-dot" style="background:#4A5240"></div>
+          <div class="color-dot" style="background:#888"></div>
+          <div class="color-dot" style="background:#E8E8E8;border:1px solid #ccc"></div>
+        </div>
+      </div>
+      <button class="btn-apply">Apply Filters</button>
+    </div>
+
+    <div class="main">
+      <div class="main-top">
+        <div class="result-count">48 products found</div>
+        <div class="sort-row">
+          <select>
+            <option>Sort: Featured</option>
+            <option>Price: Low to High</option>
+            <option>Price: High to Low</option>
+            <option>Newest</option>
+          </select>
+          <div class="grid-toggle">
+            <button class="grid-btn active">⊞</button>
+            <button class="grid-btn">☰</button>
+          </div>
+        </div>
+      </div>
+      <div class="prod-grid" id="product-grid">
+        <!-- Products will be rendered dynamically by shop.js -->
+      </div>
+      <div class="pagination">
+        <button class="page-btn">‹</button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn">4</button>
+        <button class="page-btn">›</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <div class="f-logo">Deco<span>Homz</span></div>
+        <p class="f-desc">Premium furniture for every space. Crafted for comfort, designed for life.</p>
+      </div>
+      <div>
+        <div class="f-head">Shop</div>
+        <ul class="f-links">
+          <li><a href="shop.html">Living Room</a></li>
+          <li><a href="shop.html">Bedroom</a></li>
+          <li><a href="shop.html">Dining</a></li>
+          <li><a href="shop.html">Outdoor</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="f-head">Help</div>
+        <ul class="f-links">
+          <li><a href="faq.html">FAQ</a></li>
+          <li><a href="contact.html">Shipping</a></li>
+          <li><a href="contact.html">Returns</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="f-head">Company</div>
+        <ul class="f-links">
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="faq.html">Help Center</a></li>
+          <li><a href="account.html">My Account</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 DecoHomz. All rights reserved.</span>
+      <span>Privacy · Terms</span>
+    </div>
+  </footer>
+
+  <script src="js/shared.js"></script>
+  <script src="js/products-data.js"></script>
+  <script src="js/shop.js"></script>
+</body>
+
+</html>

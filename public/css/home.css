@@ -1,0 +1,238 @@
+/* ============================================
+   DECOHOMZ — HOME PAGE STYLES
+   ============================================ */
+
+.hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: #F5F0E8;
+    min-height: 500px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+@media (max-width: 992px) {
+    .hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+}
+
+.hero-text {
+    padding: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+@media (max-width: 992px) {
+    .hero-text {
+        padding: 60px 20px;
+        text-align: center;
+        align-items: center;
+    }
+}
+
+.hero-label {
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #B8860B;
+    margin-bottom: 20px;
+}
+
+.hero-h1 {
+    font-size: 56px;
+    font-weight: 700;
+    color: #2C1F14;
+    line-height: 1.1;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 480px) {
+    .hero-h1 {
+        font-size: 36px;
+    }
+}
+
+.hero-sub {
+    font-size: 18px;
+    color: #7A6A58;
+    line-height: 1.6;
+    margin-bottom: 40px;
+    max-width: 480px;
+}
+
+.hero-btns {
+    display: flex;
+    gap: 16px;
+}
+
+@media (max-width: 480px) {
+    .hero-btns {
+        flex-direction: column;
+        width: 100%;
+    }
+}
+
+.hero-img {
+    background: #E8DFD0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 40px;
+    overflow: hidden;
+}
+
+@media (max-width: 992px) {
+    .hero-img {
+        display: none;
+    }
+}
+
+.hero-img svg {
+    width: 100%;
+    max-width: 450px;
+}
+
+/* ── Categories ── */
+.cats {
+    padding: 80px 40px;
+    background: #fff;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .cats {
+        padding: 40px 20px;
+    }
+}
+
+.cat-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 24px;
+}
+
+@media (max-width: 992px) {
+    .cat-row {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .cat-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+}
+
+.cat-item {
+    text-align: center;
+}
+
+.cat-box {
+    background: #F5F0E8;
+    border-radius: 12px;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.cat-item:hover .cat-box {
+    background: #E8DFD0;
+    transform: translateY(-5px);
+}
+
+.cat-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2C1F14;
+}
+
+/* ── Best Sellers ── */
+.products {
+    padding: 80px 40px;
+    background: #FAFAF8;
+}
+
+@media (max-width: 768px) {
+    .products {
+        padding: 40px 20px;
+    }
+}
+
+.products .prod-grid {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* ── Banner ── */
+.banner {
+    margin: 80px auto;
+    max-width: 1320px;
+    background: #2C1F14;
+    border-radius: 20px;
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    overflow: hidden;
+}
+
+@media (max-width: 992px) {
+    .banner {
+        grid-template-columns: 1fr;
+        margin: 40px 20px;
+    }
+}
+
+.ban-left {
+    padding: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .ban-left {
+        padding: 40px 24px;
+        text-align: center;
+        align-items: center;
+    }
+}
+
+.ban-h {
+    font-size: 42px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 480px) {
+    .ban-h {
+        font-size: 28px;
+    }
+}
+
+.ban-sub {
+    font-size: 16px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 32px;
+}
+
+.ban-right {
+    background: #3D2B1A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 992px) {
+    .ban-right {
+        display: none;
+    }
+}

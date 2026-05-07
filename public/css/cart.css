@@ -1,0 +1,36 @@
+/* CART PAGE */
+.cart-layout{display:grid;grid-template-columns:1fr 340px;gap:24px;padding:32px 40px;align-items:start}
+.cart-items{}
+.cart-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px}
+.cart-title{font-size:16px;font-weight:700;color:#2C1F14}
+.clear-btn{font-size:12px;color:#c0392b;cursor:pointer;text-decoration:underline;background:none;border:none}
+.cart-item{display:grid;grid-template-columns:80px 1fr auto;gap:14px;align-items:center;background:#fff;border:1px solid #EDE8E2;border-radius:8px;padding:14px;margin-bottom:10px}
+.item-img{background:#F5F0E8;border-radius:6px;aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+.item-img svg{width:65%;height:65%}
+.item-info{}
+.item-name{font-size:13px;font-weight:600;color:#2C1F14;margin-bottom:2px}
+.item-meta{font-size:11px;color:#aaa;margin-bottom:8px}
+.item-price-col{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.item-price{font-size:14px;font-weight:700;color:#2C1F14}
+.item-old{font-size:11px;color:#aaa;text-decoration:line-through}
+.remove-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;line-height:1}
+.coupon-row{display:flex;gap:8px;margin-top:16px}
+.coupon-row input{flex:1;border:1px solid #E0D8CE;border-radius:4px;padding:9px 12px;font-size:12px}
+.coupon-row button{background:#2C1F14;color:#fff;border:none;padding:9px 16px;font-size:12px;border-radius:4px;cursor:pointer}
+.btn-checkout{background:#2C1F14;color:#fff;border:none;width:100%;padding:13px;font-size:13px;border-radius:4px;cursor:pointer;margin-top:16px;font-weight:600;display:block}
+.secure-note{display:flex;align-items:center;gap:6px;justify-content:center;margin-top:10px;font-size:11px;color:#aaa}
+.secure-note svg{width:13px;height:13px;stroke:#aaa;fill:none}
+.payment-icons{display:flex;gap:8px;justify-content:center;margin-top:14px}
+.p-icon{background:#F5F0E8;border-radius:4px;padding:4px 10px;font-size:10px;color:#888;font-weight:600}
+
+@media(max-width:768px){
+.cart-layout{grid-template-columns:1fr;padding:16px 20px}
+.cart-item{grid-template-columns:60px 1fr;gap:10px}
+.item-price-col{flex-direction:row;align-items:center;gap:8px}
+.coupon-row{flex-direction:column}
+.coupon-row button{width:100%}
+}
+
+@media(max-width:480px){
+.cart-item{grid-template-columns:50px 1fr}
+}

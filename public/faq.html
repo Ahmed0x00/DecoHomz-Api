@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ — DecoHomz</title>
+  <link rel="stylesheet" href="css/shared.css">
+  <style>
+    .faq-hero { background: #2C1F14; color: #fff; padding: 80px 40px; text-align: center; }
+    .faq-hero h1 { font-size: 36px; margin-bottom: 12px; }
+    .faq-hero p { opacity: 0.7; font-size: 14px; }
+    
+    .faq-layout { max-width: 800px; margin: 60px auto; padding: 0 20px; }
+    .faq-cat-title { font-size: 18px; font-weight: 700; color: #2C1F14; margin: 40px 0 20px; border-bottom: 1px solid #EDE8E2; padding-bottom: 10px; }
+    
+    .faq-item { border: 1px solid #EDE8E2; border-radius: 8px; margin-bottom: 12px; background: #fff; overflow: hidden; }
+    .faq-q { padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; color: #2C1F14; font-size: 14px; transition: 0.3s; }
+    .faq-q:hover { background: #FAFAF8; }
+    .faq-q svg { width: 18px; height: 18px; transition: 0.3s; }
+    .faq-item.active .faq-q { background: #F5F0E8; }
+    .faq-item.active .faq-q svg { transform: rotate(180deg); }
+    
+    .faq-a { padding: 0 24px; max-height: 0; overflow: hidden; transition: 0.4s ease-out; color: #666; font-size: 13px; line-height: 1.8; }
+    .faq-item.active .faq-a { padding: 0 24px 20px; max-height: 200px; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">Find answers to common questions about our products and services.</div>
+<nav><div class="nav-inner">
+  <div class="logo">Deco<span>Homz</span></div>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="shop.html">Shop</a></li>
+    <li><a href="categories.html">Categories</a></li>
+    <li><a href="new-arrivals.html">New Arrivals</a></li>
+    <li><a href="deals.html">Deals</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="search-container">
+      <svg class="search-trigger" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </div>
+    <div class="cart-trigger" title="Shopping Cart" style="position:relative; cursor:pointer">
+      <svg viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      <div class="badge badge-cart" style="display:none">0</div>
+    </div>
+    <div class="user-trigger" title="Account" onclick="location.href='account.html'" style="cursor:pointer">
+      <svg viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+  </div>
+</div></nav>
+
+<div class="faq-hero">
+  <h1>Frequently Asked Questions</h1>
+  <p>Everything you need to know about our products and services.</p>
+</div>
+
+<div class="faq-layout">
+  <div class="faq-cat-title">Orders & Shipping</div>
+  <div class="faq-item">
+    <div class="faq-q">How long does shipping take? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+    <div class="faq-a">For standard orders within Cairo, shipping typically takes 3-5 business days. International shipping can take 10-15 business days depending on the location.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Can I track my order? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+    <div class="faq-a">Yes! Once your order is shipped, you will receive an email with a tracking number and a link to our tracking portal.</div>
+  </div>
+
+  <div class="faq-cat-title">Returns & Warranty</div>
+  <div class="faq-item">
+    <div class="faq-q">What is your return policy? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+    <div class="faq-a">We offer a 14-day return policy for all unused items in their original packaging. Please contact our support team to initiate a return.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Do you offer warranty on furniture? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+    <div class="faq-a">Most of our premium furniture pieces come with a 5-year structural warranty. Specific details can be found on each product page.</div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="f-logo">Deco<span>Homz</span></div>
+      <p class="f-desc">Premium furniture for every space. Crafted for comfort, designed for life.</p>
+    </div>
+    <div>
+      <div class="f-head">Shop</div>
+      <ul class="f-links">
+        <li><a href="shop.html">Living Room</a></li>
+        <li><a href="shop.html">Bedroom</a></li>
+        <li><a href="shop.html">Dining</a></li>
+        <li><a href="shop.html">Outdoor</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="f-head">Help</div>
+      <ul class="f-links">
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="contact.html">Shipping</a></li>
+        <li><a href="contact.html">Returns</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="f-head">Company</div>
+      <ul class="f-links">
+        <li><a href="about.html">About Us</a></li>
+        <li><a href="faq.html">Help Center</a></li>
+        <li><a href="account.html">My Account</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 DecoHomz. All rights reserved.</span>
+    <span>Privacy · Terms</span>
+  </div>
+</footer>
+
+<script src="js/shared.js"></script>
+<script>
+  document.querySelectorAll('.faq-q').forEach(q => {
+    q.addEventListener('click', () => {
+      const item = q.parentElement;
+      item.classList.toggle('active');
+    });
+  });
+</script>
+</body>
+</html>

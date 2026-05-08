@@ -8,39 +8,39 @@
 
 @section('content')
 
-  <div class="breadcrumb">Home › <span id="breadcrumb-label">Living Room</span></div>
+  <div class="breadcrumb">{{ __('Home') }} › <span id="breadcrumb-label">{{ __('Shop All Products') }}</span></div>
 
   <div class="shop-layout">
     <div class="sidebar">
       <div class="filter-group">
-        <div class="filter-title">Category</div>
+        <div class="filter-title">{{ __('Category') }}</div>
         <div id="category-filters">
           <!-- Loaded via JS -->
         </div>
       </div>
       <div class="filter-group">
-        <div class="filter-title">Price (EGP)</div>
+        <div class="filter-title">{{ __('Price (EGP)') }}</div>
         <div class="price-range">
-          <input type="number" id="min-price" placeholder="Min" value="500">
+          <input type="number" id="min-price" placeholder="{{ __('Min') }}" value="500">
           <span>–</span>
-          <input type="number" id="max-price" placeholder="Max" value="20000">
+          <input type="number" id="max-price" placeholder="{{ __('Max') }}" value="20000">
         </div>
       </div>
       <div class="filter-group">
-        <div class="filter-title">Material</div>
+        <div class="filter-title">{{ __('Material') }}</div>
         <div id="material-filters">
-          <div class="filter-item"><input type="checkbox" value="Wood" id="mat-wood"><label for="mat-wood">Wood</label>
+          <div class="filter-item"><input type="checkbox" value="Wood" id="mat-wood"><label for="mat-wood">{{ __('Wood') }}</label>
           </div>
           <div class="filter-item"><input type="checkbox" value="Metal" id="mat-metal"><label
-              for="mat-metal">Metal</label></div>
+              for="mat-metal">{{ __('Metal') }}</label></div>
           <div class="filter-item"><input type="checkbox" value="Fabric" id="mat-fabric"><label
-              for="mat-fabric">Fabric</label></div>
+              for="mat-fabric">{{ __('Fabric') }}</label></div>
           <div class="filter-item"><input type="checkbox" value="Marble" id="mat-marble"><label
-              for="mat-marble">Marble</label></div>
+              for="mat-marble">{{ __('Marble') }}</label></div>
         </div>
       </div>
       <div class="filter-group">
-        <div class="filter-title">Color</div>
+        <div class="filter-title">{{ __('Color') }}</div>
         <div class="color-row" id="color-filters">
           <div class="color-dot" data-color="#C4A882" style="background:#C4A882"></div>
           <div class="color-dot" data-color="#5C3D2A" style="background:#5C3D2A"></div>
@@ -50,22 +50,22 @@
           <div class="color-dot" data-color="#E8E8E8" style="background:#E8E8E8;border:1px solid #ccc"></div>
         </div>
       </div>
-      <button class="btn-apply" id="apply-filters">Apply Filters</button>
+      <button class="btn-apply" id="apply-filters">{{ __('Apply Filters') }}</button>
     </div>
 
     <div class="main">
       <div class="main-top">
-        <div class="result-count" id="result-count">Loading...</div>
+        <div class="result-count" id="result-count">{{ __('Loading...') }}</div>
         <div class="sort-row">
           <select id="sort-select">
-            <option value="featured">Sort: Featured</option>
-            <option value="price-low">Price: Low to High</option>
-            <option value="price-high">Price: High to Low</option>
-            <option value="newest">Newest</option>
+            <option value="featured">{{ __('Sort: Featured') }}</option>
+            <option value="price-low">{{ __('Price: Low to High') }}</option>
+            <option value="price-high">{{ __('Price: High to Low') }}</option>
+            <option value="newest">{{ __('Newest') }}</option>
           </select>
           <div class="grid-toggle">
-            <button class="grid-btn active" id="grid-view-btn" title="Grid view">⊞</button>
-            <button class="grid-btn" id="list-view-btn" title="List view">☰</button>
+            <button class="grid-btn active" id="grid-view-btn" title="{{ __('Grid view') }}">⊞</button>
+            <button class="grid-btn" id="list-view-btn" title="{{ __('List view') }}">☰</button>
           </div>
         </div>
       </div>
@@ -162,11 +162,11 @@
         const params = getFilterParams();
         
         if (params.search) {
-          label.textContent = 'Search results for "' + params.search + '"';
+          label.textContent = "{{ __('Search results for') }} \"" + params.search + "\"";
         } else if (params.category) {
           label.textContent = params.category;
         } else {
-          label.textContent = 'Shop All Products';
+          label.textContent = "{{ __('Shop All Products') }}";
         }
       }
 
@@ -302,14 +302,14 @@
         const countEl = document.getElementById('result-count');
 
         const total = (window._lastPagination && window._lastPagination.total) || products.length;
-        if (countEl) countEl.textContent = total + ' products found';
+        if (countEl) countEl.textContent = total + " {{ __('products found') }}";
 
         if (products.length === 0) {
           grid.innerHTML = `
             <div style="grid-column:1/-1;text-align:center;padding:100px;background:#fff;border-radius:20px;border:1px solid #F0F0F0">
               <svg viewBox="0 0 24 24" width="60" height="60" stroke="#DDD" fill="none" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-              <h3 style="margin-top:20px;font-size:18px;color:#1A1A1A">No products found</h3>
-              <p style="color:#888;margin-top:8px">Try adjusting your filters or search query.</p>
+              <h3 style="margin-top:20px;font-size:18px;color:#1A1A1A">${"{{ __('No products found') }}"}</h3>
+              <p style="color:#888;margin-top:8px">${"{{ __('Try adjusting your filters or search query.') }}"}</p>
             </div>
           `;
           return;
@@ -335,7 +335,7 @@
               <div class="prod-name">${p.name}</div>
               <div class="prod-cat">${p.category ? p.category.name : ''}</div>
               <div class="prod-price">EGP ${parseFloat(p.price).toLocaleString()} ${oldPriceHtml}</div>
-              <button class="btn-cart" onclick="event.stopPropagation(); addToCartFromShop(${p.id}, '${esc(p.name)}', ${p.price})">Add to Cart</button>
+              <button class="btn-cart" onclick="event.stopPropagation(); addToCartFromShop(${p.id}, '${esc(p.name)}', ${p.price})">${"{{ __('Add to Cart') }}"}</button>
             </div>
           `;
         }).join('');

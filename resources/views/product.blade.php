@@ -10,18 +10,18 @@
 
 <input type="hidden" id="product-id" value="{{ $id }}">
 
-<div class="breadcrumb">Home › <span id="bc-category">…</span> › <span id="bc-product">Loading…</span></div>
+<div class="breadcrumb">{{ __('Home') }} › <span id="bc-category">…</span> › <span id="bc-product">{{ __('Loading…') }}</span></div>
 
 <div class="product-page" id="product-page">
   <!-- Filled by JS -->
-  <div style="text-align:center;padding:60px;color:#aaa">Loading product…</div>
+  <div style="text-align:center;padding:60px;color:#aaa">{{ __('Loading product…') }}</div>
 </div>
 
 <div class="tabs-section" id="tabs-section" style="display:none">
   <div class="tabs">
-    <div class="tab active" data-tab="description">Description</div>
-    <div class="tab" data-tab="specs">Specifications</div>
-    <div class="tab" data-tab="reviews" id="reviews-tab">Reviews (0)</div>
+    <div class="tab active" data-tab="description">{{ __('Description') }}</div>
+    <div class="tab" data-tab="specs">{{ __('Specifications') }}</div>
+    <div class="tab" data-tab="reviews" id="reviews-tab">{{ __('Reviews') }} (0)</div>
   </div>
   <div class="tab-content" id="tab-content">
     <div id="tab-description"></div>
@@ -32,8 +32,8 @@
 
 <div class="related" id="related-section" style="display:none">
   <div class="sec-row">
-    <div class="sec-title">You might also like</div>
-    <a href="/shop" class="sec-link">View All →</a>
+    <div class="sec-title">{{ __('You might also like') }}</div>
+    <a href="/shop" class="sec-link">{{ __('View All →') }}</a>
   </div>
   <div class="rel-grid" id="related-grid"></div>
 </div>
@@ -108,7 +108,7 @@
     // Colors
     var colorsHtml = '';
     if (p.colors && p.colors.length > 0) {
-      colorsHtml = '<div class="option-label">Color</div>' +
+      colorsHtml = '<div class="option-label">' + "{{ __('Color') }}" + '</div>' +
         '<div class="color-row" id="color-row">' +
         p.colors.map(function(c, i) {
           return '<div class="color-swatch' + (i === 0 ? ' active' : '') + '" style="background:' + c + '" data-color="' + c + '"></div>';
@@ -116,16 +116,12 @@
         '</div>';
     }
 
-    // Sizes (static for now — no size field in DB)
-    var sizesHtml = '';
-    // Sizes section kept for UX but driven by static data or could be extended
-
     // Perks
     var perksHtml = '<div class="perks">' +
-      '<div class="perk"><svg viewBox="0 0 24 24" stroke-width="1.5"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><div class="perk-text">Free delivery above EGP 2,000</div></div>' +
-      '<div class="perk"><svg viewBox="0 0 24 24" stroke-width="1.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg><div class="perk-text">Easy 14-day returns</div></div>' +
-      '<div class="perk"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><div class="perk-text">5-year warranty</div></div>' +
-      '<div class="perk"><svg viewBox="0 0 24 24" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><div class="perk-text">Secure payment</div></div>' +
+      '<div class="perk"><svg viewBox="0 0 24 24" stroke-width="1.5"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><div class="perk-text">' + "{{ __('Free delivery above EGP 2,000') }}" + '</div></div>' +
+      '<div class="perk"><svg viewBox="0 0 24 24" stroke-width="1.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg><div class="perk-text">' + "{{ __('Easy 14-day returns') }}" + '</div></div>' +
+      '<div class="perk"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><div class="perk-text">' + "{{ __('5-year warranty') }}" + '</div></div>' +
+      '<div class="perk"><svg viewBox="0 0 24 24" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><div class="perk-text">' + "{{ __('Secure payment') }}" + '</div></div>' +
       '</div>';
 
     document.getElementById('product-page').innerHTML =
@@ -137,36 +133,36 @@
       '</div>' +
       '<div class="info-section">' +
         '<div class="prod-meta">' +
-          '<span class="prod-cat-tag">' + (p.category ? p.category.name : 'Furniture') + '</span>' +
-          (p.stock > 0 ? '<span class="stock-tag in">In Stock</span>' : '<span class="stock-tag out">Out of Stock</span>') +
+          '<span class="prod-cat-tag">' + (p.category ? p.category.name : "{{ __('Furniture') }}") + '</span>' +
+          (p.stock > 0 ? '<span class="stock-tag in">' + "{{ __('In Stock') }}" + '</span>' : '<span class="stock-tag out">' + "{{ __('Out of Stock') }}" + '</span>') +
         '</div>' +
         '<h1 class="prod-title">' + p.name + '</h1>' +
         '<div class="rating-row">' +
           '<div class="stars-outer"><div class="stars-inner" style="width:' + (avgRating / 5 * 100) + '%"></div></div>' +
-          '<span class="rating-text">' + avgRating.toFixed(1) + ' (' + reviewCount + ' reviews)</span>' +
+          '<span class="rating-text">' + avgRating.toFixed(1) + ' (' + reviewCount + ' ' + "{{ __('reviews') }}" + ')</span>' +
         '</div>' +
         '<div class="price-container">' +
           priceHtml +
         '</div>' +
-        '<p class="short-desc">' + (p.description ? p.description.substring(0, 160) + '...' : 'Premium quality piece designed for modern living spaces.') + '</p>' +
+        '<p class="short-desc">' + (p.description ? p.description.substring(0, 160) + '...' : "{{ __('Premium quality piece designed for modern living spaces.') }}") + '</p>' +
         '<div class="options-container">' +
           colorsHtml +
         '</div>' +
         '<div class="purchase-section">' +
           '<div class="qty-selector">' +
-            '<button class="qty-btn" id="qty-minus" aria-label="Decrease quantity">−</button>' +
+            '<button class="qty-btn" id="qty-minus" aria-label="' + "{{ __('Decrease quantity') }}" + '">−</button>' +
             '<span class="qty-num" id="qty-num">1</span>' +
-            '<button class="qty-btn" id="qty-plus" aria-label="Increase quantity">+</button>' +
+            '<button class="qty-btn" id="qty-plus" aria-label="' + "{{ __('Increase quantity') }}" + '">+</button>' +
           '</div>' +
           '<button class="btn-primary-lg" id="add-to-cart-btn">' +
-            '<span>Add to Cart</span>' +
+            '<span>' + "{{ __('Add to Cart') }}" + '</span>' +
             '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4H6z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>' +
           '</button>' +
         '</div>' +
         '<div class="trust-badges">' +
-          '<div class="trust-item"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>5-Year Warranty</span></div>' +
-          '<div class="trust-item"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><span>Fast Shipping</span></div>' +
-          '<div class="trust-item"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg><span>Easy Returns</span></div>' +
+          '<div class="trust-item"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>' + "{{ __('5-Year Warranty') }}" + '</span></div>' +
+          '<div class="trust-item"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><span>' + "{{ __('Fast Shipping') }}" + '</span></div>' +
+          '<div class="trust-item"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg><span>' + "{{ __('Easy Returns') }}" + '</span></div>' +
         '</div>' +
       '</div>';
 
@@ -180,10 +176,10 @@
 
     // Description content
     document.getElementById('tab-description').textContent =
-      p.description || 'Premium quality furniture crafted for your home.';
+      p.description || "{{ __('Premium quality furniture crafted for your home.') }}";
 
     // Reviews tab label
-    document.getElementById('reviews-tab').textContent = 'Reviews (' + reviewCount + ')';
+    document.getElementById('reviews-tab').textContent = "{{ __('Reviews') }}" + ' (' + reviewCount + ')';
   }
 
   // ── Image gallery ────────────────────────────────────────

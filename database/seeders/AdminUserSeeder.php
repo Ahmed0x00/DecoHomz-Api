@@ -10,20 +10,24 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        User::create([
-            'name' => 'Admin',
-            'email' => 'admin@decohomz.com',
-            'password' => Hash::make('password'),
-            'phone' => '01012345678',
-            'role' => 'admin',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@decohomz.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('password'),
+                'phone' => '01012345678',
+                'role' => 'admin',
+            ]
+        );
 
-        User::create([
-            'name' => 'Test User',
-            'email' => 'user@decohomz.com',
-            'password' => Hash::make('password'),
-            'phone' => '01098765432',
-            'role' => 'user',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'user@decohomz.com'],
+            [
+                'name' => 'Test User',
+                'password' => Hash::make('password'),
+                'phone' => '01098765432',
+                'role' => 'user',
+            ]
+        );
     }
 }

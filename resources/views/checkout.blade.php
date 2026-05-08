@@ -11,22 +11,22 @@
   <div class="steps">
     <div class="step done">
       <div class="step-num">✓</div>
-      <div class="step-name">Cart</div>
+      <div class="step-name">{{ __('Cart') }}</div>
     </div>
     <div class="step-line done"></div>
     <div class="step done">
       <div class="step-num">✓</div>
-      <div class="step-name">Review</div>
+      <div class="step-name">{{ __('Review') }}</div>
     </div>
     <div class="step-line done"></div>
     <div class="step active">
       <div class="step-num">3</div>
-      <div class="step-name">Shipping</div>
+      <div class="step-name">{{ __('Shipping') }}</div>
     </div>
     <div class="step-line"></div>
     <div class="step inactive">
       <div class="step-num">4</div>
-      <div class="step-name">Payment</div>
+      <div class="step-name">{{ __('Payment') }}</div>
     </div>
   </div>
 
@@ -45,23 +45,23 @@
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
               </svg>
-              Contact Information
+              {{ __('Contact Information') }}
             </div>
             <div class="form-grid">
               <div class="field">
-                <label>First Name</label>
-                <input type="text" name="first_name" placeholder="Sara" required>
+                <label>{{ __('First Name') }}</label>
+                <input type="text" name="first_name" placeholder="{{ __('Sara') }}" required>
               </div>
               <div class="field">
-                <label>Last Name</label>
-                <input type="text" name="last_name" placeholder="Ahmed" required>
+                <label>{{ __('Last Name') }}</label>
+                <input type="text" name="last_name" placeholder="{{ __('Ahmed') }}" required>
               </div>
               <div class="field">
-                <label>Email Address</label>
+                <label>{{ __('Email Address') }}</label>
                 <input type="email" name="email" placeholder="sara@email.com" required>
               </div>
               <div class="field">
-                <label>Phone Number</label>
+                <label>{{ __('Phone Number') }}</label>
                 <input type="tel" name="phone" placeholder="+20 1XX XXX XXXX" required>
               </div>
             </div>
@@ -74,30 +74,30 @@
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                 <circle cx="12" cy="10" r="3" />
               </svg>
-              Shipping Address
+              {{ __('Shipping Address') }}
             </div>
             <div class="form-grid">
               <div class="field full">
-                <label>Street Address</label>
-                <input type="text" name="address_line_1" placeholder="14 El Nasr Street, Apt 5" required>
+                <label>{{ __('Street Address') }}</label>
+                <input type="text" name="address_line_1" placeholder="{{ __('14 El Nasr Street, Apt 5') }}" required>
               </div>
               <div class="field full" style="display:none">
-                <input type="text" name="address_line_2" placeholder="Apartment, suite, etc. (optional)">
+                <input type="text" name="address_line_2" placeholder="{{ __('Apartment, suite, etc. (optional)') }}">
               </div>
               <div class="field">
-                <label>City</label>
-                <input type="text" name="city" placeholder="Cairo" required>
+                <label>{{ __('City') }}</label>
+                <input type="text" name="city" placeholder="{{ __('Cairo') }}" required>
               </div>
               <div class="field">
-                <label>Governorate</label>
+                <label>{{ __('Governorate') }}</label>
                 <select name="state" required onchange="onGovernorateChange(this.value)">
-                  <option value="">Select Governorate</option>
-                  <option value="Cairo">Cairo</option>
-                  <option value="Giza">Giza</option>
-                  <option value="Alexandria">Alexandria</option>
-                  <option value="Sharm El Sheikh">Sharm El Sheikh</option>
-                  <option value="Luxor">Luxor</option>
-                  <option value="Aswan">Aswan</option>
+                  <option value="">{{ __('Select Governorate') }}</option>
+                  <option value="Cairo">{{ __('Cairo') }}</option>
+                  <option value="Giza">{{ __('Giza') }}</option>
+                  <option value="Alexandria">{{ __('Alexandria') }}</option>
+                  <option value="Sharm El Sheikh">{{ __('Sharm El Sheikh') }}</option>
+                  <option value="Luxor">{{ __('Luxor') }}</option>
+                  <option value="Aswan">{{ __('Aswan') }}</option>
                   <option value="Port Said">Port Said</option>
                   <option value="Suez">Suez</option>
                   <option value="Ismailia">Ismailia</option>
@@ -118,18 +118,18 @@
                 </select>
               </div>
               <div class="field">
-                <label>Postal Code</label>
+                <label>{{ __('Postal Code') }}</label>
                 <input type="text" name="postal_code" placeholder="11511" required>
               </div>
               <div class="field">
-                <label>Country</label>
+                <label>{{ __('Country') }}</label>
                 <select name="country" required>
-                  <option>Egypt</option>
+                  <option>{{ __('Egypt') }}</option>
                 </select>
               </div>
               <div class="field full">
-                <label>Delivery Notes (optional)</label>
-                <input type="text" name="notes" placeholder="Floor, landmark, or special instructions...">
+                <label>{{ __('Delivery Notes (optional)') }}</label>
+                <input type="text" name="notes" placeholder="{{ __('Floor, landmark, or special instructions...') }}">
               </div>
             </div>
           </div>
@@ -143,38 +143,38 @@
                 <circle cx="5.5" cy="18.5" r="2.5" />
                 <circle cx="18.5" cy="18.5" r="2.5" />
               </svg>
-              Delivery Method
+              {{ __('Delivery Method') }}
             </div>
             <div class="delivery-opts">
               <div class="delivery-opt selected" id="opt-standard" data-base="0">
                 <div class="delivery-opt-left">
                   <input type="radio" name="delivery_method" value="standard" checked>
                   <div class="delivery-opt-info">
-                    <div class="opt-name">Standard Delivery</div>
-                    <div class="opt-desc">Estimated 5–7 business days · White glove assembly included</div>
+                    <div class="opt-name">{{ __('Standard Delivery') }}</div>
+                    <div class="opt-desc">{{ __('Estimated 5–7 business days · White glove assembly included') }}</div>
                   </div>
                 </div>
-                <div class="opt-price free" id="opt-standard-price">Free</div>
+                <div class="opt-price free" id="opt-standard-price">{{ __('Free') }}</div>
               </div>
               <div class="delivery-opt" id="opt-express" data-base="299">
                 <div class="delivery-opt-left">
                   <input type="radio" name="delivery_method" value="express">
                   <div class="delivery-opt-info">
-                    <div class="opt-name">Express Delivery</div>
-                    <div class="opt-desc">Estimated 2–3 business days · Priority handling</div>
+                    <div class="opt-name">{{ __('Express Delivery') }}</div>
+                    <div class="opt-desc">{{ __('Estimated 2–3 business days · Priority handling') }}</div>
                   </div>
                 </div>
-                <div class="opt-price" id="opt-express-price">EGP 299</div>
+                <div class="opt-price" id="opt-express-price">{{ __('EGP 299') }}</div>
               </div>
               <div class="delivery-opt" id="opt-scheduled" data-base="149">
                 <div class="delivery-opt-left">
                   <input type="radio" name="delivery_method" value="scheduled">
                   <div class="delivery-opt-info">
-                    <div class="opt-name">Scheduled Delivery</div>
-                    <div class="opt-desc">Choose your preferred date & time slot</div>
+                    <div class="opt-name">{{ __('Scheduled Delivery') }}</div>
+                    <div class="opt-desc">{{ __('Choose your preferred date & time slot') }}</div>
                   </div>
                 </div>
-                <div class="opt-price" id="opt-scheduled-price">EGP 149</div>
+                <div class="opt-price" id="opt-scheduled-price">{{ __('EGP 149') }}</div>
               </div>
             </div>
           </div>
@@ -191,32 +191,32 @@
                 <rect x="1" y="4" width="22" height="16" rx="2" />
                 <line x1="1" y1="10" x2="23" y2="10" />
               </svg>
-              Payment Method
+              {{ __('Payment Method') }}
             </div>
             <div class="payment-info-box" style="margin-bottom:18px">
-              <div class="pay-tab active" style="border-radius:8px; width:fit-content; padding:10px 20px">Cash on Delivery
+              <div class="pay-tab active" style="border-radius:8px; width:fit-content; padding:10px 20px">{{ __('Cash on Delivery') }}
               </div>
             </div>
 
 
             <div id="pay-cod" class="alt-pay show">
-              <strong style="color:#2C1F14">Cash on Delivery</strong><br>
-              Pay in cash when your order arrives. Please have the exact amount ready.<br>
-              Available on orders up to <strong>EGP 30,000</strong>.
+              <strong style="color:#2C1F14">{{ __('Cash on Delivery') }}</strong><br>
+              {{ __('Pay in cash when your order arrives. Please have the exact amount ready.') }}<br>
+              {{ __('Available on orders up to') }} <strong>{{ __('EGP 30,000') }}</strong>.
             </div>
 
             <div id="checkout-deposit-info" class="deposit-info-box" style="margin-top:16px;background:#fef3c7;border:1px solid #fde68a;border-radius:10px;padding:16px 18px;display:none;">
-              <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:6px;">Deposit Required</div>
+              <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:6px;">{{ __('Deposit Required') }}</div>
               <div style="font-size:12px;color:#92400e;line-height:1.6;">
-                A <strong>deposit of <span id="step2-deposit-amt">EGP 0</span></strong> is required to confirm your order.<br>
-                The remaining balance (<strong>EGP <span id="step2-balance-amt">0</span></strong>) is paid on delivery.
+                {{ __('A deposit of') }} <strong><span id="step2-deposit-amt">EGP 0</span></strong> {{ __('is required to confirm your order.') }}<br>
+                {{ __('The remaining balance') }} (<strong>EGP <span id="step2-balance-amt">0</span></strong>) {{ __('is paid on delivery.') }}
               </div>
             </div>
           </div>
 
           <button type="button" class="btn-outline"
             style="width:100%;margin-top:16px;padding:12px;cursor:pointer;background:#fff;border:1px solid #E0D8CE;border-radius:6px;color:#2C1F14;font-weight:600"
-            onclick="backToShipping()">← Back to Shipping</button>
+            onclick="backToShipping()">← {{ __('Back to Shipping') }}</button>
 
         </div>
         <!-- END STEP 2 -->
@@ -226,28 +226,28 @@
 
     <!-- ORDER SUMMARY SIDEBAR -->
     <div class="summary-box">
-      <div class="sum-title">Order Summary</div>
+      <div class="sum-title">{{ __('Order Summary') }}</div>
       <div id="checkout-summary-items" class="sum-items"></div>
 
       <div class="coupon-row">
-        <input type="text" id="checkout-coupon-input" placeholder="Coupon code">
-        <button id="checkout-apply-coupon">Apply</button>
+        <input type="text" id="checkout-coupon-input" placeholder="{{ __('Coupon code') }}">
+        <button id="checkout-apply-coupon">{{ __('Apply') }}</button>
       </div>
 
       <div class="sum-row">
-        <span class="k" id="co-subtotal-label">Subtotal</span>
+        <span class="k" id="co-subtotal-label">{{ __('Subtotal') }}</span>
         <span class="v" id="co-subtotal">EGP 0</span>
       </div>
       <div class="sum-row" id="co-discount-row" style="display:none">
-        <span class="k">Discount</span>
+        <span class="k">{{ __('Discount') }}</span>
         <span class="v discount" id="co-discount" style="color:#C0392B">-EGP 0</span>
       </div>
       <div class="sum-row">
-        <span class="k">Delivery Fee</span>
-        <span class="v free" id="co-delivery">Free</span>
+        <span class="k">{{ __('Delivery Fee') }}</span>
+        <span class="v free" id="co-delivery">{{ __('Free') }}</span>
       </div>
       <div class="sum-row" id="co-vat-row">
-        <span class="k">VAT (14%)</span>
+        <span class="k">{{ __('VAT (14%)') }}</span>
         <span class="v" id="co-vat">EGP 0</span>
       </div>
       <div class="sum-row" id="co-deposit-row">

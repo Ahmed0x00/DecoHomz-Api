@@ -8,7 +8,7 @@
 
 @section('content')
 
-  <div class="breadcrumb">Home › <span>My Account</span></div>
+  <div class="breadcrumb">{{ __('Home') }} › <span>{{ __('My Account') }}</span></div>
 
   <div class="account-layout">
     <!-- Sidebar -->
@@ -22,7 +22,7 @@
         </div>
         <div class="acc-name" id="acc-name">—</div>
         <div class="acc-email" id="acc-email">—</div>
-        <div class="acc-since" id="acc-since">Member</div>
+        <div class="acc-since" id="acc-since">{{ __('Member') }}</div>
       </div>
       <ul class="acc-menu">
         <li><a href="#" class="active" data-tab="overview" onclick="showTab('overview', this); return false;">
@@ -32,7 +32,7 @@
               <rect x="14" y="14" width="7" height="7" />
               <rect x="3" y="14" width="7" height="7" />
             </svg>
-            Overview
+            {{ __('Overview') }}
           </a></li>
         <li><a href="#" data-tab="orders" onclick="showTab('orders', this); return false;">
             <svg viewBox="0 0 24 24" stroke-width="1.5">
@@ -40,21 +40,21 @@
               <line x1="3" y1="6" x2="21" y2="6" />
               <path d="M16 10a4 4 0 0 1-8 0" />
             </svg>
-            My Orders
+            {{ __('My Orders') }}
           </a></li>
         <li><a href="#" data-tab="profile" onclick="showTab('profile', this); return false;">
             <svg viewBox="0 0 24 24" stroke-width="1.5">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
               <circle cx="12" cy="7" r="4" />
             </svg>
-            Edit Profile
+            {{ __('Edit Profile') }}
           </a></li>
         <li><a href="#" data-tab="addresses" onclick="showTab('addresses', this); return false;">
             <svg viewBox="0 0 24 24" stroke-width="1.5">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
               <circle cx="12" cy="10" r="3" />
             </svg>
-            Addresses
+            {{ __('Addresses') }}
           </a></li>
         <li class="logout">
           <a href="#" id="btn-logout">
@@ -63,7 +63,7 @@
               <polyline points="16 17 21 12 16 7" />
               <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
-            Sign Out
+            {{ __('Sign Out') }}
           </a>
         </li>
       </ul>
@@ -75,7 +75,7 @@
       <!-- OVERVIEW TAB -->
       <div id="tab-overview">
         <div class="section-head">
-          <div class="section-title">Account Overview</div>
+          <div class="section-title">{{ __('Account Overview') }}</div>
         </div>
         <div class="stats-row">
           <div class="stat-card">
@@ -86,7 +86,7 @@
               </svg>
             </div>
             <div class="stat-num" id="stat-total">—</div>
-            <div class="stat-label">Total Orders</div>
+            <div class="stat-label">{{ __('Total Orders') }}</div>
           </div>
           <div class="stat-card">
             <div class="stat-icon" style="background:#F0F7EC">
@@ -95,7 +95,7 @@
               </svg>
             </div>
             <div class="stat-num" id="stat-delivered">—</div>
-            <div class="stat-label">Delivered</div>
+            <div class="stat-label">{{ __('Delivered') }}</div>
           </div>
           <div class="stat-card">
             <div class="stat-icon" style="background:#FFF8E6">
@@ -105,7 +105,7 @@
               </svg>
             </div>
             <div class="stat-num" id="stat-pending">—</div>
-            <div class="stat-label">Processing</div>
+            <div class="stat-label">{{ __('Processing') }}</div>
           </div>
           <div class="stat-card">
             <div class="stat-icon" style="background:#F5F0E8">
@@ -115,14 +115,13 @@
               </svg>
             </div>
             <div class="stat-num" id="stat-wishlist">—</div>
-            <div class="stat-label">Wishlist</div>
+            <div class="stat-label">{{ __('Wishlist') }}</div>
           </div>
         </div>
 
         <div class="section-head">
-          <div class="section-title">Recent Orders</div>
-          <button class="btn-edit" onclick="showTab('orders', document.querySelector('[data-tab=orders]'));">View
-            All</button>
+          <div class="section-title">{{ __('Recent Orders') }}</div>
+          <button class="btn-edit" onclick="showTab('orders', document.querySelector('[data-tab=orders]'));">{{ __('View All') }}</button>
         </div>
         <div id="recent-orders-container" class="orders-list">
           <!-- Loaded dynamically -->
@@ -132,7 +131,7 @@
       <!-- ORDERS TAB -->
       <div id="tab-orders" style="display:none">
         <div class="section-head">
-          <div class="section-title">My Orders</div>
+          <div class="section-title">{{ __('My Orders') }}</div>
         </div>
         <div id="orders-list" class="orders-list"></div>
       </div>
@@ -140,47 +139,47 @@
       <!-- PROFILE TAB -->
       <div id="tab-profile" style="display:none">
         <div class="section-head">
-          <div class="section-title">Edit Profile</div>
+          <div class="section-title">{{ __('Edit Profile') }}</div>
         </div>
         <div class="profile-form">
-          <div class="form-section-title">Personal Information</div>
+          <div class="form-section-title">{{ __('Personal Information') }}</div>
           <div class="form-grid">
             <div class="field">
-              <label>Name</label>
+              <label>{{ __('Name') }}</label>
               <input type="text" name="name" id="profile-name">
             </div>
             <div class="field">
-              <label>Email</label>
+              <label>{{ __('Email Address') }}</label>
               <input type="email" name="email" id="profile-email" disabled>
             </div>
             <div class="field">
-              <label>Phone</label>
+              <label>{{ __('Phone') }}</label>
               <input type="tel" name="phone" id="profile-phone">
             </div>
           </div>
-          <button class="save-btn" id="btn-save-profile">Save Changes</button>
+          <button class="save-btn" id="btn-save-profile">{{ __('Save Changes') }}</button>
         </div>
         <div class="profile-form">
-          <div class="form-section-title">Change Password</div>
+          <div class="form-section-title">{{ __('Change Password') }}</div>
           <div class="form-grid">
             <div class="field">
-              <label>Current Password</label>
+              <label>{{ __('Current Password') }}</label>
               <input type="password" name="current_password" id="profile-current-password" placeholder="••••••••">
             </div>
             <div class="field">
-              <label>New Password</label>
-              <input type="password" name="new_password" id="profile-new-password" placeholder="Min. 8 characters">
+              <label>{{ __('New Password') }}</label>
+              <input type="password" name="new_password" id="profile-new-password" placeholder="{{ __('Min. 8 characters') }}">
             </div>
           </div>
-          <button class="save-btn" id="btn-save-password">Update Password</button>
+          <button class="save-btn" id="btn-save-password">{{ __('Update Password') }}</button>
         </div>
       </div>
 
       <!-- ADDRESSES TAB -->
       <div id="tab-addresses" style="display:none">
         <div class="section-head">
-          <div class="section-title">Saved Addresses</div>
-          <button class="btn-edit" id="btn-add-address">+ Add New</button>
+          <div class="section-title">{{ __('Saved Addresses') }}</div>
+          <button class="btn-edit" id="btn-add-address">+ {{ __('Add New') }}</button>
         </div>
         <div id="addresses-container"></div>
 
@@ -188,50 +187,49 @@
         <div id="address-modal"
           style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:1000; align-items:center; justify-content:center;">
           <div style="background:#fff; border-radius:10px; padding:28px; width:100%; max-width:460px; margin:20px;">
-            <div style="font-size:15px; font-weight:700; color:#2C1F14; margin-bottom:20px" id="address-modal-title">Add
-              Address</div>
+            <div style="font-size:15px; font-weight:700; color:#2C1F14; margin-bottom:20px" id="address-modal-title">{{ __('Add Address') }}</div>
             <input type="hidden" id="edit-address-id">
             <div class="form-grid">
               <div class="field full">
-                <label>Label (e.g. Home, Office)</label>
-                <input type="text" id="addr-label" placeholder="Home">
+                <label>{{ __('Label (e.g. Home, Office)') }}</label>
+                <input type="text" id="addr-label" placeholder="{{ __('Home') }}">
               </div>
               <div class="field">
-                <label>First Name</label>
+                <label>{{ __('First Name') }}</label>
                 <input type="text" id="addr-first-name" required>
               </div>
               <div class="field">
-                <label>Last Name</label>
+                <label>{{ __('Last Name') }}</label>
                 <input type="text" id="addr-last-name" required>
               </div>
               <div class="field full">
-                <label>Street Address</label>
-                <input type="text" id="addr-line-1" placeholder="14 El Nasr Street, Apt 5" required>
+                <label>{{ __('Street Address') }}</label>
+                <input type="text" id="addr-line-1" placeholder="{{ __('14 El Nasr Street, Apt 5') }}" required>
               </div>
               <div class="field full">
-                <label>Address Line 2 (optional)</label>
-                <input type="text" id="addr-line-2" placeholder="Floor, building info...">
+                <label>{{ __('Address Line 2 (optional)') }}</label>
+                <input type="text" id="addr-line-2" placeholder="{{ __('Floor, building info...') }}">
               </div>
               <div class="field">
-                <label>City</label>
+                <label>{{ __('City') }}</label>
                 <input type="text" id="addr-city" required>
               </div>
               <div class="field">
-                <label>Governorate</label>
+                <label>{{ __('Governorate') }}</label>
                 <input type="text" id="addr-state" required>
               </div>
               <div class="field">
-                <label>Postal Code</label>
+                <label>{{ __('Postal Code') }}</label>
                 <input type="text" id="addr-postal" placeholder="11511">
               </div>
               <div class="field">
-                <label>Phone</label>
+                <label>{{ __('Phone') }}</label>
                 <input type="tel" id="addr-phone" required>
               </div>
             </div>
             <div style="display:flex; gap:10px; margin-top:20px">
-              <button class="save-btn" id="btn-save-address" style="flex:1">Save Address</button>
-              <button class="btn-edit" id="btn-cancel-address" style="flex:1">Cancel</button>
+              <button class="save-btn" id="btn-save-address" style="flex:1">{{ __('Save Address') }}</button>
+              <button class="btn-edit" id="btn-cancel-address" style="flex:1">{{ __('Cancel') }}</button>
             </div>
           </div>
         </div>
@@ -273,10 +271,10 @@
         const sinceEl = document.getElementById('acc-since');
 
         const fullName = user.name || [user.first_name, user.last_name].filter(Boolean).join(' ');
-        if (nameEl) nameEl.textContent = fullName || 'User';
+        if (nameEl) nameEl.textContent = fullName || "{{ __('User') }}";
         if (emailEl) emailEl.textContent = user.email || '—';
         if (sinceEl && user.created_at) {
-          sinceEl.textContent = 'Since ' + new Date(user.created_at).getFullYear();
+          sinceEl.textContent = "{{ __('Since') }}" + " " + new Date(user.created_at).getFullYear();
         }
 
         // Pre-fill profile tab
@@ -328,8 +326,8 @@
 
         const html = orders.slice(0, 10).map(o => buildOrderCard(o)).join('');
 
-        if (container) container.innerHTML = html || '<p style="color:#aaa;font-size:13px">No orders yet.</p>';
-        if (fullContainer) fullContainer.innerHTML = html || '<p style="color:#aaa;font-size:13px">No orders yet.</p>';
+        if (container) container.innerHTML = html || '<p style="color:#aaa;font-size:13px">' + "{{ __('No orders yet.') }}" + '</p>';
+        if (fullContainer) fullContainer.innerHTML = html || '<p style="color:#aaa;font-size:13px">' + "{{ __('No orders yet.') }}" + '</p>';
       }
 
       function buildOrderCard(o) {
@@ -364,7 +362,7 @@
             </div>
             <div>
               <div class="order-total">EGP ${(parseFloat(o.total) || 0).toLocaleString()}</div>
-              <a class="order-action" href="/account/orders/${o.id}">Details →</a>
+              <a class="order-action" href="/account/orders/${o.id}">${"{{ __('Details →') }}"}</a>
             </div>
           </div>
         `;
@@ -392,7 +390,7 @@
           if (container) {
             container.innerHTML = orders.length
               ? orders.map(o => buildOrderCard(o)).join('')
-              : '<p style="color:#aaa;font-size:13px">No orders yet.</p>';
+              : '<p style="color:#aaa;font-size:13px">' + "{{ __('No orders yet.') }}" + '</p>';
           }
         } catch (e) { }
       }
@@ -412,14 +410,14 @@
         if (!container) return;
 
         if (addresses.length === 0) {
-          container.innerHTML = '<p style="color:#aaa;font-size:13px">No saved addresses.</p>';
+          container.innerHTML = '<p style="color:#aaa;font-size:13px">' + "{{ __('No saved addresses.') }}" + '</p>';
           return;
         }
 
         container.innerHTML = addresses.map(addr => `
           <div class="address-card" style="background:#fff;border:1px solid #EDE8E2;border-radius:10px;padding:20px;margin-bottom:12px">
             <div style="font-size:13px;font-weight:600;color:#2C1F14;margin-bottom:4px">
-              ${addr.label || 'Address'} ${addr.is_default ? '— Default' : ''}
+              ${addr.label || "{{ __('Address') }}"} ${addr.is_default ? (' — ' + "{{ __('Default') }}") : ''}
             </div>
             <div style="font-size:12px;color:#888;line-height:1.7">
               ${addr.first_name || ''} ${addr.last_name || ''}<br>
@@ -428,8 +426,8 @@
               ${addr.phone || ''}
             </div>
             <div style="margin-top:12px;display:flex;gap:8px">
-              <button class="btn-edit" onclick="editAddress('${addr.id}')">Edit</button>
-              <button class="btn-edit" style="color:#c0392b" onclick="deleteAddress('${addr.id}')">Remove</button>
+              <button class="btn-edit" onclick="editAddress('${addr.id}')">${"{{ __('Edit') }}"}</button>
+              <button class="btn-edit" style="color:#c0392b" onclick="deleteAddress('${addr.id}')">${"{{ __('Remove') }}"}</button>
             </div>
           </div>
         `).join('');
@@ -442,12 +440,12 @@
         const phone = document.getElementById('profile-phone').value.trim();
 
         if (!firstName || !lastName) {
-          showToast('First and last name are required.');
+          showToast("{{ __('First and last name are required.') }}");
           return;
         }
 
         this.disabled = true;
-        this.textContent = 'Saving...';
+        this.textContent = "{{ __('Saving...') }}";
 
         try {
           await API.put('/auth/profile', {
@@ -455,13 +453,13 @@
             last_name: lastName,
             phone: phone
           });
-          showToast('Profile updated!');
+          showToast("{{ __('Profile updated!') }}");
           document.getElementById('acc-name').textContent = firstName + ' ' + lastName;
         } catch (e) {
-          showToast(e.data?.message || 'Update failed.');
+          showToast(e.data?.message || "{{ __('Update failed.') }}");
         } finally {
           this.disabled = false;
-          this.textContent = 'Save Changes';
+          this.textContent = "{{ __('Save Changes') }}";
         }
       });
 
@@ -470,16 +468,16 @@
         const newPass = document.getElementById('profile-new-password').value;
 
         if (!current || !newPass) {
-          showToast('Please fill in both password fields.');
+          showToast("{{ __('Please fill in both password fields.') }}");
           return;
         }
         if (newPass.length < 8) {
-          showToast('New password must be at least 8 characters.');
+          showToast("{{ __('New password must be at least 8 characters.') }}");
           return;
         }
 
         this.disabled = true;
-        this.textContent = 'Updating...';
+        this.textContent = "{{ __('Updating...') }}";
 
         try {
           await API.put('/auth/password', {
@@ -487,20 +485,20 @@
             password: newPass,
             password_confirmation: newPass
           });
-          showToast('Password updated!');
+          showToast("{{ __('Password updated!') }}");
           document.getElementById('profile-current-password').value = '';
           document.getElementById('profile-new-password').value = '';
         } catch (e) {
-          showToast(e.data?.message || 'Password update failed.');
+          showToast(e.data?.message || "{{ __('Password update failed.') }}");
         } finally {
           this.disabled = false;
-          this.textContent = 'Update Password';
+          this.textContent = "{{ __('Update Password') }}";
         }
       });
 
       // ── Address management ─────────────────────────────────────
       document.getElementById('btn-add-address').addEventListener('click', function () {
-        document.getElementById('address-modal-title').textContent = 'Add Address';
+        document.getElementById('address-modal-title').textContent = "{{ __('Add Address') }}";
         document.getElementById('edit-address-id').value = '';
         clearAddressForm();
         document.getElementById('address-modal').style.display = 'flex';
@@ -526,28 +524,28 @@
         };
 
         if (!payload.first_name || !payload.address_line_1 || !payload.city || !payload.phone) {
-          showToast('Please fill in all required fields.');
+          showToast("{{ __('Please fill in all required fields.') }}");
           return;
         }
 
         this.disabled = true;
-        this.textContent = 'Saving...';
+        this.textContent = "{{ __('Saving...') }}";
 
         try {
           if (id) {
             await API.put('/addresses/' + id, payload);
-            showToast('Address updated!');
+            showToast("{{ __('Address updated!') }}");
           } else {
             await API.post('/addresses', payload);
-            showToast('Address added!');
+            showToast("{{ __('Address added!') }}");
           }
           document.getElementById('address-modal').style.display = 'none';
           loadAddressesTab();
         } catch (e) {
-          showToast(e.data?.message || 'Failed to save address.');
+          showToast(e.data?.message || "{{ __('Failed to save address.') }}");
         } finally {
           this.disabled = false;
-          this.textContent = 'Save Address';
+          this.textContent = "{{ __('Save Address') }}";
         }
       });
 
@@ -557,7 +555,7 @@
           const addr = res.data?.address || res.address;
           if (!addr) return;
 
-          document.getElementById('address-modal-title').textContent = 'Edit Address';
+          document.getElementById('address-modal-title').textContent = "{{ __('Edit Address') }}";
           document.getElementById('edit-address-id').value = id;
           document.getElementById('addr-label').value = addr.label || '';
           document.getElementById('addr-first-name').value = addr.first_name || '';
@@ -570,18 +568,18 @@
           document.getElementById('addr-phone').value = addr.phone || '';
           document.getElementById('address-modal').style.display = 'flex';
         } catch (e) {
-          showToast('Could not load address.');
+          showToast("{{ __('Could not load address.') }}");
         }
       };
 
       window.deleteAddress = async function (id) {
-        if (!confirm('Remove this address?')) return;
+        if (!confirm("{{ __('Remove this address?') }}")) return;
         try {
           await API.del('/addresses/' + id);
-          showToast('Address removed.');
+          showToast("{{ __('Address removed.') }}");
           loadAddressesTab();
         } catch (e) {
-          showToast(e.data?.message || 'Could not remove address.');
+          showToast(e.data?.message || "{{ __('Could not remove address.') }}");
         }
       };
 

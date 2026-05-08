@@ -27,64 +27,64 @@
 
 @section('content')
 
-<div class="breadcrumb">Home › <span>Contact Us</span></div>
+<div class="breadcrumb">{{ __('Home') }} › <span>{{ __('Contact Us') }}</span></div>
 
 <div class="contact-layout">
   <div class="contact-info">
-    <h1>Get in Touch</h1>
-    <p>Have a question about our collections or need help with an order? Our team is here to assist you. Fill out the form or reach us through our contact details.</p>
+    <h1>{{ __('Get in Touch') }}</h1>
+    <p>{{ __('Have a question about our collections or need help with an order? Our team is here to assist you. Fill out the form or reach us through our contact details.') }}</p>
 
     <div class="info-item">
       <div class="info-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
       </div>
-      <div class="info-text"><h3>Visit Our Showroom</h3><p>14 El Nasr St, Maadi, Cairo, Egypt</p></div>
+      <div class="info-text"><h3>{{ __('Visit Our Showroom') }}</h3><p>{{ __('14 El Nasr St, Maadi, Cairo, Egypt') }}</p></div>
     </div>
 
     <div class="info-item">
       <div class="info-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
       </div>
-      <div class="info-text"><h3>Call Us</h3><p>+20 100 123 4567</p></div>
+      <div class="info-text"><h3>{{ __('Call Us') }}</h3><p>+20 100 123 4567</p></div>
     </div>
 
     <div class="info-item">
       <div class="info-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
       </div>
-      <div class="info-text"><h3>Email Us</h3><p>hello@decohomz.com</p></div>
+      <div class="info-text"><h3>{{ __('Email Us') }}</h3><p>hello@decohomz.com</p></div>
     </div>
   </div>
 
   <div class="contact-form">
-    <div class="form-title">Send a Message</div>
+    <div class="form-title">{{ __('Send a Message') }}</div>
     <form id="contact-form">
       <div class="field">
-        <label>Full Name</label>
-        <input type="text" name="name" placeholder="John Doe" required>
+        <label>{{ __('Full Name') }}</label>
+        <input type="text" name="name" placeholder="{{ __('John Doe') }}" required>
       </div>
       <div class="field">
-        <label>Email Address</label>
+        <label>{{ __('Email Address') }}</label>
         <input type="email" name="email" placeholder="john@example.com" required>
       </div>
       <div class="field">
-        <label>Phone (optional)</label>
+        <label>{{ __('Phone (optional)') }}</label>
         <input type="tel" name="phone" placeholder="+20 1XX XXX XXXX">
       </div>
       <div class="field">
-        <label>Subject</label>
+        <label>{{ __('Subject') }}</label>
         <select name="subject">
-          <option>General Inquiry</option>
-          <option>Order Status</option>
-          <option>Product Return</option>
-          <option>Wholesale</option>
+          <option>{{ __('General Inquiry') }}</option>
+          <option>{{ __('Order Status') }}</option>
+          <option>{{ __('Product Return') }}</option>
+          <option>{{ __('Wholesale') }}</option>
         </select>
       </div>
       <div class="field">
-        <label>Message</label>
-        <textarea name="message" placeholder="How can we help?" style="width:100%; border:1px solid #E0D8CE; border-radius:6px; padding:12px; font-family:inherit; min-height:120px;" required></textarea>
+        <label>{{ __('Message') }}</label>
+        <textarea name="message" placeholder="{{ __('How can we help?') }}" style="width:100%; border:1px solid #E0D8CE; border-radius:6px; padding:12px; font-family:inherit; min-height:120px;" required></textarea>
       </div>
-      <button type="submit" class="submit-btn" id="btn-submit">Send Message</button>
+      <button type="submit" class="submit-btn" id="btn-submit">{{ __('Send Message') }}</button>
     </form>
   </div>
 </div>
@@ -118,22 +118,22 @@
     };
 
     if (!payload.name || !payload.email || !payload.message) {
-      showToast('Please fill in your name, email, and message.');
+      showToast("{{ __('Please fill in your name, email, and message.') }}");
       return;
     }
 
     btn.disabled = true;
-    btn.textContent = 'Sending...';
+    btn.textContent = "{{ __('Sending...') }}";
 
     try {
       await API.post('/contact', payload);
-      showToast("Message sent! We'll get back to you soon.");
+      showToast("{{ __('Message sent! We\\'ll get back to you soon.') }}");
       form.reset();
     } catch(e) {
-      showToast(e.data?.message || 'Failed to send message. Please try again.');
+      showToast(e.data?.message || "{{ __('Failed to send message. Please try again.') }}");
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Send Message';
+      btn.textContent = "{{ __('Send Message') }}";
     }
   });
 })();

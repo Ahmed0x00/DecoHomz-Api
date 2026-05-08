@@ -3,192 +3,386 @@
 
 @section('content')
     <style>
-        .order-back-link {
-            display: inline-block;
+        :root {
+            --primary: #c9a96e;
+            --primary-dark: #b8985d;
+            --primary-light: #fdfaf3;
+            --secondary: #2C1F14;
+            --text-main: #1a1a1a;
+            --text-muted: #6b7280;
+            --bg-card: #ffffff;
+            --border: #f1f1f1;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 24px;
-            font-size: 13px;
-            color: #c9a96e;
+        }
+
+        .order-back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-muted);
             text-decoration: none;
+            transition: 0.2s;
         }
 
         .order-back-link:hover {
-            text-decoration: underline;
+            color: var(--primary);
+        }
+
+        .order-id-badge {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
 
         .order-grid {
             display: grid;
             grid-template-columns: 1fr 380px;
-            gap: 24px;
+            gap: 32px;
         }
 
         .order-main {
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 32px;
         }
 
         .order-sidebar {
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 32px;
         }
 
-        .order-detail-item {
-            margin-bottom: 16px;
+        .premium-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: 0.3s;
         }
 
-        .order-detail-item:last-child {
-            margin-bottom: 0;
+        .premium-card:hover {
+            box-shadow: var(--shadow);
         }
 
-        .order-detail-label {
-            font-size: 11px;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-
-        .order-detail-value {
-            font-size: 14px;
-            color: #1a1a1a;
-        }
-
-        .order-status-row {
+        .premium-card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-top: 8px;
         }
 
-        .order-select {
-            padding: 6px 12px;
-            border: 1px solid #e5e5e5;
-            border-radius: 6px;
-            font-size: 13px;
-            color: #333;
-            background: #fff;
-            min-width: 130px;
+        .premium-card-header svg {
+            color: var(--primary);
         }
 
-        .order-btn {
-            padding: 6px 14px;
-            background: #c9a96e;
-            color: #fff;
-            border: none;
+        .premium-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--secondary);
+            margin: 0;
+        }
+
+        .premium-card-body {
+            padding: 24px;
+        }
+
+        .order-info-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .info-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
             border-radius: 6px;
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .status-pending { background: #fff7ed; color: #9a3412; }
+        .status-processing { background: #eff6ff; color: #1e40af; }
+        .status-shipped { background: #fdf4ff; color: #86198f; }
+        .status-delivered { background: #f0fdf4; color: #166534; }
+        .status-cancelled { background: #fef2f2; color: #991b1b; }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #f9f9f9;
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .item-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .item-price-info {
+            text-align: right;
+        }
+
+        .total-summary {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 2px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            width: 240px;
+            font-size: 14px;
+        }
+
+        .summary-row.grand-total {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+
+        .action-select {
+            padding: 8px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text-main);
+            outline: none;
+            transition: 0.2s;
+            background: #fff;
+        }
+
+        .action-select:focus {
+            border-color: var(--primary);
+        }
+
+        .premium-btn {
+            padding: 8px 16px;
+            background: var(--secondary);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
             transition: 0.2s;
         }
 
-        .order-btn:hover {
-            background: #b8985d;
+        .premium-btn:hover {
+            background: #3d2c1c;
+            transform: translateY(-1px);
         }
 
-        .order-input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #e5e5e5;
-            border-radius: 6px;
+        .premium-btn-gold {
+            background: var(--primary);
+        }
+
+        .premium-btn-gold:hover {
+            background: var(--primary-dark);
+        }
+
+        .tracking-input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .premium-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
             font-size: 13px;
-            color: #333;
-            box-sizing: border-box;
-        }
-
-        .order-input:focus {
             outline: none;
-            border-color: #c9a96e;
+            transition: 0.2s;
         }
 
-        .order-info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
+        .premium-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        @media (max-width: 1024px) {
+            .order-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 
-    <a href="/admin/orders" class="order-back-link">&larr; Back to Orders</a>
+    <div class="page-header">
+        <a href="/admin/orders" class="order-back-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back to Orders
+        </a>
+        <div class="order-id-badge">ORDER #{{ $id }}</div>
+    </div>
 
     <div class="order-grid">
         <!-- Main Content -->
         <div class="order-main">
-            <!-- Order Header -->
-            <div class="admin-card">
-                <div class="admin-card-header">
-                    <h5 class="admin-card-title">Order Details</h5>
+            <!-- Order Summary Card -->
+            <div class="premium-card">
+                <div class="premium-card-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    <h5 class="premium-card-title">Order Overview</h5>
                 </div>
-                <div id="orderDetails" style="padding: 24px;">
-                    <div style="text-align: center; color: #888;">Loading...</div>
-                </div>
-            </div>
-
-            <!-- Tracking Number -->
-            <div class="admin-card">
-                <div class="admin-card-header">
-                    <h5 class="admin-card-title">Tracking Information</h5>
-                </div>
-                <div style="padding: 24px; display: flex; gap: 12px;">
-                    <input type="text" id="trackingNumber" class="order-input" placeholder="Enter tracking number"
-                        style="flex: 1;">
-                    <button type="button" class="order-btn" onclick="updateTracking()">Update Tracking</button>
+                <div id="orderDetails" class="premium-card-body">
+                    <div style="text-align: center; color: var(--text-muted); padding: 40px;">Loading order details...</div>
                 </div>
             </div>
 
-            <!-- Refund Management -->
-            <div class="admin-card">
-                <div class="admin-card-header">
-                    <h5 class="admin-card-title">Refund Management</h5>
+            <!-- Order Items Card -->
+            <div class="premium-card">
+                <div class="premium-card-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                    <h5 class="premium-card-title">Order Items</h5>
                 </div>
-                <div id="refundSection" style="padding: 24px;">
-                    <div style="text-align: center; color: #888;">Loading...</div>
+                <div class="premium-card-body">
+                    <div id="orderItems">
+                        <div style="text-align: center; color: var(--text-muted); padding: 40px;">Loading items...</div>
+                    </div>
+                    
+                    <div id="orderTotals" class="total-summary">
+                        <!-- Filled by JS -->
+                    </div>
                 </div>
             </div>
 
-            <!-- Order Items -->
-            <div class="admin-card">
-                <div class="admin-card-header">
-                    <h5 class="admin-card-title">Order Items</h5>
+            <!-- Tracking Card -->
+            <div class="premium-card">
+                <div class="premium-card-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        <path d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
+                    </svg>
+                    <h5 class="premium-card-title">Shipping & Tracking</h5>
                 </div>
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Name</th>
-                            <th>Quantity</th>
-                            <th>Unit Price</th>
-                            <th>Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody id="orderItems">
-                        <tr>
-                            <td colspan="5" style="text-align: center; padding: 40px; color: #aaa;">Loading...</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="premium-card-body">
+                    <label class="info-label">Tracking Number</label>
+                    <div class="tracking-input-group">
+                        <input type="text" id="trackingNumber" class="premium-input" placeholder="Enter tracking ID (e.g. ARMX-123456)">
+                        <button type="button" class="premium-btn" onclick="updateTracking()">Update Status</button>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Sidebar -->
         <div class="order-sidebar">
-            <!-- Customer Info -->
-            <div class="admin-card">
-                <div class="admin-card-header">
-                    <h5 class="admin-card-title">Customer</h5>
+            <!-- Customer Card -->
+            <div class="premium-card">
+                <div class="premium-card-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                        <circle cx="8.5" cy="7" r="4"/>
+                        <path d="M20 8v6M23 11h-6"/>
+                    </svg>
+                    <h5 class="premium-card-title">Customer</h5>
                 </div>
-                <div id="customerInfo" style="padding: 24px;">
-                    <div style="text-align: center; color: #888;">Loading...</div>
+                <div id="customerInfo" class="premium-card-body">
+                    <div style="text-align: center; color: var(--text-muted);">Loading customer...</div>
                 </div>
             </div>
 
-            <!-- Shipping Address -->
-            <div class="admin-card">
-                <div class="admin-card-header">
-                    <h5 class="admin-card-title">Shipping Address</h5>
+            <!-- Shipping Card -->
+            <div class="premium-card">
+                <div class="premium-card-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    <h5 class="premium-card-title">Shipping Address</h5>
                 </div>
-                <div id="shippingAddress" style="padding: 24px;">
-                    <div style="text-align: center; color: #888;">Loading...</div>
+                <div id="shippingAddress" class="premium-card-body">
+                    <div style="text-align: center; color: var(--text-muted);">Loading address...</div>
+                </div>
+            </div>
+
+            <!-- Refund Card -->
+            <div class="premium-card">
+                <div class="premium-card-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <h5 class="premium-card-title">Refund Status</h5>
+                </div>
+                <div id="refundSection" class="premium-card-body">
+                    <div style="text-align: center; color: var(--text-muted);">Checking refunds...</div>
                 </div>
             </div>
         </div>
@@ -203,350 +397,182 @@
             API.get(`/admin/orders/${orderId}`)
                 .then(res => {
                     const order = res.data || res;
-                    renderOrderDetails(order);
+                    renderOrderOverview(order);
                     renderOrderItems(order.items || []);
-                    renderCustomerInfo(order.user, order.shippingAddress || order.shipping_address);
-                    renderShippingAddress(order.shippingAddress || order.shipping_address);
-                    renderRefundSection(order);
+                    renderOrderTotals(order);
+                    renderCustomer(order.user, order.shippingAddress || order.shipping_address);
+                    renderAddress(order.shippingAddress || order.shipping_address);
+                    renderRefund(order);
                     document.getElementById('trackingNumber').value = order.tracking_number || '';
                 })
                 .catch(error => {
-                    console.error('Error loading order:', error);
-                    document.getElementById('orderDetails').innerHTML =
-                        '<div style="text-align: center; color: #ef4444;">Failed to load order details</div>';
+                    console.error('Error:', error);
+                    document.getElementById('orderDetails').innerHTML = '<div style="color: #ef4444; text-align: center;">Error loading order data.</div>';
                 });
         }
 
-        function renderOrderDetails(order) {
+        function renderOrderOverview(order) {
             const statusOptions = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
             const paymentOptions = ['unpaid', 'paid_deposit', 'full_paid', 'refunded'];
 
             document.getElementById('orderDetails').innerHTML = `
-                                <div class="order-info-grid">
-                                    <div class="order-detail-item">
-                                        <div class="order-detail-label">Order Number</div>
-                                        <div class="order-detail-value">${order.order_number}</div>
-                                    </div>
-                                    <div class="order-detail-item">
-                                        <div class="order-detail-label">Date</div>
-                                        <div class="order-detail-value">${formatDate(order.created_at)}</div>
-                                    </div>
-                                    <div class="order-detail-item">
-                                        <div class="order-detail-label">Subtotal</div>
-                                        <div class="order-detail-value">${(parseFloat(order.subtotal) || 0).toFixed(2)} EGP</div>
-                                    </div>
-                                    <div class="order-detail-item">
-                                        <div class="order-detail-label">Discount</div>
-                                        <div class="order-detail-value">-${(parseFloat(order.discount) || 0).toFixed(2)} EGP</div>
-                                    </div>
-                                    <div class="order-detail-item">
-                                        <div class="order-detail-label">Delivery Fee</div>
-                                        <div class="order-detail-value">${(parseFloat(order.delivery_fee) || 0).toFixed(2)} EGP</div>
-                                    </div>
-                                    <div class="order-detail-item">
-                                        <div class="order-detail-label">VAT (14%)</div>
-                                        <div class="order-detail-value">${(parseFloat(order.vat_amount) || 0).toFixed(2)} EGP</div>
-                                    </div>
-                                    <div class="order-detail-item">
-                                        <div class="order-detail-label">Deposit Required</div>
-                                        <div class="order-detail-value">${(parseFloat(order.deposit_amount) || 0).toFixed(2)} EGP</div>
-                                    </div>
-                                    <div class="order-detail-item">
-                                        <div class="order-detail-label">Total</div>
-                                        <div class="order-detail-value"><strong>${(parseFloat(order.total) || 0).toFixed(2)} EGP</strong></div>
-                                    </div>
-                                    <div class="order-detail-item">
-                                        <div class="order-detail-label">Payment Method</div>
-                                        <div class="order-detail-value">${order.payment_method || 'N/A'}</div>
-                                    </div>
-                                    <div class="order-detail-item">
-                                        <div class="order-detail-label">Refunded Amount</div>
-                                        <div class="order-detail-value">
-                                            ${(order.refund_status === 'approved' || order.refund_status === 'rejected')
-                                                ? ((order.payment_status === 'full_paid' || order.payment_status === 'refunded')
-                                                    ? (parseFloat(order.total) || 0).toFixed(2) + ' EGP'
-                                                    : (parseFloat(order.deposit_amount) || 0).toFixed(2) + ' EGP')
-                                                : '0.00 EGP'}
-                                        </div>
-                                    </div>
-                                    <div class="order-detail-item">
-                                        <div class="order-detail-label">Status</div>
-                                        <div class="order-status-row">
-                                            <select id="statusSelect" class="order-select">
-                                                ${statusOptions.map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt.charAt(0).toUpperCase() + opt.slice(1)}</option>`).join('')}
-                                            </select>
-                                            <button type="button" class="order-btn" onclick="updateStatus()">Update</button>
-                                        </div>
-                                    </div>
-                                    <div class="order-detail-item">
-                                        <div class="order-detail-label">Payment</div>
-                                        <div class="order-status-row">
-                                            <select id="paymentStatusSelect" class="order-select">
-                                                ${paymentOptions.map(opt => `<option value="${opt}" ${order.payment_status === opt ? 'selected' : ''}>${opt.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>`).join('')}
-                                            </select>
-                                            <button type="button" class="order-btn" onclick="updatePaymentStatus()">Update</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
+                <div class="order-info-row">
+                    <div class="info-group">
+                        <label class="info-label">Order Number</label>
+                        <div class="info-value">#${order.order_number}</div>
+                    </div>
+                    <div class="info-group">
+                        <label class="info-label">Created At</label>
+                        <div class="info-value">${formatDate(order.created_at)}</div>
+                    </div>
+                    <div class="info-group">
+                        <label class="info-label">Current Status</label>
+                        <div style="display:flex; gap:8px; align-items:center; margin-top:4px;">
+                            <select id="statusSelect" class="action-select">
+                                ${statusOptions.map(opt => `<option value="${opt}" ${order.status === opt ? 'selected' : ''}>${opt.charAt(0).toUpperCase() + opt.slice(1)}</option>`).join('')}
+                            </select>
+                            <button onclick="updateStatus()" class="premium-btn">Save</button>
+                        </div>
+                    </div>
+                    <div class="info-group">
+                        <label class="info-label">Payment Status</label>
+                        <div style="display:flex; gap:8px; align-items:center; margin-top:4px;">
+                            <select id="paymentStatusSelect" class="action-select">
+                                ${paymentOptions.map(opt => `<option value="${opt}" ${order.payment_status === opt ? 'selected' : ''}>${opt.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>`).join('')}
+                            </select>
+                            <button onclick="updatePaymentStatus()" class="premium-btn">Save</button>
+                        </div>
+                    </div>
+                    <div class="info-group">
+                        <label class="info-label">Payment Method</label>
+                        <div class="info-value" style="text-transform: uppercase;">${order.payment_method || 'N/A'}</div>
+                    </div>
+                </div>
+            `;
         }
 
         function renderOrderItems(items) {
-            const tbody = document.getElementById('orderItems');
-
-            if (!items || items.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #aaa;">No items found</td></tr>';
+            const container = document.getElementById('orderItems');
+            if (!items.length) {
+                container.innerHTML = '<div style="text-align: center; color: var(--text-muted);">No items in this order.</div>';
                 return;
             }
 
-            tbody.innerHTML = items.map(item => {
+            container.innerHTML = items.map(item => {
                 const product = item.product || {};
-                const productImage = product.image || product.product_image || null;
-                const productName = product.name || product.product_name || item.name || 'Unknown Product';
-                const unitPrice = parseFloat(item.price || product.price || 0);
-                const qty = parseInt(item.quantity || 1);
+                const image = product.image || product.product_image || '';
                 return `
-                                <tr>
-                                    <td>
-                                        ${productImage
-                        ? `<img src="${productImage}" alt="${esc(productName)}" style="width: 50px; height: 50px; object-fit: cover;">`
-                        : '<div style="width: 50px; height: 50px; background: #e5e5e5;"></div>'
-                    }
-                                    </td>
-                                    <td>${esc(productName)}${product.sku ? `<br><small style="color:#888">SKU: ${esc(product.sku)}</small>` : ''}</td>
-                                    <td>${qty}</td>
-                                    <td>${unitPrice.toFixed(2)} EGP</td>
-                                    <td>${(unitPrice * qty).toFixed(2)} EGP</td>
-                                </tr>
-                            `}).join('');
+                    <div class="item-row">
+                        ${image ? `<img src="${image}" class="item-img">` : '<div class="item-img"></div>'}
+                        <div class="item-details">
+                            <div class="item-name">${esc(item.name || product.name || 'Unknown Item')}</div>
+                            <div class="item-meta">Quantity: ${item.quantity} × ${parseFloat(item.price).toFixed(2)} EGP</div>
+                        </div>
+                        <div class="item-price-info">
+                            <div class="info-value">${(item.quantity * item.price).toFixed(2)} EGP</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
-        function renderCustomerInfo(user, shippingAddress) {
-            const infoDiv = document.getElementById('customerInfo');
-
-            if (user) {
-                infoDiv.innerHTML = `
-                                    <p class="order-detail-item"><span class="order-detail-label">Name</span><span class="order-detail-value">${esc(user.name || 'N/A')}</span></p>
-                                    <p class="order-detail-item"><span class="order-detail-label">Email</span><span class="order-detail-value">${esc(user.email || 'N/A')}</span></p>
-                                    <p class="order-detail-item"><span class="order-detail-label">Phone</span><span class="order-detail-value">${esc(user.phone || 'N/A')}</span></p>
-                                `;
-                return;
-            }
-
-            // Guest — pull name/email/phone from shipping address
-            if (shippingAddress) {
-                const name = [shippingAddress.first_name, shippingAddress.last_name].filter(Boolean).join(' ') || 'Guest';
-                infoDiv.innerHTML = `
-                                    <p class="order-detail-item"><span class="order-detail-label">Name</span><span class="order-detail-value">${esc(name)}</span></p>
-                                    <p class="order-detail-item"><span class="order-detail-label">Email</span><span class="order-detail-value">${esc(shippingAddress.email || 'N/A')}</span></p>
-                                    <p class="order-detail-item"><span class="order-detail-label">Phone</span><span class="order-detail-value">${esc(shippingAddress.phone || 'N/A')}</span></p>
-                                    <p class="order-detail-item"><span class="order-detail-label">Type</span><span class="order-detail-value">Guest</span></p>
-                                `;
-                return;
-            }
-
-            infoDiv.innerHTML = '<p style="color: #888; font-style: italic;">No customer information available</p>';
+        function renderOrderTotals(order) {
+            document.getElementById('orderTotals').innerHTML = `
+                <div class="summary-row"><span>Subtotal</span><span>${parseFloat(order.subtotal).toFixed(2)} EGP</span></div>
+                <div class="summary-row" style="color:#ef4444;"><span>Discount</span><span>-${parseFloat(order.discount).toFixed(2)} EGP</span></div>
+                <div class="summary-row"><span>Delivery Fee</span><span>${parseFloat(order.delivery_fee).toFixed(2)} EGP</span></div>
+                <div class="summary-row"><span>VAT (14%)</span><span>${parseFloat(order.vat_amount).toFixed(2)} EGP</span></div>
+                <div class="summary-row grand-total"><span>Grand Total</span><span>${parseFloat(order.total).toFixed(2)} EGP</span></div>
+                ${order.deposit_amount > 0 ? `<div class="summary-row" style="color:var(--primary); font-weight:600; font-size:12px; margin-top:4px;"><span>Deposit Amount</span><span>${parseFloat(order.deposit_amount).toFixed(2)} EGP</span></div>` : ''}
+            `;
         }
 
-        function renderShippingAddress(address) {
-            if (!address) {
-                document.getElementById('shippingAddress').innerHTML = '<p style="color: #888; font-style: italic;">No shipping address available</p>';
-                return;
-            }
+        function renderCustomer(user, addr) {
+            const container = document.getElementById('customerInfo');
+            const name = user ? user.name : (addr ? `${addr.first_name} ${addr.last_name}` : 'Guest');
+            const email = user ? user.email : (addr ? addr.email : 'N/A');
+            const phone = user ? user.phone : (addr ? addr.phone : 'N/A');
 
-            document.getElementById('shippingAddress').innerHTML = `
-                                <p class="order-detail-item"><span class="order-detail-label">Address</span><span class="order-detail-value">${esc(address.address || 'N/A')}</span></p>
-                                <p class="order-detail-item"><span class="order-detail-label">City</span><span class="order-detail-value">${esc(address.city || 'N/A')}</span></p>
-                                <p class="order-detail-item"><span class="order-detail-label">Postal Code</span><span class="order-detail-value">${esc(address.postal_code || 'N/A')}</span></p>
-                                <p class="order-detail-item"><span class="order-detail-label">Country</span><span class="order-detail-value">${esc(address.country || 'N/A')}</span></p>
-                            `;
+            container.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:16px;">
+                    <div class="info-group"><label class="info-label">Full Name</label><div class="info-value">${esc(name)}</div></div>
+                    <div class="info-group"><label class="info-label">Email</label><div class="info-value">${esc(email)}</div></div>
+                    <div class="info-group"><label class="info-label">Phone</label><div class="info-value">${esc(phone)}</div></div>
+                    <div class="info-group"><label class="info-label">Account Type</label><div class="info-value">${user ? 'Registered User' : 'Guest Checkout'}</div></div>
+                </div>
+            `;
         }
 
-        function renderRefundSection(order) {
+        function renderAddress(addr) {
+            const container = document.getElementById('shippingAddress');
+            if (!addr) {
+                container.innerHTML = '<div style="color: var(--text-muted);">No address specified.</div>';
+                return;
+            }
+            container.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:16px;">
+                    <div class="info-group"><label class="info-label">Street Address</label><div class="info-value">${esc(addr.address_line_1 || addr.address)}</div></div>
+                    ${addr.address_line_2 ? `<div class="info-group"><label class="info-label">Building/Apt</label><div class="info-value">${esc(addr.address_line_2)}</div></div>` : ''}
+                    <div class="info-group"><label class="info-label">City / State</label><div class="info-value">${esc(addr.city)}, ${esc(addr.state || addr.governorate)}</div></div>
+                    <div class="info-group"><label class="info-label">Postal Code</label><div class="info-value">${esc(addr.postal_code || 'N/A')}</div></div>
+                </div>
+            `;
+        }
+
+        function renderRefund(order) {
             const container = document.getElementById('refundSection');
-            const refundStatus = order.refund_status;
-            const refundReason = order.refund_reason || '';
-            const refundHandledAt = order.refund_handled_at;
-            const paymentStatus = order.payment_status;
-            const isEligible = paymentStatus === 'paid_deposit' || paymentStatus === 'full_paid';
-
-            if (!refundStatus) {
-                if (isEligible) {
-                    container.innerHTML = `
-                                        <div style="margin-bottom:12px;font-size:13px;color:#555;">No refund request yet for this order.</div>
-                                        <div style="margin-bottom:8px;">
-                                            <textarea id="adminRefundReason" placeholder="Enter reason for creating this refund request..." style="width:100%;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:6px;font-size:12px;font-family:inherit;resize:vertical;min-height:60px;box-sizing:border-box;"></textarea>
-                                        </div>
-                                        <button type="button" onclick="createRefundForOrder()" style="padding:7px 16px;background:#2C1F14;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Create Refund Request</button>
-                                        <div id="refundActionMsg" style="margin-top:8px;font-size:12px;"></div>`;
-                } else {
-                    container.innerHTML = `
-                                        <div style="display:flex;align-items:center;gap:10px;color:#888;font-size:13px;">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                                            No refund request for this order.
-                                        </div>`;
-                }
+            if (!order.refund_status) {
+                container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px;">No active refund requests.</div>';
                 return;
-            }
-
-            const statusClass = {
-                'pending': 'badge-status badge-pending',
-                'approved': 'badge-status badge-paid',
-                'rejected': 'badge-status badge-cancelled'
-            }[refundStatus] || 'badge-status';
-
-            const statusLabel = {
-                'pending': 'Pending',
-                'approved': 'Approved',
-                'rejected': 'Rejected'
-            }[refundStatus] || refundStatus;
-
-            let actionsHtml = '';
-            if (refundStatus === 'pending') {
-                actionsHtml = `
-                                    <div style="display:flex;gap:10px;margin-top:14px;">
-                                        <button type="button" onclick="handleRefund('approve')" style="flex:1;padding:8px;background:#16a34a;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Approve Refund</button>
-                                        <button type="button" onclick="handleRefund('reject')" style="flex:1;padding:8px;background:#991b1b;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Reject Refund</button>
-                                    </div>
-                                    <div id="refundActionMsg" style="margin-top:10px;font-size:12px;"></div>`;
-            }
-
-            let handledHtml = '';
-            if (refundHandledAt) {
-                const handledDate = new Date(refundHandledAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-                handledHtml = `<div style="margin-top:8px;font-size:12px;color:#888;">Processed on: ${handledDate}</div>`;
             }
 
             container.innerHTML = `
-                                <div style="margin-bottom:12px;">
-                                    <span class="${statusClass}">${statusLabel}</span>
-                                </div>
-                                ${refundReason ? `<div style="margin-bottom:8px;"><div class="order-detail-label">Customer Reason</div><div style="font-size:13px;color:#333;background:#f9f9f9;padding:10px;border-radius:6px;line-height:1.5;">${esc(refundReason)}</div></div>` : ''}
-                                ${handledHtml}
-                                ${actionsHtml}
-                            `;
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <div class="status-badge status-${order.refund_status}">${order.refund_status}</div>
+                    <div class="info-group">
+                        <label class="info-label">Reason</label>
+                        <div style="font-size:13px; padding:12px; background:#f9f9f9; border-radius:8px; border:1px solid #eee;">
+                            ${esc(order.refund_reason || 'No reason provided')}
+                        </div>
+                    </div>
+                    ${order.refund_status === 'pending' ? `
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+                            <button onclick="handleRefund('approve')" class="premium-btn" style="background:#16a34a;">Approve</button>
+                            <button onclick="handleRefund('reject')" class="premium-btn" style="background:#dc2626;">Reject</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
         }
 
-        window.handleRefund = function (action) {
-            const confirmed = confirm(action === 'approve'
-                ? 'Approve this refund? Stock will be restored and payment marked as refunded.'
-                : 'Reject this refund request?');
-            if (!confirmed) return;
-
-            const msg = document.getElementById('refundActionMsg');
-            if (msg) { msg.textContent = 'Processing...'; msg.style.color = '#888'; }
-
-            const formData = new FormData();
-            formData.append('action', action);
-
-            fetch(`/api/admin/refunds/${orderId}/handle`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                        ? document.querySelector('meta[name="csrf-token"]').content
-                        : '',
-                    'Authorization': 'Bearer ' + (localStorage.getItem('dh_token') || '')
-                },
-                body: formData
-            })
-                .then(function (res) { return res.json(); })
-                .then(function (data) {
-                    const m = document.getElementById('refundActionMsg');
-                    if (data.error) {
-                        if (m) { m.textContent = data.error; m.style.color = '#991b1b'; }
-                        alert(data.error);
-                    } else {
-                        if (m) { m.textContent = data.success; m.style.color = '#16a34a'; }
-                        setTimeout(function () { loadOrder(); }, 1200);
-                    }
-                })
-                .catch(function () {
-                    const m = document.getElementById('refundActionMsg');
-                    if (m) { m.textContent = 'Failed to process refund.'; m.style.color = '#991b1b'; }
-                });
-        };
-
-        window.createRefundForOrder = function () {
-            const reason = document.getElementById('adminRefundReason').value.trim();
-            const msg = document.getElementById('refundActionMsg');
-            if (!reason) {
-                if (msg) { msg.textContent = 'Please enter a reason.'; msg.style.color = '#991b1b'; }
-                return;
-            }
-            if (msg) { msg.textContent = 'Creating...'; msg.style.color = '#888'; }
-
-            const formData = new FormData();
-            formData.append('order_id', orderId);
-            formData.append('reason', reason);
-
-            fetch('/api/admin/refunds/create-for-guest', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                        ? document.querySelector('meta[name="csrf-token"]').content
-                        : '',
-                    'Authorization': 'Bearer ' + (localStorage.getItem('dh_token') || '')
-                },
-                body: formData
-            })
-                .then(function (res) { return res.json(); })
-                .then(function (data) {
-                    const m = document.getElementById('refundActionMsg');
-                    if (data.error) {
-                        if (m) { m.textContent = data.error; m.style.color = '#991b1b'; }
-                    } else {
-                        if (m) { m.textContent = data.success; m.style.color = '#16a34a'; }
-                        setTimeout(function () { loadOrder(); }, 1200);
-                    }
-                })
-                .catch(function () {
-                    const m = document.getElementById('refundActionMsg');
-                    if (m) { m.textContent = 'Failed to create refund request.'; m.style.color = '#991b1b'; }
-                });
-        };
-
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        function formatDate(str) {
+            return new Date(str).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
         }
 
         function updateStatus() {
             const status = document.getElementById('statusSelect').value;
-            API.patch(`/admin/orders/${orderId}/status`, { status })
-                .then(response => {
-                    alert('Status updated successfully');
-                    loadOrder();
-                })
-                .catch(error => {
-                    console.error('Error updating status:', error);
-                    alert('Failed to update status');
-                });
+            API.patch(`/admin/orders/${orderId}/status`, { status }).then(() => {
+                alert('Order status updated!');
+                loadOrder();
+            });
         }
 
         function updatePaymentStatus() {
             const payment_status = document.getElementById('paymentStatusSelect').value;
-            API.patch(`/admin/orders/${orderId}/payment-status`, { payment_status })
-                .then(response => {
-                    alert('Payment status updated successfully');
-                    loadOrder();
-                })
-                .catch(error => {
-                    console.error('Error updating payment status:', error);
-                    alert('Failed to update payment status');
-                });
+            API.patch(`/admin/orders/${orderId}/payment-status`, { payment_status }).then(() => {
+                alert('Payment status updated!');
+                loadOrder();
+            });
         }
 
         function updateTracking() {
             const tracking_number = document.getElementById('trackingNumber').value;
-            API.patch(`/admin/orders/${orderId}/tracking`, { tracking_number })
-                .then(response => {
-                    alert('Tracking number updated successfully');
-                    loadOrder();
-                })
-                .catch(error => {
-                    console.error('Error updating tracking:', error);
-                    alert('Failed to update tracking number');
-                });
+            API.patch(`/admin/orders/${orderId}/tracking`, { tracking_number }).then(() => {
+                alert('Tracking updated!');
+                loadOrder();
+            });
         }
 
         document.addEventListener('DOMContentLoaded', loadOrder);

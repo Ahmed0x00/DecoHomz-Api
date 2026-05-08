@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch(e) {}
     }
 
-    initCartDrawer();
+    // initCartDrawer();
     renderCart();
     Cart.updateBadge();
     Wishlist.updateBadge();

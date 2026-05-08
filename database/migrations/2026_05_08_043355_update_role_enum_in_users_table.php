@@ -13,6 +13,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            // SQLite has no ENUM type; the column is already a string.
+            // No action needed — 'support' values are accepted as-is.
+            return;
+        }
+
         DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'user', 'support') NOT NULL DEFAULT 'user'");
     }
 
@@ -21,6 +27,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Reverting this might truncate data if there are 'support' users. 
         // We will just change the enum definition back.
         DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'user') NOT NULL DEFAULT 'user'");

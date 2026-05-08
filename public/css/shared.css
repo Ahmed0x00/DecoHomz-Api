@@ -105,21 +105,54 @@ nav {
 
 .nav-right {
     display: flex;
-    gap: 24px;
+    gap: 28px;
     align-items: center;
 }
 
+/* Language Switcher */
+.lang-switcher {
+    margin-right: 8px;
+}
+
+.lang-btn {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #2C1F14;
+    padding: 6px 12px;
+    border: 1.5px solid #EDE8E2;
+    border-radius: 20px;
+    transition: 0.2s;
+    letter-spacing: 0.5px;
+}
+
+.lang-btn:hover {
+    background: #2C1F14;
+    color: #fff;
+    border-color: #2C1F14;
+}
+
 .nav-right svg {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     stroke: #2C1F14;
     fill: none;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
+.nav-right a:hover span {
+    color: #B8860B;
+}
+
+.nav-right a span {
+    transition: 0.2s;
+    color: #888;
+}
+
 /* Badge */
 .badge {
+    position: absolute;
     background: #B8860B;
     color: #fff;
     border-radius: 50%;
@@ -129,8 +162,8 @@ nav {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: -8px;
-    margin-top: -8px
+    top: -5px;
+    right: 5px;
 }
 
 /* Breadcrumb */

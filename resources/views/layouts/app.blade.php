@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 
 <head>
   <meta charset="UTF-8">
@@ -26,42 +26,56 @@
     <div class="nav-inner">
       <a href="/" class="logo">Deco<span>Homz</span></a>
       <ul class="nav-links">
-        <li><a href="/" class="{{ request()->is('/') ? 'active' : '' }}">Home</a></li>
-        <li><a href="/shop" class="{{ request()->is('shop') ? 'active' : '' }}">Shop</a></li>
-        <li><a href="/categories" class="{{ request()->is('categories') ? 'active' : '' }}">Categories</a></li>
-        <li><a href="/new-arrivals" class="{{ request()->is('new-arrivals') ? 'active' : '' }}">New Arrivals</a></li>
-        <li><a href="/deals" class="{{ request()->is('deals') ? 'active' : '' }}">Deals</a></li>
-        <li><a href="/about" class="{{ request()->is('about') ? 'active' : '' }}">About</a></li>
-        <li><a href="/contact" class="{{ request()->is('contact') ? 'active' : '' }}">Contact</a></li>
+        <li><a href="/" class="{{ request()->is('/') ? 'active' : '' }}">{{ __('Home') }}</a></li>
+        <li><a href="/shop" class="{{ request()->is('shop') ? 'active' : '' }}">{{ __('Shop') }}</a></li>
+        <li><a href="/categories" class="{{ request()->is('categories') ? 'active' : '' }}">{{ __('Categories') }}</a></li>
+        <li><a href="/new-arrivals" class="{{ request()->is('new-arrivals') ? 'active' : '' }}">{{ __('New Arrivals') }}</a></li>
+        <li><a href="/deals" class="{{ request()->is('deals') ? 'active' : '' }}">{{ __('Deals') }}</a></li>
+        <li><a href="/about" class="{{ request()->is('about') ? 'active' : '' }}">{{ __('About Us') }}</a></li>
+        <li><a href="/contact" class="{{ request()->is('contact') ? 'active' : '' }}">{{ __('Contact Us') }}</a></li>
       </ul>
       <div class="nav-right">
+        <!-- Language Switcher -->
+        <div class="lang-switcher">
+          @if(app()->getLocale() === 'ar')
+            <a href="{{ request()->fullUrlWithQuery(['lang' => 'en']) }}" class="lang-btn">English</a>
+          @else
+            <a href="{{ request()->fullUrlWithQuery(['lang' => 'ar']) }}" class="lang-btn">العربية</a>
+          @endif
+        </div>
+
         <div class="search-container">
           <svg class="search-trigger" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none">
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.35-4.35" />
           </svg>
         </div>
-        <a href="/cart" class="cart-trigger" title="Shopping Cart" style="position:relative; cursor:pointer; display:flex; align-items:center;">
-          <svg viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none">
+
+        <a href="/cart" class="cart-trigger-nav" title="Shopping Cart" style="position:relative; cursor:pointer; display:flex; flex-direction:column; align-items:center; text-decoration:none; color:inherit;">
+          <svg viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" style="width:24px; height:24px;">
             <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
             <line x1="3" y1="6" x2="21" y2="6" />
             <path d="M16 10a4 4 0 0 1-8 0" />
           </svg>
-          <div class="badge badge-cart" style="display:none">0</div>
+          <span style="font-size:10px; font-weight:600; text-transform:uppercase; margin-top:2px;">{{ __('Cart') }}</span>
+          <div class="badge badge-cart" style="display:none; top:-5px; right:-5px;">0</div>
         </a>
+
         @if(Auth::check())
-          <a href="/account" class="user-trigger" title="Account" style="cursor:pointer; display:flex; align-items:center;">
-            <svg viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none">
+          <a href="/account" class="user-trigger" title="Account" style="cursor:pointer; display:flex; flex-direction:column; align-items:center; text-decoration:none; color:inherit;">
+            <svg viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" style="width:24px; height:24px;">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
               <circle cx="12" cy="7" r="4" />
             </svg>
+            <span style="font-size:10px; font-weight:600; text-transform:uppercase; margin-top:2px;">{{ __('Account') }}</span>
           </a>
         @else
-          <a href="/auth" class="user-trigger" title="Account" style="cursor:pointer; display:flex; align-items:center;">
-            <svg viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none">
+          <a href="/auth" class="user-trigger" title="Account" style="cursor:pointer; display:flex; flex-direction:column; align-items:center; text-decoration:none; color:inherit;">
+            <svg viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" style="width:24px; height:24px;">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
               <circle cx="12" cy="7" r="4" />
             </svg>
+            <span style="font-size:10px; font-weight:600; text-transform:uppercase; margin-top:2px;">{{ __('Login') }}</span>
           </a>
         @endif
       </div>

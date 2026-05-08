@@ -10,12 +10,12 @@
 
 <div class="hero">
   <div class="hero-text">
-    <div class="hero-label">New Collection 2026</div>
-    <h1 class="hero-h1">Design Your<br>Space with Style</h1>
-    <p class="hero-sub">Premium furniture crafted for comfort and elegance.</p>
+    <div class="hero-label">{{ __('New Collection 2026') }}</div>
+    <h1 class="hero-h1">{!! __('Design Your<br>Space with Style') !!}</h1>
+    <p class="hero-sub">{{ __('Premium furniture crafted for comfort and elegance.') }}</p>
     <div class="hero-btns">
-      <button class="btn-dark" onclick="location.href='/shop'">Shop Now</button>
-      <button class="btn-outline" onclick="location.href='/categories'">Explore Collections</button>
+      <button class="btn-dark" onclick="location.href='/shop'">{{ __('Shop Now') }}</button>
+      <button class="btn-outline" onclick="location.href='/categories'">{{ __('Explore Collections') }}</button>
     </div>
   </div>
   <div class="hero-img">
@@ -38,8 +38,8 @@
 
 <div class="cats">
   <div class="sec-row">
-    <div class="sec-title">Shop by Category</div>
-    <a href="/shop" class="sec-link">View All →</a>
+    <div class="sec-title">{{ __('Shop by Category') }}</div>
+    <a href="/shop" class="sec-link">{{ __('View All →') }}</a>
   </div>
   <div class="cat-row" id="cat-row">
     <!-- Loaded dynamically via JS -->
@@ -48,8 +48,8 @@
 
 <div class="products">
   <div class="sec-row">
-    <div class="sec-title">Best Sellers</div>
-    <a href="/shop" class="sec-link">View All →</a>
+    <div class="sec-title">{{ __('Best Sellers') }}</div>
+    <a href="/shop" class="sec-link">{{ __('View All →') }}</a>
   </div>
   <div class="prod-grid" id="prod-grid">
     <!-- Loaded dynamically via JS -->
@@ -58,10 +58,10 @@
 
 <div class="banner">
   <div class="ban-left">
-    <div class="ban-tag">Limited Offer</div>
-    <div class="ban-h">Up to 30% Off<br>Living Room Sets</div>
-    <div class="ban-sub">Refresh your home this season with our curated collection.</div>
-    <button class="btn-gold" onclick="location.href='/shop'">Shop the Sale</button>
+    <div class="ban-tag">{{ __('Limited Offer') }}</div>
+    <div class="ban-h">{!! __('Up to 30% Off<br>Living Room Sets') !!}</div>
+    <div class="ban-sub">{{ __('Refresh your home this season with our curated collection.') }}</div>
+    <button class="btn-gold" onclick="location.href='/shop'">{{ __('Shop the Sale') }}</button>
   </div>
   <div class="ban-right">
     <svg viewBox="0 0 220 160" fill="none" width="220">
@@ -110,7 +110,7 @@
     const grid = document.getElementById('prod-grid');
     if (!grid) return;
     if (products.length === 0) {
-      grid.innerHTML = '<p style="padding:20px;color:#888;text-align:center;grid-column:1/-1">No products found.</p>';
+      grid.innerHTML = '<p style="padding:20px;color:#888;text-align:center;grid-column:1/-1">' + "{{ __('No products found.') }}" + '</p>';
       return;
     }
     grid.innerHTML = products.map(function(p) {
@@ -128,7 +128,7 @@
         '<div class="prod-name">' + p.name + '</div>' +
         '<div class="prod-cat">' + (p.category ? p.category.name : '') + '</div>' +
         '<div class="prod-price">EGP ' + parseFloat(p.price).toLocaleString() + '</div>' +
-        '<button class="btn-add-cart" onclick="event.stopPropagation(); homeAddToCart(' + p.id + ', \'' + escHtml(p.name) + '\', ' + p.price + ')" style="margin-top:8px;background:#2C1F14;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;font-size:12px;width:100%">Add to Cart</button>' +
+        '<button class="btn-add-cart" onclick="event.stopPropagation(); homeAddToCart(' + p.id + ', \'' + escHtml(p.name) + '\', ' + p.price + ')" style="margin-top:8px;background:#2C1F14;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;font-size:12px;width:100%">' + "{{ __('Add to Cart') }}" + '</button>' +
         '</div>';
     }).join('');
 

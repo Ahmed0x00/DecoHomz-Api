@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>@yield('title', 'Admin') — DecoHomz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shared.css">
   <script src="/js/api.js"></script>
   <script>
@@ -66,8 +69,10 @@
     body {
       display: flex;
       min-height: 100vh;
-      background: #f5f5f5;
-      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f8f9fb;
+      font-family: 'Outfit', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     /* Sidebar */
@@ -601,6 +606,14 @@
     <header class="admin-topbar">
       <div class="topbar-title">@yield('page_title', 'Dashboard')</div>
       <div class="topbar-actions">
+        <!-- Language Switcher -->
+        <div style="margin-right: 15px;">
+          @if(app()->getLocale() === 'ar')
+            <a href="{{ request()->fullUrlWithQuery(['lang' => 'en']) }}" style="font-size: 12px; color: var(--primary); text-decoration: none; font-weight: 600;">English</a>
+          @else
+            <a href="{{ request()->fullUrlWithQuery(['lang' => 'ar']) }}" style="font-size: 12px; color: var(--primary); text-decoration: none; font-weight: 600;">العربية</a>
+          @endif
+        </div>
         <a href="/" class="topbar-link" target="_blank">View Store</a>
         <a href="/admin/dashboard" class="topbar-link">Refresh</a>
       </div>

@@ -82,18 +82,18 @@
 
 @section('content')
 
-<div class="breadcrumb">Home › <span>Categories</span></div>
+<div class="breadcrumb">{{ __('Home') }} › <span>{{ __('Categories') }}</span></div>
 
 <div class="cat-hero">
-  <h1 class="premium-title">Browse Our Collections</h1>
-  <p class="premium-subtitle">Expertly curated furniture for every corner of your home.</p>
+  <h1 class="premium-title">{{ __('Browse Our Collections') }}</h1>
+  <p class="premium-subtitle">{{ __('Expertly curated furniture for every corner of your home.') }}</p>
 </div>
 
 <div class="cat-grid-large" id="categories-container">
   <!-- Loading state -->
   <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
     <div class="spinner"></div>
-    <p style="color: #888; margin-top: 16px;">Loading collections...</p>
+    <p style="color: #888; margin-top: 16px;">{{ __('Loading collections...') }}</p>
   </div>
 </div>
 
@@ -111,7 +111,7 @@
     const categories = res.categories || [];
     
     if (categories.length === 0) {
-      container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #888;">No categories found.</div>';
+      container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #888;">' + "{{ __('No categories found.') }}" + '</div>';
       return;
     }
     
@@ -124,14 +124,14 @@
           </div>
           <div class="cat-info-l">
             <h3>${cat.name}</h3>
-            <p>${cat.description || (cat.products_count + ' Products')}</p>
+            <p>${cat.description || (cat.products_count + " {{ __('Products') }}")}</p>
           </div>
         </a>
       `;
     }).join('');
     
   } catch (e) {
-    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #C0392B;">Failed to load categories. Please try again.</div>';
+    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #C0392B;">' + "{{ __('Failed to load categories. Please try again.') }}" + '</div>';
   }
 })();
 </script>

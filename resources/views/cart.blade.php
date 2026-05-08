@@ -8,13 +8,13 @@
 
 @section('content')
 
-<div class="breadcrumb">Home › <span>Shopping Cart</span></div>
+<div class="breadcrumb">{{ __('Home') }} › <span>{{ __('Shopping Cart') }}</span></div>
 
 <div class="cart-layout">
   <div class="cart-items">
     <div class="cart-header">
-      <h1 class="cart-title" id="cart-title">Your Cart</h1>
-      <button class="clear-btn" id="clear-cart-btn">Clear All</button>
+      <h1 class="cart-title" id="cart-title">{{ __('Your Cart') }}</h1>
+      <button class="clear-btn" id="clear-cart-btn">{{ __('Clear All') }}</button>
     </div>
     
     <div id="cart-page-container">
@@ -26,37 +26,37 @@
   </div>
 
   <div class="summary">
-    <h2 class="summary-title">Order Summary</h2>
+    <h2 class="summary-title">{{ __('Order Summary') }}</h2>
     
     <div class="sum-row">
-      <span class="key" id="summary-subtotal-label">Subtotal</span>
+      <span class="key" id="summary-subtotal-label">{{ __('Subtotal') }}</span>
       <span class="val" id="summary-subtotal">EGP 0</span>
     </div>
     
     <div class="sum-row">
-      <span class="key">Shipping</span>
-      <span class="val" style="color:#27AE60">Calculated at checkout</span>
+      <span class="key">{{ __('Shipping') }}</span>
+      <span class="val" style="color:#27AE60">{{ __('Calculated at checkout') }}</span>
     </div>
     
     <div class="sum-row total">
-      <span class="key">Total</span>
+      <span class="key">{{ __('Total') }}</span>
       <span class="val" id="summary-total">EGP 0</span>
     </div>
     
     <a href="/checkout" class="btn-checkout" id="btn-checkout">
-      <span>Proceed to Checkout</span>
+      <span>{{ __('Proceed to Checkout') }}</span>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
     </a>
     
     <div class="secure-note">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Secure & encrypted checkout
+      {{ __('Secure & encrypted checkout') }}
     </div>
     
     <div class="payment-icons">
-      <span class="p-icon">Visa</span>
-      <span class="p-icon">Mastercard</span>
-      <span class="p-icon">COD</span>
+      <span class="p-icon">{{ __('Visa') }}</span>
+      <span class="p-icon">{{ __('Mastercard') }}</span>
+      <span class="p-icon">{{ __('COD') }}</span>
     </div>
   </div>
 </div>
@@ -88,7 +88,7 @@
     const titleEl = document.getElementById('cart-title');
 
     if (items.length === 0) {
-      if (titleEl) titleEl.textContent = 'Your Cart';
+      if (titleEl) titleEl.textContent = "{{ __('Your Cart') }}";
       container.innerHTML = `
         <div class="empty-cart">
           <svg viewBox="0 0 24 24" width="80" height="80" stroke="#2C1F14" fill="none" stroke-width="1">
@@ -96,16 +96,16 @@
             <line x1="3" y1="6" x2="21" y2="6"/>
             <path d="M16 10a4 4 0 0 1-8 0"/>
           </svg>
-          <h2>Your cart is empty</h2>
-          <p>Looks like you haven't added anything to your cart yet.</p>
-          <a href="/shop" class="btn-dark" style="display:inline-block; background:#2C1F14; color:#fff; padding:16px 32px; border-radius:12px; text-decoration:none; font-weight:700;">Continue Shopping</a>
+          <h2>${"{{ __('Your cart is empty') }}"}</h2>
+          <p>${"{{ __('Looks like you haven\\'t added anything to your cart yet.') }}"}</p>
+          <a href="/shop" class="btn-dark" style="display:inline-block; background:#2C1F14; color:#fff; padding:16px 32px; border-radius:12px; text-decoration:none; font-weight:700;">${"{{ __('Continue Shopping') }}"}</a>
         </div>
       `;
       updateCartSummary([]);
       return;
     }
 
-    if (titleEl) titleEl.textContent = `Your Cart (${items.length})`;
+    if (titleEl) titleEl.textContent = "{{ __('Your Cart') }}" + " (" + items.length + ")";
 
     container.innerHTML = items.map(item => {
       const imgSrc = item.product?.image || '/img/placeholder.svg';
@@ -117,7 +117,7 @@
           </div>
           <div class="item-info">
             <a href="/product/${item.product?.slug}" class="item-name">${item.name}</a>
-            <div class="item-meta">${item.variant || 'Standard'}</div>
+            <div class="item-meta">${item.variant || "{{ __('Standard') }}"}</div>
             <div class="qty-ctrl">
               <button class="qty-btn" onclick="window.cartPageQty(${item.id}, -1)">−</button>
               <span class="qty-num">${item.quantity}</span>
@@ -157,7 +157,7 @@
   };
 
   async function clearCart() {
-    if (!confirm('Are you sure you want to clear your cart?')) return;
+    if (!confirm("{{ __('Are you sure you want to clear your cart?') }}")) return;
     await Cart.clear();
     await renderCartPage();
     Cart.updateBadge();
@@ -171,7 +171,7 @@
     const totalEl = document.getElementById('summary-total');
 
     if (subtotalEl) subtotalEl.textContent = 'EGP ' + subtotal.toLocaleString();
-    if (subtotalLabel) subtotalLabel.textContent = `Subtotal (${items.length} item${items.length !== 1 ? 's' : ''})`;
+    if (subtotalLabel) subtotalLabel.textContent = "{{ __('Subtotal') }}" + " (" + items.length + " " + "{{ __('items') }}" + ")";
     if (totalEl) totalEl.textContent = 'EGP ' + subtotal.toLocaleString();
   }
 })();

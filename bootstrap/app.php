@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'support.access' => \App\Http\Middleware\SupportAccessMiddleware::class,
+            'admin.token' => \App\Http\Middleware\AdminTokenAuthMiddleware::class,
+            'activity.log' => \App\Http\Middleware\ActivityLogger::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

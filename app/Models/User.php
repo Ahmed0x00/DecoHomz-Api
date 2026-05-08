@@ -38,6 +38,11 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    public function isSupport(): bool
+    {
+        return $this->role === 'support';
+    }
+
     public function addresses()
     {
         return $this->hasMany(Address::class);

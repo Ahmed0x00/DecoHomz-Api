@@ -9,6 +9,7 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Coupon;
 use App\Models\Product;
+use App\Models\ActivityLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -16,8 +17,24 @@ class CartController extends Controller
 {
     public function show(Request $request): JsonResponse
     {
-        $cart = $this->getCart($request);
+        $cart = $this->getExistingCart($request);
+
+        if (!$cart) {
+            return response()->json([
+                'cart' => [
+                    'id' => null,
+                    'items' => [],
+                    'items_count' => 0,
+                    'subtotal' => 0,
+                    'discount' => 0,
+                    'total' => 0,
+                    'coupon' => null,
+                ],
+            ]);
+        }
+
         $cart->load(['items.product', 'coupon']);
+        $itemCount = $cart->items->count();
 
         return response()->json([
             'cart' => $this->formatCart($cart),
@@ -26,7 +43,7 @@ class CartController extends Controller
 
     public function addItem(StoreCartItemRequest $request): JsonResponse
     {
-        $cart = $this->getCart($request);
+        $cart = $this->resolveCart($request);
         $validated = $request->validated();
 
         $product = Product::findOrFail($validated['product_id']);
@@ -52,6 +69,7 @@ class CartController extends Controller
             }
             $existingItem->update(['quantity' => $newQuantity]);
             $message = 'Cart item quantity updated';
+            ActivityLog::cart($request, 'Update Cart Quantity', "Updated '{$product->name}' quantity to {$newQuantity} in cart", $product);
         } else {
             CartItem::create([
                 'cart_id' => $cart->id,
@@ -60,8 +78,10 @@ class CartController extends Controller
                 'variant' => $validated['variant'] ?? null,
             ]);
             $message = 'Item added to cart';
+            ActivityLog::cart($request, 'Add to Cart', "Added '{$product->name}' to shopping cart", $product);
         }
 
+        $cart->recalculateDiscount();
         $cart->load(['items.product', 'coupon']);
 
         return response()->json([
@@ -72,9 +92,13 @@ class CartController extends Controller
 
     public function updateItem(UpdateCartItemRequest $request, string $itemId): JsonResponse
     {
-        $cart = $this->getCart($request);
-        $validated = $request->validated();
+        $cart = $this->getExistingCart($request);
 
+        if (!$cart) {
+            return response()->json(['message' => 'Cart not found'], 404);
+        }
+
+        $validated = $request->validated();
         $cartItem = $cart->items()->where('id', $itemId)->first();
 
         if (!$cartItem) {
@@ -83,6 +107,7 @@ class CartController extends Controller
 
         if ($validated['quantity'] === 0) {
             $cartItem->delete();
+            $cart->recalculateDiscount();
             return response()->json([
                 'message' => 'Item removed from cart',
                 'cart' => $this->formatCart($cart->fresh(['items.product', 'coupon'])),
@@ -102,6 +127,9 @@ class CartController extends Controller
             'variant' => $validated['variant'] ?? $cartItem->variant,
         ]);
 
+        ActivityLog::cart($request, 'Update Cart Item', "Updated quantity for '{$cartItem->product->name}' in cart to {$validated['quantity']}", $cartItem->product);
+
+        $cart->recalculateDiscount();
         $cart->load(['items.product', 'coupon']);
 
         return response()->json([
@@ -112,7 +140,11 @@ class CartController extends Controller
 
     public function removeItem(Request $request, string $itemId): JsonResponse
     {
-        $cart = $this->getCart($request);
+        $cart = $this->getExistingCart($request);
+
+        if (!$cart) {
+            return response()->json(['message' => 'Cart not found'], 404);
+        }
 
         $cartItem = $cart->items()->where('id', $itemId)->first();
 
@@ -120,7 +152,9 @@ class CartController extends Controller
             return response()->json(['message' => 'Cart item not found'], 404);
         }
 
+        ActivityLog::cart($request, 'Remove from Cart', "Removed '{$cartItem->product->name}' from shopping cart", $cartItem->product);
         $cartItem->delete();
+        $cart->recalculateDiscount();
 
         return response()->json([
             'message' => 'Item removed from cart',
@@ -130,7 +164,12 @@ class CartController extends Controller
 
     public function clear(Request $request): JsonResponse
     {
-        $cart = $this->getCart($request);
+        $cart = $this->getExistingCart($request);
+
+        if (!$cart) {
+            return response()->json(['message' => 'Cart not found'], 404);
+        }
+
         $cart->items()->delete();
         $cart->update(['coupon_code' => null, 'discount' => 0]);
 
@@ -146,7 +185,11 @@ class CartController extends Controller
             'code' => 'required|string|max:50',
         ]);
 
-        $cart = $this->getCart($request);
+        $cart = $this->getExistingCart($request);
+
+        if (!$cart) {
+            return response()->json(['message' => 'Cart not found'], 404);
+        }
 
         $coupon = Coupon::where('code', strtoupper($request->code))->first();
 
@@ -172,6 +215,8 @@ class CartController extends Controller
             'discount' => $discount,
         ]);
 
+        ActivityLog::cart($request, 'Apply Coupon', "Applied coupon '{$coupon->code}' to cart. Discount: {$discount} EGP", $coupon);
+
         $cart->load(['items.product', 'coupon']);
 
         return response()->json([
@@ -182,8 +227,16 @@ class CartController extends Controller
 
     public function removeCoupon(Request $request): JsonResponse
     {
-        $cart = $this->getCart($request);
+        $cart = $this->getExistingCart($request);
+
+        if (!$cart) {
+            return response()->json(['message' => 'Cart not found'], 404);
+        }
+
+        $oldCoupon = $cart->coupon_code;
         $cart->update(['coupon_code' => null, 'discount' => 0]);
+
+        ActivityLog::cart($request, 'Remove Coupon', "Removed coupon '{$oldCoupon}' from cart");
 
         $cart->load(['items.product', 'coupon']);
 
@@ -193,40 +246,81 @@ class CartController extends Controller
         ]);
     }
 
+    /**
+     * Get existing cart only (never creates one — for read operations).
+     */
+    protected function getExistingCart(Request $request): ?Cart
+    {
+        $user = $request->user() ?? $this->getUserFromToken($request);
+
+        if ($user) {
+            return Cart::where('user_id', $user->id)->with(['items.product', 'coupon'])->first();
+        }
+
+        $sessionId = $request->header('X-Session-ID');
+        if (!$sessionId) {
+            return null;
+        }
+
+        return Cart::where('session_id', $sessionId)
+            ->whereNull('user_id')
+            ->with(['items.product', 'coupon'])
+            ->first();
+    }
+
+    /**
+     * Get cart for write operations — creates one if it doesn't exist.
+     */
     protected function getCart(Request $request): Cart
     {
         $user = $request->user() ?? $this->getUserFromToken($request);
-        
-        // For authenticated users, use user_id
+
         if ($user) {
-            $cart = Cart::firstOrCreate(
+            return Cart::firstOrCreate(
                 ['user_id' => $user->id],
                 ['session_id' => null]
             );
-        } else {
-            // For guests, use X-Session-ID header or generate a UUID stored in header
-            $sessionId = $request->header('X-Session-ID');
-            if (!$sessionId) {
-                $sessionId = 'guest_' . uniqid();
-            }
-            $cart = Cart::firstOrCreate(
-                ['session_id' => $sessionId, 'user_id' => null],
-                []
-            );
         }
 
+        // For guests, require X-Session-ID header
+        $sessionId = $request->header('X-Session-ID');
+        if (!$sessionId) {
+            // Generate a session ID and return a transient cart (won't be saved until items are added)
+            $sessionId = 'guest_' . uniqid();
+            $cart = new Cart(['session_id' => $sessionId, 'user_id' => null, 'discount' => 0]);
+            $cart->id = null; // ensure it won't match existing records
+            return $cart;
+        }
+
+        return Cart::firstOrCreate(
+            ['session_id' => $sessionId, 'user_id' => null],
+            []
+        );
+    }
+
+    /**
+     * Ensure we have a saved cart for write operations.
+     */
+    protected function resolveCart(Request $request): Cart
+    {
+        $cart = $this->getCart($request);
+        if (!$cart->id) {
+            // Transient cart — save it now
+            $cart->save();
+        }
         return $cart;
     }
-    
+
     protected function getUserFromToken(Request $request)
     {
         $token = $request->bearerToken();
-        if (!$token) return null;
-        
-        // Try to find user from token
+        if (!$token)
+            return null;
+
         $personalAccessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
-        if (!$personalAccessToken) return null;
-        
+        if (!$personalAccessToken)
+            return null;
+
         return $personalAccessToken->tokenable;
     }
 

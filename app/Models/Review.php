@@ -15,11 +15,13 @@ class Review extends Model
         'rating',
         'comment',
         'is_approved',
+        'is_rejected',
     ];
 
     protected $casts = [
         'rating' => 'integer',
         'is_approved' => 'boolean',
+        'is_rejected' => 'boolean',
     ];
 
     public function user()

@@ -49,23 +49,8 @@ const DH_STORAGE = {
     }
 };
 
-/**
- * Global Cart Helpers
- */
-window.Cart = {
-    count: function() {
-        var cart = DH_STORAGE.get('dh_cart') || [];
-        return cart.reduce(function(total, item) { return total + (parseInt(item.quantity) || 0); }, 0);
-    },
-    updateBadge: function() {
-        var qty = Cart.count();
-        var badge = document.querySelector('.badge-cart');
-        if (badge) {
-            badge.textContent = qty;
-            badge.style.display = qty > 0 ? 'flex' : 'none';
-        }
-    }
-};
+// Note: window.Cart and window.addToCart are defined in api.js
+// This file keeps only utility helpers: DH_STORAGE, Wishlist, Toast, Cart Drawer
 
 /**
  * Global Wishlist Helpers (client-side, localStorage)
@@ -229,18 +214,6 @@ function closeCart() {
 }
 
 
-function updateBadges() {
-    const cart = DH_STORAGE.get('dh_cart') || [];
-    
-    const cartBadge = document.querySelector('.badge-cart');
-
-    if (cartBadge) {
-        const totalQty = cart.reduce((total, item) => total + (parseInt(item.quantity) || 0), 0);
-        cartBadge.textContent = totalQty;
-        cartBadge.style.display = totalQty > 0 ? 'flex' : 'none';
-    }
-}
-
 function initGlobalNavEvents() {
     // Search
     const searchBtn = document.querySelector('.search-trigger');
@@ -250,28 +223,13 @@ function initGlobalNavEvents() {
 
 }
 
-// Global function to add to cart
+// Global function to add to cart — delegates to Cart.add() from api.js
 window.addToCart = function(product) {
-    let cart = DH_STORAGE.get('dh_cart') || [];
-    const existingIndex = cart.findIndex(item => item.id === product.id && item.variant === (product.variant || 'Standard'));
-    
-    if (existingIndex > -1) {
-        cart[existingIndex].quantity += (product.quantity || 1);
-    } else {
-        // Only store essential info to save space and avoid corruption
-        cart.push({
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            quantity: product.quantity || 1,
-            variant: product.variant || 'Standard'
-        });
+    if (window.Cart && typeof Cart.add === 'function') {
+        Cart.add(product);
+        if (typeof updateBadges === 'function') updateBadges();
+        if (typeof renderCart === 'function') renderCart();
     }
-    
-    DH_STORAGE.set('dh_cart', cart);
-    updateBadges();
-    renderCart();
-    showToast(`${product.name} added to cart!`);
 };
 
 function removeFromCart(index) {
@@ -296,46 +254,94 @@ function updateQuantity(index, delta) {
 }
 
 function renderCart() {
-    const cart = DH_STORAGE.get('dh_cart') || [];
     const container = document.getElementById('cart-items-container');
     const subtotalEl = document.getElementById('cart-subtotal');
-    
+
     if (!container) return;
 
-    if (cart.length === 0) {
-        return;
-    }
+    // Always fetch fresh cart from API
+    API.get('/cart').then(res => {
+        const cart = res.cart?.items || [];
+        const badge = document.querySelector('.badge-cart');
+        if (badge) {
+            const count = res.cart?.items_count || 0;
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'flex' : 'none';
+        }
 
-    let subtotal = 0;
-    container.innerHTML = cart.map((item, index) => {
-        const product = PRODUCTS.find(p => p.id === item.id) || {};
-        const itemTotal = item.price * item.quantity;
-        subtotal += itemTotal;
-        return `
-            <div class="cart-item" style="display:flex;gap:16px;margin-bottom:20px;align-items:center">
-                <div class="cart-item-img" style="width:70px;height:70px;background:#F5F0E8;border-radius:6px;display:flex;align-items:center;justify-content:center">
-                    ${product.svg || '<svg viewBox="0 0 24 24" style="width:40px"><rect width="24" height="24" fill="#eee"/></svg>'}
+        if (cart.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center;padding:40px 20px;color:#aaa">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#C4A882" stroke-width="1.5" style="width:48px;height:48px;margin-bottom:12px">
+                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <path d="M16 10a4 4 0 0 1-8 0"/>
+                    </svg>
+                    <p style="font-size:14px">Your cart is empty</p>
                 </div>
-                <div style="flex:1">
-                    <div style="font-size:13px;font-weight:600;color:#2C1F14;margin-bottom:4px">${item.name}</div>
-                    <div style="font-size:11px;color:#999;margin-bottom:8px">${item.variant || 'Standard'}</div>
-                    <div style="display:flex;justify-content:space-between;align-items:center">
-                        <div class="qty-ctrl" style="transform: scale(0.8);transform-origin: left">
-                            <button class="qty-btn" onclick="updateQuantity(${index}, -1)">−</button>
-                            <span class="qty-num">${item.quantity}</span>
-                            <button class="qty-btn" onclick="updateQuantity(${index}, 1)">+</button>
-                        </div>
-                        <div style="font-size:13px;font-weight:700">EGP ${itemTotal.toLocaleString()}</div>
+            `;
+            if (subtotalEl) subtotalEl.textContent = 'EGP 0';
+            return;
+        }
+
+        let subtotal = 0;
+        container.innerHTML = cart.map((item, index) => {
+            const itemTotal = parseFloat(item.price) * (parseInt(item.quantity) || 1);
+            subtotal += itemTotal;
+            const imgSrc = item.product?.image || '/img/placeholder.svg';
+            return `
+                <div class="cart-item" style="display:flex;gap:16px;margin-bottom:20px;align-items:center">
+                    <div class="cart-item-img" style="width:70px;height:70px;background:#F5F0E8;border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden">
+                        <img src="${imgSrc}" alt="${item.name}" style="width:100%;height:100%;object-fit:contain" onerror="this.style.display='none'">
                     </div>
+                    <div style="flex:1">
+                        <div style="font-size:13px;font-weight:600;color:#2C1F14;margin-bottom:4px">${item.name}</div>
+                        <div style="font-size:11px;color:#999;margin-bottom:8px">${item.variant || 'Standard'} × ${item.quantity}</div>
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <div class="qty-ctrl" style="transform:scale(0.8);transform-origin:left">
+                                <button class="qty-btn" onclick="cartDrawerQty(${item.id}, -1)">−</button>
+                                <span class="qty-num">${item.quantity}</span>
+                                <button class="qty-btn" onclick="cartDrawerQty(${item.id}, 1)">+</button>
+                            </div>
+                            <div style="font-size:13px;font-weight:700">EGP ${itemTotal.toLocaleString()}</div>
+                        </div>
+                    </div>
+                    <button onclick="cartDrawerRemove(${item.id})" style="background:none;border:none;cursor:pointer;color:#aaa">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
                 </div>
-                <button onclick="removeFromCart(${index})" style="background:none;border:none;cursor:pointer;color:#aaa">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-            </div>
-        `;
-    }).join('');
-    
-    subtotalEl.textContent = `EGP ${subtotal.toLocaleString()}`;
+            `;
+        }).join('');
+
+        if (subtotalEl) subtotalEl.textContent = `EGP ${subtotal.toLocaleString()}`;
+    }).catch(() => {});
+}
+
+// ── Cart drawer quantity controls (call API) ───────────────────────────────
+window.cartDrawerQty = async function(itemId, delta) {
+    const res = await API.get('/cart').catch(() => ({}));
+    const items = res.cart?.items || [];
+    const item = items.find(i => i.id == itemId);
+    if (!item) return;
+    const newQty = Math.max(0, item.quantity + delta);
+    if (newQty === 0) {
+        await Cart.remove(itemId);
+    } else {
+        await Cart.updateQty(itemId, newQty);
+    }
+    renderCart();
+};
+
+window.cartDrawerRemove = async function(itemId) {
+    await Cart.remove(itemId);
+    renderCart();
+};
+
+function updateBadges() {
+    // Delegate to Cart.updateBadge() which fetches from API
+    if (window.Cart && window.Cart.updateBadge) {
+        Cart.updateBadge();
+    }
 }
 
 function initSearchBar() {

@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>@yield('title', 'DecoHomz — Premium Furniture')</title>
   <meta name="description" content="@yield('meta_description', 'DecoHomz offers premium, handcrafted furniture for every space. Sofas, beds, dining sets and more — delivered across Egypt.')">
   <meta property="og:title" content="@yield('og_title', 'DecoHomz — Premium Furniture')">

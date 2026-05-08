@@ -128,6 +128,7 @@
         '<div class="prod-name">' + p.name + '</div>' +
         '<div class="prod-cat">' + (p.category ? p.category.name : '') + '</div>' +
         '<div class="prod-price">EGP ' + parseFloat(p.price).toLocaleString() + '</div>' +
+        '<button class="btn-add-cart" onclick="event.stopPropagation(); homeAddToCart(' + p.id + ', \'' + escHtml(p.name) + '\', ' + p.price + ')" style="margin-top:8px;background:#2C1F14;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;font-size:12px;width:100%">Add to Cart</button>' +
         '</div>';
     }).join('');
 
@@ -136,6 +137,17 @@
         location.href = '/product/' + card.dataset.id;
       });
     });
+  }
+
+  window.homeAddToCart = function(id, name, price) {
+    if (window.Cart && typeof Cart.add === 'function') {
+      Cart.add({ id: id, name: name, price: price, quantity: 1, variant: 'Standard' });
+      Cart.updateBadge();
+    }
+  };
+
+  function escHtml(str) {
+    return String(str).replace(/'/g, "\\'").replace(/"/g, '\\"');
   }
 
   (async function() {

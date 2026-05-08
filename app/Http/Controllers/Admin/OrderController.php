@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\ActivityLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -12,6 +13,10 @@ class OrderController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Order::with(['user', 'items.product', 'shippingAddress']);
+
+        if ($request->has('search')) {
+            ActivityLog::orders($request, 'Search Orders', "Admin searched for orders with query: {$request->search}");
+        }
 
         // Filters
         if ($request->has('status')) {
@@ -40,7 +45,9 @@ class OrderController extends Controller
     {
         $order = Order::with(['user', 'items.product', 'shippingAddress', 'coupon'])->findOrFail($id);
 
-        return response()->json(['order' => $order]);
+        return response()->json([
+            'data' => $order->load(['user', 'items.product', 'shippingAddress', 'coupon']),
+        ]);
     }
 
     public function updateStatus(Request $request, string $id): JsonResponse
@@ -50,6 +57,7 @@ class OrderController extends Controller
         ]);
 
         $order = Order::findOrFail($id);
+        $oldStatus = $order->status;
 
         // If cancelling, restore stock
         if ($validated['status'] === 'cancelled' && !in_array($order->status, ['cancelled'])) {
@@ -60,6 +68,8 @@ class OrderController extends Controller
 
         $order->update(['status' => $validated['status']]);
 
+        ActivityLog::orders($request, 'Update Order Status', "Changed order #{$order->order_number} status from {$oldStatus} to {$validated['status']}", $order);
+
         return response()->json([
             'message' => 'Order status updated',
             'order' => $order->fresh(['user', 'items.product', 'shippingAddress']),
@@ -69,11 +79,14 @@ class OrderController extends Controller
     public function updatePaymentStatus(Request $request, string $id): JsonResponse
     {
         $validated = $request->validate([
-            'payment_status' => 'required|in:pending,paid,failed,refunded',
+            'payment_status' => 'required|in:unpaid,paid_deposit,full_paid',
         ]);
 
         $order = Order::findOrFail($id);
+        $oldPayStatus = $order->payment_status;
         $order->update(['payment_status' => $validated['payment_status']]);
+
+        ActivityLog::orders($request, 'Update Payment Status', "Changed order #{$order->order_number} payment status from {$oldPayStatus} to {$validated['payment_status']}", $order);
 
         return response()->json([
             'message' => 'Payment status updated',
@@ -90,6 +103,8 @@ class OrderController extends Controller
 
         $order = Order::findOrFail($id);
         $order->update($validated);
+
+        ActivityLog::orders($request, 'Update Tracking', "Updated tracking info for order #{$order->order_number} (Tracking #: {$validated['tracking_number']})", $order);
 
         return response()->json([
             'message' => 'Tracking information updated',

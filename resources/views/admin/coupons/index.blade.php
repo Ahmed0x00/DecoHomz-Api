@@ -191,7 +191,7 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
     var now = new Date();
 
     allCoupons.forEach(function(c) {
-      var isActive = c.is_active == 1 || c.is_active === true || c.active === true;
+      var isActive = c.is_active == 1 || c.is_active === true;
       var expDate = c.expires_at ? new Date(c.expires_at) : null;
       if (expDate && expDate < now) isActive = false;
 
@@ -216,17 +216,17 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
     }
     var now = new Date();
     tbody.innerHTML = coupons.map(function(c) {
-      var typeLabel = c.type === 'percentage' ? '%' : 'Fixed';
-      var value = c.type === 'percentage' ? c.value + '%' : 'EGP ' + parseFloat(c.value || 0).toLocaleString();
-      var minOrder = c.min_order ? 'EGP ' + parseFloat(c.min_order).toLocaleString() : '—';
-      var uses = c.uses_count !== undefined ? c.uses_count + (c.uses_limit ? '/' + c.uses_limit : '') : (c.uses || 0);
+      var typeLabel = c.discount_type === 'percentage' ? '%' : 'Fixed';
+      var value = c.discount_type === 'percentage' ? c.discount_value + '%' : 'EGP ' + parseFloat(c.discount_value || 0).toLocaleString();
+      var minOrder = (c.min_order_amount !== undefined ? c.min_order_amount : c.min_order) ? 'EGP ' + parseFloat((c.min_order_amount || c.min_order) || 0).toLocaleString() : '—';
+      var uses = c.used_count !== undefined ? c.used_count + (c.max_uses ? '/' + c.max_uses : '') : (c.uses || 0);
       var expires = c.expires_at
         ? new Date(c.expires_at).toLocaleDateString('en-EG', { year: 'numeric', month: 'short', day: 'numeric' })
         : 'Never';
 
       var expDate = c.expires_at ? new Date(c.expires_at) : null;
       var isExpired = expDate && expDate < now;
-      var isActive = (c.is_active == 1 || c.is_active === true || c.active === true) && !isExpired;
+      var isActive = (c.is_active == 1 || c.is_active === true) && !isExpired;
 
       var statusClass = isActive ? 'badge-active' : 'badge-inactive';
       var statusLabel = isExpired ? 'Expired' : (isActive ? 'Active' : 'Inactive');
@@ -277,14 +277,14 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
     document.getElementById('modalTitle').textContent = 'Edit Coupon';
     document.getElementById('couponId').value = coupon.id;
     document.getElementById('couponCode').value = coupon.code || '';
-    document.getElementById('couponType').value = coupon.type || 'percentage';
-    document.getElementById('couponValue').value = coupon.value || '';
-    document.getElementById('couponMinOrder').value = coupon.min_order || '';
-    document.getElementById('couponMaxDiscount').value = coupon.max_discount || '';
-    document.getElementById('couponUsesLimit').value = coupon.uses_limit || '';
+    document.getElementById('couponType').value = coupon.discount_type || coupon.type || 'percentage';
+    document.getElementById('couponValue').value = coupon.discount_value || coupon.value || '';
+    document.getElementById('couponMinOrder').value = (coupon.min_order_amount !== undefined ? coupon.min_order_amount : coupon.min_order) || '';
+    document.getElementById('couponMaxDiscount').value = '';
+    document.getElementById('couponUsesLimit').value = (coupon.max_uses !== undefined ? coupon.max_uses : coupon.uses_limit) || '';
     document.getElementById('couponStarts').value = coupon.starts_at ? coupon.starts_at.split('T')[0] : '';
     document.getElementById('couponExpires').value = coupon.expires_at ? coupon.expires_at.split('T')[0] : '';
-    document.getElementById('couponActive').checked = coupon.is_active == 1 || coupon.is_active === true;
+    document.getElementById('couponActive').checked = coupon.is_active == 1 || coupon.is_active === true || coupon.active === true;
     document.getElementById('activeLabel').textContent = document.getElementById('couponActive').checked ? 'Active' : 'Inactive';
     document.getElementById('couponModal').classList.add('show');
   };
@@ -303,7 +303,17 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
     if (!code) { showToast('Please enter a coupon code.', 'error'); return; }
     if (!value || value <= 0) { showToast('Please enter a valid value.', 'error'); return; }
 
-    var payload = { code: code, type: type, value: value, min_order: minOrder, max_discount: maxDiscount, uses_limit: usesLimit, starts_at: startsAt, expires_at: expiresAt, is_active: isActive ? 1 : 0 };
+    var payload = { 
+      code: code, 
+      discount_type: type, 
+      discount_value: value, 
+      min_order: minOrder, 
+      max_discount: maxDiscount, 
+      uses_limit: usesLimit, 
+      starts_at: startsAt, 
+      expires_at: expiresAt, 
+      is_active: isActive ? 1 : 0 
+    };
 
     var promise;
     if (editingId) {

@@ -11,12 +11,18 @@ class ProductController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Product::active()->with(['category', 'primaryImage', 'approvedReviews']);
+        $query = Product::active()->with(['category', 'primaryImage', 'approvedReviews', 'colors']);
 
-        // Filter by category
+        // Filter by category (supports ID or slug)
         if ($request->has('category')) {
-            $categoryId = $request->input('category');
-            $query->where('category_id', $categoryId);
+            $cat = $request->input('category');
+            $query->whereHas('category', function ($q) use ($cat) {
+                if (is_numeric($cat)) {
+                    $q->where('id', $cat);
+                } else {
+                    $q->where('slug', $cat)->orWhere('name', $cat);
+                }
+            });
         }
 
         // Filter by search
@@ -31,6 +37,11 @@ class ProductController extends Controller
         // Filter by material
         if ($request->has('material')) {
             $query->where('material', $request->input('material'));
+        }
+
+        // Filter by color
+        if ($request->has('color')) {
+            $query->where('color', $request->input('color'));
         }
 
         // Filter by featured
@@ -82,8 +93,7 @@ class ProductController extends Controller
     {
         $product = Product::where('id', $id)
             ->orWhere('slug', $id)
-            ->active()
-            ->with(['category', 'images', 'approvedReviews'])
+            ->with(['category', 'primaryImage', 'images', 'colors', 'approvedReviews'])
             ->first();
 
         if (!$product) {
@@ -105,16 +115,16 @@ class ProductController extends Controller
 
     public function related(string $id): JsonResponse
     {
-        $product = Product::find($id);
+        $product = Product::where('id', $id)->orWhere('slug', $id)->first();
 
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
 
         $related = Product::active()
+            ->where('id', '!=', $id)
             ->where('category_id', $product->category_id)
-            ->where('id', '!=', $product->id)
-            ->with(['primaryImage'])
+            ->with(['category', 'primaryImage', 'colors'])
             ->limit(4)
             ->get();
 
@@ -127,7 +137,7 @@ class ProductController extends Controller
     {
         $products = Product::active()
             ->featured()
-            ->with(['category', 'primaryImage'])
+            ->with(['category', 'primaryImage', 'colors'])
             ->limit(8)
             ->get();
 

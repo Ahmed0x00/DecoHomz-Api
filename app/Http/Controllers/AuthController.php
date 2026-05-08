@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
@@ -27,6 +28,8 @@ class AuthController extends Controller
             'role' => 'user',
         ]);
 
+        ActivityLog::auth($request, 'Registration', "New user registered: {$user->name} ({$user->email})", $user);
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -46,8 +49,11 @@ class AuthController extends Controller
         $user = User::where('email', $validated['email'])->first();
 
         if (!$user || !Hash::check($validated['password'], $user->password)) {
+            ActivityLog::auth($request, 'Login Failed', "Failed login attempt for email: {$validated['email']}", null, 'failure');
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
+
+        ActivityLog::auth($request, 'Login', "User logged in: {$user->name}", $user);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -60,7 +66,9 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+        ActivityLog::auth($request, 'Logout', "User logged out: {$user->name}", $user);
+        $user->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Logged out successfully']);
     }
@@ -85,6 +93,8 @@ class AuthController extends Controller
         ]);
 
         $user->update($validated);
+        
+        ActivityLog::auth($request, 'Update Profile', "User updated their profile details", $user);
 
         return response()->json([
             'message' => 'Profile updated successfully',
@@ -102,12 +112,15 @@ class AuthController extends Controller
         $user = $request->user();
 
         if (!Hash::check($validated['current_password'], $user->password)) {
+            ActivityLog::auth($request, 'Password Change Failed', "User provided incorrect current password", $user, 'failure');
             return response()->json(['message' => 'Current password is incorrect'], 422);
         }
 
         $user->update([
             'password' => $validated['password'],
         ]);
+
+        ActivityLog::auth($request, 'Change Password', "User successfully changed their password", $user);
 
         return response()->json([
             'message' => 'Password changed successfully',

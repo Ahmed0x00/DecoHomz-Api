@@ -86,6 +86,16 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function colors()
+    {
+        return $this->hasMany(ProductColor::class)->orderBy('sort_order');
+    }
+
+    public function activeColors()
+    {
+        return $this->hasMany(ProductColor::class)->where('is_active', true)->orderBy('sort_order');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

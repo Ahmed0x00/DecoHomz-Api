@@ -51,4 +51,22 @@ class Cart extends Model
     {
         return $this->items->sum('quantity');
     }
+    public function recalculateDiscount(): void
+    {
+        if (!$this->coupon_code) {
+            $this->update(['discount' => 0]);
+            return;
+        }
+
+        $coupon = $this->coupon;
+        if (!$coupon || !$coupon->isValid()) {
+            $this->update(['coupon_code' => null, 'discount' => 0]);
+            return;
+        }
+
+        $subtotal = $this->getSubtotalAttribute();
+        $discount = $coupon->calculateDiscount($subtotal);
+
+        $this->update(['discount' => $discount]);
+    }
 }

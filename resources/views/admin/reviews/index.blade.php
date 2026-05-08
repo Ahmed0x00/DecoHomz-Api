@@ -130,8 +130,8 @@
 
     allReviews.forEach(function(r) {
       var status = (r.status || '').toLowerCase();
-      if (status === 'approved' || status === '1' || r.is_approved === 1) approved++;
-      else if (status === 'rejected' || status === '2' || r.is_rejected === 1) rejected++;
+      if (status === 'approved' || status === '1' || r.is_approved == 1) approved++;
+      else if (status === 'rejected' || status === '2' || r.is_rejected == 1) rejected++;
       else pending++;
     });
 
@@ -147,9 +147,9 @@
       filtered = allReviews.filter(function(r) {
         var status = (r.status || '').toLowerCase();
         if (currentFilter === 'pending') {
-          return status !== 'approved' && status !== 'rejected' && r.is_approved !== 1 && r.is_rejected !== 1;
+          return status !== 'approved' && status !== 'rejected' && r.is_approved != 1 && r.is_rejected != 1;
         }
-        return status === currentFilter || r.status == currentFilter;
+        return status === currentFilter || r.status == currentFilter || (currentFilter === 'rejected' && r.is_rejected == 1);
       });
     }
     renderTable(filtered);
@@ -174,8 +174,8 @@
       var truncated = comment.length > 60 ? comment.substring(0, 60) + '...' : comment;
 
       var status = (r.status || '').toLowerCase();
-      var isApproved = status === 'approved' || status === '1' || r.is_approved === 1;
-      var isRejected = status === 'rejected' || status === '2' || r.is_rejected === 1;
+      var isApproved = status === 'approved' || status === '1' || r.is_approved == 1;
+      var isRejected = status === 'rejected' || status === '2' || r.is_rejected == 1;
 
       var statusClass, statusLabel;
       if (isApproved) {
@@ -195,10 +195,12 @@
 
       var actions = '';
       if (!isApproved && !isRejected) {
-        actions += '<button onclick="approveReview(' + r.id + ')" style="padding:5px 10px;background:#d1fae5;color:#065f46;border:1px solid #d1fae5;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;margin-right:6px;">Approve</button>';
-        actions += '<button onclick="rejectReview(' + r.id + ')" style="padding:5px 10px;background:#fee2e2;color:#991b1b;border:1px solid #fee2e2;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Reject</button>';
+        actions += '<div style="display:flex;gap:8px;">' +
+          '<button onclick="approveReview(' + r.id + ')" style="flex:1;padding:6px;background:#d1fae5;color:#065f46;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><path d="M20 6L9 17l-5-5"/></svg> Approve</button>' +
+          '<button onclick="rejectReview(' + r.id + ')" style="flex:1;padding:6px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><path d="M18 6L6 18M6 6l12 12"/></svg> Reject</button>' +
+        '</div>';
       } else {
-        actions = '<span style="color:#aaa;font-size:12px;">—</span>';
+        actions = '<span style="color:#aaa;font-size:11px;font-style:italic;">No actions available</span>';
       }
 
       return '<tr>' +
@@ -216,7 +218,7 @@
   window.approveReview = function(id) {
     API.patch('/admin/reviews/' + id + '/approve').then(function() {
       showToast('Review approved.', 'success');
-      loadReviews();
+      setTimeout(loadReviews, 500); // Small delay to ensure DB sync
     }).catch(function() {
       showToast('Failed to approve review.', 'error');
     });
@@ -225,7 +227,7 @@
   window.rejectReview = function(id) {
     API.patch('/admin/reviews/' + id + '/reject').then(function() {
       showToast('Review rejected.', 'success');
-      loadReviews();
+      setTimeout(loadReviews, 500); // Small delay to ensure DB sync
     }).catch(function() {
       showToast('Failed to reject review.', 'error');
     });

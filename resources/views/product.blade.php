@@ -130,31 +130,44 @@
 
     document.getElementById('product-page').innerHTML =
       '<div class="img-section">' +
-        '<div class="main-img" id="main-img">' + mainImgHtml + '</div>' +
+        '<div class="main-img-wrapper">' +
+          '<div class="main-img" id="main-img">' + mainImgHtml + '</div>' +
+        '</div>' +
         '<div class="thumb-row" id="thumb-row">' + thumbHtml + '</div>' +
       '</div>' +
       '<div class="info-section">' +
-        '<div class="prod-cat-tag" id="prod-cat-tag">' + (p.category ? p.category.name : '') + '</div>' +
-        '<h1 class="prod-title" id="prod-title">' + p.name + '</h1>' +
+        '<div class="prod-meta">' +
+          '<span class="prod-cat-tag">' + (p.category ? p.category.name : 'Furniture') + '</span>' +
+          (p.stock > 0 ? '<span class="stock-tag in">In Stock</span>' : '<span class="stock-tag out">Out of Stock</span>') +
+        '</div>' +
+        '<h1 class="prod-title">' + p.name + '</h1>' +
         '<div class="rating-row">' +
-          '<span class="stars" id="rating-stars">' + starsStr + '</span>' +
-          '<span class="rating-count" id="rating-count">' + (reviewCount > 0 ? avgRating.toFixed(1) + ' · ' + reviewCount + ' reviews' : 'No reviews yet') + '</span>' +
+          '<div class="stars-outer"><div class="stars-inner" style="width:' + (avgRating / 5 * 100) + '%"></div></div>' +
+          '<span class="rating-text">' + avgRating.toFixed(1) + ' (' + reviewCount + ' reviews)</span>' +
         '</div>' +
-        '<div class="price-row" id="price-row">' + priceHtml + '</div>' +
-        '<hr class="divider">' +
-        colorsHtml +
-        '<div class="option-label">Quantity</div>' +
-        '<div class="qty-row">' +
-          '<div class="qty-ctrl">' +
-            '<button class="qty-btn" id="qty-minus">−</button>' +
+        '<div class="price-container">' +
+          priceHtml +
+        '</div>' +
+        '<p class="short-desc">' + (p.description ? p.description.substring(0, 160) + '...' : 'Premium quality piece designed for modern living spaces.') + '</p>' +
+        '<div class="options-container">' +
+          colorsHtml +
+        '</div>' +
+        '<div class="purchase-section">' +
+          '<div class="qty-selector">' +
+            '<button class="qty-btn" id="qty-minus" aria-label="Decrease quantity">−</button>' +
             '<span class="qty-num" id="qty-num">1</span>' +
-            '<button class="qty-btn" id="qty-plus">+</button>' +
+            '<button class="qty-btn" id="qty-plus" aria-label="Increase quantity">+</button>' +
           '</div>' +
+          '<button class="btn-primary-lg" id="add-to-cart-btn">' +
+            '<span>Add to Cart</span>' +
+            '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4H6z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>' +
+          '</button>' +
         '</div>' +
-        '<div class="action-row">' +
-          '<button class="btn-cart" id="add-to-cart-btn">Add to Cart</button>' +
+        '<div class="trust-badges">' +
+          '<div class="trust-item"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>5-Year Warranty</span></div>' +
+          '<div class="trust-item"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><span>Fast Shipping</span></div>' +
+          '<div class="trust-item"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg><span>Easy Returns</span></div>' +
         '</div>' +
-        perksHtml +
       '</div>';
 
     // Show tabs now that product loaded
@@ -190,18 +203,20 @@
   // ── Quantity ─────────────────────────────────────────────
   function initQuantityButtons() {
     document.addEventListener('click', function(e) {
-      if (e.target.id === 'qty-minus' || (e.target.id === 'qty-plus')) {
-        var numEl = document.getElementById('qty-num');
-        if (!numEl) return;
-        var val = parseInt(numEl.textContent) || 1;
-        if (e.target.id === 'qty-minus' && val > 1) {
-          numEl.textContent = val - 1;
-          quantity = val - 1;
-        }
-        if (e.target.id === 'qty-plus') {
-          numEl.textContent = val + 1;
-          quantity = val + 1;
-        }
+      var btn = e.target.closest('.qty-btn');
+      if (!btn) return;
+      
+      var numEl = document.getElementById('qty-num');
+      if (!numEl) return;
+      var val = parseInt(numEl.textContent) || 1;
+      
+      if (btn.id === 'qty-minus' && val > 1) {
+        numEl.textContent = val - 1;
+        quantity = val - 1;
+      }
+      if (btn.id === 'qty-plus') {
+        numEl.textContent = val + 1;
+        quantity = val + 1;
       }
     });
   }
@@ -231,7 +246,8 @@
   // ── Add to Cart ──────────────────────────────────────────
   function initAddToCart() {
     document.addEventListener('click', function(e) {
-      if (!e.target || e.target.id !== 'add-to-cart-btn') return;
+      var btn = e.target.closest('#add-to-cart-btn');
+      if (!btn) return;
       if (!currentProduct) return;
       var qtyEl = document.getElementById('qty-num');
       var qty = parseInt(qtyEl ? qtyEl.textContent : 1) || 1;
@@ -300,7 +316,7 @@
   // ── Reviews ──────────────────────────────────────────────
   async function loadReviews() {
     try {
-      var res = await API.get('/products/' + productId + '/reviews');
+      var res = await API.get('/products/' + currentProduct.id + '/reviews');
       renderReviews(res.reviews || [], res.stats || {});
     } catch(e) {}
   }
@@ -395,7 +411,7 @@
     msg.style.display = 'none';
 
     try {
-      await API.post('/reviews', { product_id: parseInt(productId), rating: rating, comment: comment });
+      await API.post('/reviews', { product_id: currentProduct.id, rating: rating, comment: comment });
       msg.style.color = '#2A2'; msg.style.display = 'block'; msg.textContent = 'Review submitted! It will appear after approval.';
       document.getElementById('review-comment').value = '';
       initStarPicker(5);
@@ -411,7 +427,7 @@
   // ── Related products ─────────────────────────────────────
   async function loadRelated() {
     try {
-      var res = await API.get('/products/' + productId + '/related');
+      var res = await API.get('/products/' + currentProduct.id + '/related');
       var products = res.products || [];
       if (products.length > 0) {
         renderRelated(products);

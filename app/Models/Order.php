@@ -19,8 +19,13 @@ class Order extends Model
         'total',
         'payment_method',
         'payment_status',
+        'deposit_amount',
+        'vat_amount',
         'coupon_id',
         'notes',
+        'refund_status',
+        'refund_reason',
+        'refund_handled_at',
     ];
 
     protected $casts = [
@@ -28,6 +33,8 @@ class Order extends Model
         'discount' => 'decimal:2',
         'delivery_fee' => 'decimal:2',
         'total' => 'decimal:2',
+        'deposit_amount' => 'decimal:2',
+        'vat_amount' => 'decimal:2',
     ];
 
     public const STATUS_PENDING = 'pending';
@@ -36,9 +43,20 @@ class Order extends Model
     public const STATUS_DELIVERED = 'delivered';
     public const STATUS_CANCELLED = 'cancelled';
 
-    public const PAYMENT_PENDING = 'pending';
-    public const PAYMENT_PAID = 'paid';
-    public const PAYMENT_FAILED = 'failed';
+    public const PAYMENT_UNPAID = 'unpaid';
+    public const PAYMENT_PAID_DEPOSIT = 'paid_deposit';
+    public const PAYMENT_FULL_PAID = 'full_paid';
+    public const PAYMENT_REFUNDED = 'refunded';
+
+    public const REFUND_PENDING = 'pending';
+    public const REFUND_APPROVED = 'approved';
+    public const REFUND_REJECTED = 'rejected';
+
+    public function canRequestRefund(): bool
+    {
+        return in_array($this->payment_status, [self::PAYMENT_PAID_DEPOSIT, self::PAYMENT_FULL_PAID])
+            && is_null($this->refund_status);
+    }
 
     public static function generateOrderNumber(): string
     {

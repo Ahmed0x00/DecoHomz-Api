@@ -257,7 +257,7 @@
       (async function init() {
         try {
           const res = await API.get('/auth/user');
-          const user = res.data?.user || res.user;
+          const user = res.data || res;
           renderUserInfo(user);
         } catch (e) {
           location.href = '/auth';
@@ -295,7 +295,7 @@
       async function loadOverview() {
         try {
           const res = await API.get('/orders');
-          const orders = res.data?.orders || res.orders || [];
+          const orders = res.data || res.orders || [];
           const total = orders.length;
           const delivered = orders.filter(o => ['delivered', 'completed'].includes((o.status || '').toLowerCase())).length;
           const processing = orders.filter(o => ['pending', 'processing'].includes((o.status || '').toLowerCase())).length;
@@ -307,7 +307,7 @@
           // Try wishlist count
           try {
             const wRes = await API.get('/wishlist');
-            const wishlist = wRes.data?.items || wRes.items || [];
+            const wishlist = wRes.products || wRes.data || [];
             document.getElementById('stat-wishlist').textContent = wishlist.length;
           } catch (e) {
             document.getElementById('stat-wishlist').textContent = '0';
@@ -339,35 +339,35 @@
         const orderNum = o.order_number || o.id || '—';
 
         return `
-        <div class="order-card">
-          <div>
-            <div class="order-top">
-              <span class="order-id">#${orderNum}</span>
-              <span class="order-status status-${statusClass}">${o.status || '—'}</span>
-              <span class="order-date">${dateStr}</span>
-            </div>
-            <div class="order-items-preview">
-              ${items.slice(0, 3).map(item => `
-                <div class="order-thumb" title="${item.name || ''}">
-                  ${item.image
+          <div class="order-card">
+            <div>
+              <div class="order-top">
+                <span class="order-id">#${orderNum}</span>
+                <span class="order-status status-${statusClass}">${o.status || '—'}</span>
+                <span class="order-date">${dateStr}</span>
+              </div>
+              <div class="order-items-preview">
+                ${items.slice(0, 3).map(item => `
+                  <div class="order-thumb" title="${item.name || ''}">
+                    ${item.image
             ? `<img src="${item.image}" alt="${item.name || ''}" style="width:65%;height:65%;object-fit:contain" onerror="this.style.display='none'">`
             : `<svg viewBox="0 0 40 40" fill="none">
-                        <rect x="3" y="15" width="34" height="18" rx="4" fill="#C4A882"/>
-                        <rect x="6" y="10" width="8" height="12" rx="2" fill="#A07858"/>
-                        <rect x="26" y="10" width="8" height="12" rx="2" fill="#A07858"/>
-                      </svg>`
+                          <rect x="3" y="15" width="34" height="18" rx="4" fill="#C4A882"/>
+                          <rect x="6" y="10" width="8" height="12" rx="2" fill="#A07858"/>
+                          <rect x="26" y="10" width="8" height="12" rx="2" fill="#A07858"/>
+                        </svg>`
           }
-                </div>
-              `).join('')}
-              ${items.length > 3 ? `<div class="order-thumb-more">+${items.length - 3}</div>` : ''}
+                  </div>
+                `).join('')}
+                ${items.length > 3 ? `<div class="order-thumb-more">+${items.length - 3}</div>` : ''}
+              </div>
+            </div>
+            <div>
+              <div class="order-total">EGP ${(parseFloat(o.total) || 0).toLocaleString()}</div>
+              <a class="order-action" href="/account/orders/${o.id}">Details →</a>
             </div>
           </div>
-          <div>
-            <div class="order-total">EGP ${(parseFloat(o.total) || 0).toLocaleString()}</div>
-            <a class="order-action" href="/orders/confirmation/${o.id}">Details →</a>
-          </div>
-        </div>
-      `;
+        `;
       }
 
       // ── Tab switching ───────────────────────────────────────────
@@ -387,7 +387,7 @@
       async function loadOrdersTab() {
         try {
           const res = await API.get('/orders');
-          const orders = res.data?.orders || res.orders || [];
+          const orders = res.data || res.orders || [];
           const container = document.getElementById('orders-list');
           if (container) {
             container.innerHTML = orders.length
@@ -417,22 +417,22 @@
         }
 
         container.innerHTML = addresses.map(addr => `
-        <div class="address-card" style="background:#fff;border:1px solid #EDE8E2;border-radius:10px;padding:20px;margin-bottom:12px">
-          <div style="font-size:13px;font-weight:600;color:#2C1F14;margin-bottom:4px">
-            ${addr.label || 'Address'} ${addr.is_default ? '— Default' : ''}
+          <div class="address-card" style="background:#fff;border:1px solid #EDE8E2;border-radius:10px;padding:20px;margin-bottom:12px">
+            <div style="font-size:13px;font-weight:600;color:#2C1F14;margin-bottom:4px">
+              ${addr.label || 'Address'} ${addr.is_default ? '— Default' : ''}
+            </div>
+            <div style="font-size:12px;color:#888;line-height:1.7">
+              ${addr.first_name || ''} ${addr.last_name || ''}<br>
+              ${addr.address_line_1 || ''}${addr.address_line_2 ? ', ' + addr.address_line_2 : ''}<br>
+              ${addr.city || ''}${addr.state ? ', ' + addr.state : ''} ${addr.postal_code || ''}<br>
+              ${addr.phone || ''}
+            </div>
+            <div style="margin-top:12px;display:flex;gap:8px">
+              <button class="btn-edit" onclick="editAddress('${addr.id}')">Edit</button>
+              <button class="btn-edit" style="color:#c0392b" onclick="deleteAddress('${addr.id}')">Remove</button>
+            </div>
           </div>
-          <div style="font-size:12px;color:#888;line-height:1.7">
-            ${addr.first_name || ''} ${addr.last_name || ''}<br>
-            ${addr.address_line_1 || ''}${addr.address_line_2 ? ', ' + addr.address_line_2 : ''}<br>
-            ${addr.city || ''}${addr.state ? ', ' + addr.state : ''} ${addr.postal_code || ''}<br>
-            ${addr.phone || ''}
-          </div>
-          <div style="margin-top:12px;display:flex;gap:8px">
-            <button class="btn-edit" onclick="editAddress('${addr.id}')">Edit</button>
-            <button class="btn-edit" style="color:#c0392b" onclick="deleteAddress('${addr.id}')">Remove</button>
-          </div>
-        </div>
-      `).join('');
+        `).join('');
       }
 
       // ── Profile save ───────────────────────────────────────────
@@ -522,6 +522,7 @@
           state: document.getElementById('addr-state').value.trim(),
           postal_code: document.getElementById('addr-postal').value.trim(),
           phone: document.getElementById('addr-phone').value.trim(),
+          country: 'Egypt'
         };
 
         if (!payload.first_name || !payload.address_line_1 || !payload.city || !payload.phone) {

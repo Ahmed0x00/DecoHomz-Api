@@ -18,6 +18,13 @@ class Category extends Model
         'sort_order',
     ];
 
+    protected $appends = ['url'];
+
+    public function getUrlAttribute()
+    {
+        return $this->image ? asset('storage/' . $this->image) : null;
+    }
+
     protected $casts = [
         'is_active' => 'boolean',
         'sort_order' => 'integer',

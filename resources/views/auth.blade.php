@@ -152,7 +152,11 @@
       // Redirect if already logged in
       if (Auth.token()) {
         var u = Auth.user();
-        location.href = u && u.role === 'admin' ? '/admin/dashboard' : '/account';
+        if (u) {
+            if (u.role === 'admin') location.href = '/admin/dashboard';
+            else if (u.role === 'support') location.href = '/admin/orders';
+            else location.href = '/account';
+        }
         return;
       }
 
@@ -193,7 +197,11 @@
           await Auth.login(email, password);
           showToast('Welcome back!');
           var user = Auth.user();
-          location.href = user && user.role === 'admin' ? '/admin/dashboard' : '/account';
+          if (user) {
+              if (user.role === 'admin') location.href = '/admin/dashboard';
+              else if (user.role === 'support') location.href = '/admin/orders';
+              else location.href = '/account';
+          }
         } catch (e) {
           showToast(e.data?.message || 'Invalid credentials');
           this.disabled = false;

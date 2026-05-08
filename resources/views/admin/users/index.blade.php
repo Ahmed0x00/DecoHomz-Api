@@ -8,6 +8,7 @@
 <!-- Page Header -->
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
   <h1 style="font-size:24px;font-weight:700;color:#1a1a1a;">Users</h1>
+  <a href="/admin/users/create" style="background:#c9a96e;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;">+ Add User</a>
 </div>
 
 <!-- Stats Cards -->
@@ -152,16 +153,29 @@
       var joined = u.created_at
         ? new Date(u.created_at).toLocaleDateString('en-EG', { year: 'numeric', month: 'short', day: 'numeric' })
         : (u.join_date || '—');
-      return '<tr>' +
+      return '<tr onclick="location.href=\'/admin/users/' + u.id + '\'" style="cursor:pointer;">' +
         '<td>#' + u.id + '</td>' +
         '<td style="font-weight:600;">' + esc(u.name || '—') + '</td>' +
         '<td style="color:#666;">' + esc(u.email || '—') + '</td>' +
         '<td>' + roleBadge + '</td>' +
         '<td>' + joined + '</td>' +
-        '<td><a href="/admin/users/' + u.id + '" style="color:#c9a96e;font-size:13px;font-weight:600;text-decoration:none;">View</a></td>' +
+        '<td onclick="event.stopPropagation()">' + 
+          '<a href="/admin/users/' + u.id + '/edit" style="color:#22c55e;font-size:13px;font-weight:600;text-decoration:none;margin-right:12px;">Edit</a>' +
+          '<button onclick="deleteUser(' + u.id + ')" style="background:none;border:none;color:#ef4444;font-size:13px;font-weight:600;cursor:pointer;padding:0;">Delete</button>' +
+        '</td>' +
         '</tr>';
     }).join('');
   }
+
+  window.deleteUser = function(id) {
+    if (!confirm('Are you sure you want to delete this user?')) return;
+    API.del('/admin/users/' + id).then(function() {
+      showToast('User deleted successfully.', 'success');
+      loadUsers();
+    }).catch(function() {
+      showToast('Failed to delete user.', 'error');
+    });
+  };
 
   function renderPagination(res) {
     var container = document.getElementById('pagination');

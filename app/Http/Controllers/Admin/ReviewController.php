@@ -50,7 +50,7 @@ class ReviewController extends Controller
             return response()->json(['message' => 'Review not found'], 404);
         }
 
-        $review->update(['is_approved' => true]);
+        $review->update(['is_approved' => true, 'is_rejected' => false]);
 
         return response()->json([
             'message' => 'Review approved',
@@ -66,7 +66,7 @@ class ReviewController extends Controller
             return response()->json(['message' => 'Review not found'], 404);
         }
 
-        $review->update(['is_approved' => false]);
+        $review->update(['is_approved' => false, 'is_rejected' => true]);
 
         return response()->json([
             'message' => 'Review rejected',

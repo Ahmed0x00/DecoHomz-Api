@@ -17,6 +17,8 @@ class ProductImage extends Model
         'is_primary',
     ];
 
+    protected $appends = ['url'];
+
     protected $casts = [
         'is_primary' => 'boolean',
         'sort_order' => 'integer',

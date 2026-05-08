@@ -4,21 +4,25 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\ActivityLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $categories = Category::orderBy('sort_order')
             ->withCount('products')
             ->get();
 
+        ActivityLog::categories($request, 'List Categories', "Admin viewed categories list");
+
         return response()->json([
-            'categories' => $categories,
+            'data' => $categories,
         ]);
     }
 
@@ -27,14 +31,20 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100|unique:categories,name',
             'description' => 'nullable|string',
-            'image' => 'nullable|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'is_active' => 'boolean',
             'sort_order' => 'integer|min:0',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
 
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('categories', 'public');
+        }
+
         $category = Category::create($validated);
+
+        ActivityLog::categories($request, 'Create Category', "Admin created new category: {$category->name}", $category);
 
         return response()->json([
             'message' => 'Category created successfully',
@@ -58,7 +68,7 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => ['sometimes', 'string', 'max:100', Rule::unique('categories')->ignore($category->id)],
             'description' => 'nullable|string',
-            'image' => 'nullable|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'is_active' => 'boolean',
             'sort_order' => 'integer|min:0',
         ]);
@@ -67,7 +77,17 @@ class CategoryController extends Controller
             $validated['slug'] = Str::slug($validated['name']);
         }
 
+        if ($request->hasFile('image')) {
+            // Delete old image
+            if ($category->image) {
+                Storage::disk('public')->delete($category->image);
+            }
+            $validated['image'] = $request->file('image')->store('categories', 'public');
+        }
+
         $category->update($validated);
+
+        ActivityLog::categories($request, 'Update Category', "Admin updated category: {$category->name}", $category);
 
         return response()->json([
             'message' => 'Category updated successfully',
@@ -75,16 +95,18 @@ class CategoryController extends Controller
         ]);
     }
 
-    public function destroy(string $id): JsonResponse
+    public function destroy(Request $request, string $id): JsonResponse
     {
         $category = Category::withCount('products')->findOrFail($id);
 
         if ($category->products_count > 0) {
+            ActivityLog::categories($request, 'Delete Category Denied', "Admin tried to delete category '{$category->name}' which has {$category->products_count} products", $category, 'warning');
             return response()->json([
                 'message' => 'Cannot delete category with associated products. Please remove or reassign products first.',
             ], 422);
         }
 
+        ActivityLog::categories($request, 'Delete Category', "Admin deleted category: {$category->name} (#{$id})", ['type' => 'category', 'id' => $id], 'deletion');
         $category->delete();
 
         return response()->json([
@@ -92,10 +114,14 @@ class CategoryController extends Controller
         ]);
     }
 
-    public function toggleActive(string $id): JsonResponse
+    public function toggleActive(Request $request, string $id): JsonResponse
     {
         $category = Category::findOrFail($id);
-        $category->update(['is_active' => !$category->is_active]);
+        $newStatus = !$category->is_active;
+        $category->update(['is_active' => $newStatus]);
+
+        $statusText = $newStatus ? 'Active' : 'Inactive';
+        ActivityLog::categories($request, 'Toggle Category Status', "Changed category '{$category->name}' status to {$statusText}", $category);
 
         return response()->json([
             'message' => 'Category status updated',

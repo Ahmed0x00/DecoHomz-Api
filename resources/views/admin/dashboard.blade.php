@@ -165,7 +165,18 @@
         'delivered': 'badge-delivered',
         'cancelled': 'badge-cancelled'
       }[o.status] || 'badge-pending';
-      var payClass = o.payment_status === 'paid' ? 'badge-paid' : 'badge-unpaid';
+      var payClass = {
+        'full_paid': 'badge-paid',
+        'paid_deposit': 'badge-paid-deposit',
+        'refunded': 'badge-refunded',
+        'unpaid': 'badge-unpaid'
+      }[o.payment_status] || 'badge-unpaid';
+      var payLabel = {
+        'full_paid': 'Full Paid',
+        'paid_deposit': 'Paid Deposit',
+        'refunded': 'Refunded',
+        'unpaid': 'Unpaid'
+      }[o.payment_status] || o.payment_status || 'Unpaid';
       var date = new Date(o.created_at).toLocaleDateString('en-EG', { year: 'numeric', month: 'short', day: 'numeric' });
       var userName = o.user ? o.user.name : 'Guest';
       return '<tr onclick="location.href=\'/admin/orders/' + o.id + '\'" style="cursor:pointer">' +
@@ -173,7 +184,7 @@
         '<td>' + esc(userName) + '</td>' +
         '<td>EGP ' + parseFloat(o.total || 0).toLocaleString() + '</td>' +
         '<td><span class="badge-status ' + statusClass + '">' + (o.status || 'pending') + '</span></td>' +
-        '<td><span class="badge-status ' + payClass + '">' + (o.payment_status || 'unpaid') + '</span></td>' +
+        '<td><span class="badge-status ' + payClass + '">' + payLabel + '</span></td>' +
         '<td>' + date + '</td>' +
         '</tr>';
     }).join('');

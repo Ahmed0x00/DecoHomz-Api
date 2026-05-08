@@ -92,6 +92,11 @@ class ReviewController extends Controller
 
     public function productReviews(string $productId): JsonResponse
     {
+        if (!is_numeric($productId)) {
+            $product = \App\Models\Product::where('slug', $productId)->first();
+            $productId = $product ? $product->id : null;
+        }
+
         $reviews = Review::with(['user:id,name'])
             ->where('product_id', $productId)
             ->where('is_approved', true)

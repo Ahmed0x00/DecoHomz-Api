@@ -126,8 +126,18 @@
 
       // Count from full data if available
       var fullRes = await API.get('/admin/products', { params: { per_page: 200 } });
-      var products = fullRes.data || fullRes.products || fullRes || [];
-      if (!Array.isArray(products) && products.data) products = products.data;
+      var products;
+      if (fullRes.data && fullRes.data.data) {
+        // Laravel paginator: { data: [...], current_page: 1 }
+        products = fullRes.data.data;
+      } else if (Array.isArray(fullRes.data)) {
+        products = fullRes.data;
+      } else if (Array.isArray(fullRes.products)) {
+        // Plain object: { products: [...], pagination: {...} }
+        products = fullRes.products;
+      } else {
+        products = fullRes.data || fullRes || [];
+      }
 
       var active = 0, featured = 0, outStock = 0;
       products.forEach(function(p) {
@@ -187,7 +197,7 @@
     }
     tbody.innerHTML = products.map(function(p) {
       var img = p.primaryImage && p.primaryImage.url
-        ? '<img src="' + p.primaryImage.url + '" style="width:44px;height:44px;object-fit:cover;border-radius:6px;">'
+        ? '<img src="' + p.primaryImage.image_url + '" style="width:44px;height:44px;object-fit:cover;border-radius:6px;">'
         : '<img src="/img/placeholder.svg" style="width:44px;height:44px;object-fit:cover;border-radius:6px;opacity:0.4;">';
       var catName = p.category ? p.category.name : (p.category_name || '—');
       var price = 'EGP ' + parseFloat(p.price || 0).toLocaleString();
@@ -206,10 +216,24 @@
         '<td>' + stockBadge + '</td>' +
         '<td>' + featBtn + '</td>' +
         '<td>' + actBtn + '</td>' +
-        '<td><a href="/admin/products/' + p.id + '/edit" style="color:#c9a96e;font-size:13px;font-weight:600;text-decoration:none;">Edit</a></td>' +
+        '<td>' + 
+          '<a href="/admin/products/' + p.id + '/edit" style="color:#c9a96e;font-size:13px;font-weight:600;text-decoration:none;margin-right:8px;">Edit</a>' +
+          '<button onclick="deleteProduct(' + p.id + ')" style="background:none;border:none;color:#ef4444;font-size:13px;font-weight:600;cursor:pointer;padding:0;">Delete</button>' +
+        '</td>' +
         '</tr>';
     }).join('');
   }
+
+  window.deleteProduct = function(id) {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+    API.del('/admin/products/' + id).then(function() {
+      showToast('Product deleted successfully.', 'success');
+      loadProducts();
+      loadStats();
+    }).catch(function() {
+      showToast('Failed to delete product.', 'error');
+    });
+  };
 
   function renderPagination(res) {
     var container = document.getElementById('pagination');

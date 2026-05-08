@@ -26,17 +26,23 @@ class DashboardController extends Controller
         $ordersMonth = Order::where('created_at', '>=', $month)->count();
         $ordersTotal = Order::count();
 
-        // Revenue (paid orders only)
+        // Revenue (All non-cancelled orders)
         $revenueToday = Order::whereDate('created_at', $today)
-            ->where('payment_status', 'paid')
+            ->where('status', '!=', 'cancelled')
             ->sum('total');
         $revenueWeek = Order::where('created_at', '>=', $week)
-            ->where('payment_status', 'paid')
+            ->where('status', '!=', 'cancelled')
             ->sum('total');
         $revenueMonth = Order::where('created_at', '>=', $month)
-            ->where('payment_status', 'paid')
+            ->where('status', '!=', 'cancelled')
             ->sum('total');
-        $revenueTotal = Order::where('payment_status', 'paid')->sum('total');
+        $revenueTotal = Order::where('status', '!=', 'cancelled')->sum('total');
+
+        // Delivery Fees (All non-cancelled orders)
+        $deliveryFeesMonth = Order::where('created_at', '>=', $month)
+            ->where('status', '!=', 'cancelled')
+            ->sum('delivery_fee');
+        $deliveryFeesTotal = Order::where('status', '!=', 'cancelled')->sum('delivery_fee');
 
         // Users
         $usersTotal = User::count();
@@ -105,6 +111,8 @@ class DashboardController extends Controller
                 'week' => round($revenueWeek, 2),
                 'month' => round($revenueMonth, 2),
                 'total' => round($revenueTotal, 2),
+                'delivery_fees_total' => round($deliveryFeesTotal, 2),
+                'delivery_fees_month' => round($deliveryFeesMonth, 2),
             ],
             'users' => [
                 'total' => $usersTotal,
@@ -130,7 +138,7 @@ class DashboardController extends Controller
         $data = Order::select(
                 DB::raw('DATE(created_at) as date'),
                 DB::raw('count(*) as orders'),
-                DB::raw("SUM(CASE WHEN payment_status = 'paid' THEN total ELSE 0 END) as revenue")
+                DB::raw("SUM(CASE WHEN payment_status = 'full_paid' THEN total ELSE 0 END) as revenue")
             )
             ->where('created_at', '>=', $start)
             ->groupBy(DB::raw('DATE(created_at)'))
@@ -147,7 +155,7 @@ class DashboardController extends Controller
 
         $data = Order::select(
                 DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
-                DB::raw("SUM(CASE WHEN payment_status = 'paid' THEN total ELSE 0 END) as revenue"),
+                DB::raw("SUM(CASE WHEN payment_status = 'full_paid' THEN total ELSE 0 END) as revenue"),
                 DB::raw('count(*) as orders')
             )
             ->where('created_at', '>=', $start)

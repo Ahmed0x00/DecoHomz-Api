@@ -1,48 +1,75 @@
 // File: public/js/api.js
+
 const API = {
   base: '/api',
-  token: localStorage.getItem('dh_token') || null,
+
+  // Getter reads live from localStorage every time (handles admin token set after page load)
+  get token() { return localStorage.getItem('dh_token') || null; },
 
   setToken(token) {
-    this.token = token;
     localStorage.setItem('dh_token', token);
   },
   clearToken() {
-    this.token = null;
     localStorage.removeItem('dh_token');
   },
 
-  headers() {
-    const h = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+  // Session ID for guest cart tracking
+  getSessionId() {
+    let sid = localStorage.getItem('dh_session_id');
+    if (!sid) {
+      sid = 'guest_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+      localStorage.setItem('dh_session_id', sid);
+    }
+    return sid;
+  },
+
+  headers(isFormData = false) {
+    const h = {
+      'Accept': 'application/json',
+      'X-Session-ID': this.getSessionId(),
+    };
+    if (!isFormData) h['Content-Type'] = 'application/json';
     if (this.token) h['Authorization'] = `Bearer ${this.token}`;
     return h;
   },
 
-  async get(path) {
-    const res = await fetch(`${this.base}${path}`, { headers: this.headers() });
+  async get(path, options = {}) {
+    let url = `${this.base}${path}`;
+    if (options.params) {
+      const q = new URLSearchParams();
+      for (const [key, val] of Object.entries(options.params)) {
+        if (val !== null && val !== undefined) q.append(key, val);
+      }
+      const qs = q.toString();
+      if (qs) url += (url.includes('?') ? '&' : '?') + qs;
+    }
+    const res = await fetch(url, { headers: this.headers() });
     return this._handle(res);
   },
   async post(path, body = {}) {
+    const isFormData = body instanceof FormData;
     const res = await fetch(`${this.base}${path}`, {
       method: 'POST',
-      headers: this.headers(),
-      body: JSON.stringify(body)
+      headers: this.headers(isFormData),
+      body: isFormData ? body : JSON.stringify(body)
     });
     return this._handle(res);
   },
   async put(path, body = {}) {
+    const isFormData = body instanceof FormData;
     const res = await fetch(`${this.base}${path}`, {
       method: 'PUT',
-      headers: this.headers(),
-      body: JSON.stringify(body)
+      headers: this.headers(isFormData),
+      body: isFormData ? body : JSON.stringify(body)
     });
     return this._handle(res);
   },
   async patch(path, body = {}) {
+    const isFormData = body instanceof FormData;
     const res = await fetch(`${this.base}${path}`, {
       method: 'PATCH',
-      headers: this.headers(),
-      body: JSON.stringify(body)
+      headers: this.headers(isFormData),
+      body: isFormData ? body : JSON.stringify(body)
     });
     return this._handle(res);
   },
@@ -53,6 +80,7 @@ const API = {
     });
     return this._handle(res);
   },
+  delete(path) { return this.del(path); },
 
   async _handle(res) {
     const data = await res.json().catch(() => ({}));
@@ -61,47 +89,82 @@ const API = {
   }
 };
 
-// Cart state (synced with API when logged in)
-const Cart = {
-  key: 'dh_cart',
-
-  get() {
-    return JSON.parse(localStorage.getItem(this.key) || '[]');
-  },
-
-  set(items) {
-    localStorage.setItem(this.key, JSON.stringify(items));
-    this.updateBadge();
-  },
-
-  add(item) {
-    const items = this.get();
-    const existing = items.findIndex(i => i.id === item.id && i.variant === item.variant);
-    if (existing > -1) {
-      items[existing].quantity += item.quantity || 1;
-    } else {
-      items.push({ ...item, quantity: item.quantity || 1 });
+// ── Cart (API-first) ──────────────────────────────────────────────────────────
+window.Cart = {
+  // Fetch cart from API and return items array
+  async fetch() {
+    try {
+      const res = await API.get('/cart');
+      return res.cart?.items || [];
+    } catch {
+      return [];
     }
-    this.set(items);
-    showToast(`${item.name} added to cart!`);
   },
 
+  // Add item to cart via API
+  async add(product) {
+    try {
+      await API.post('/cart/items', {
+        product_id: product.id,
+        quantity: product.quantity || 1,
+        variant: product.variant || 'Standard',
+      });
+      showToast(`${product.name} added to cart!`);
+      this.updateBadge();
+    } catch (e) {
+      showToast(e.data?.message || 'Failed to add item to cart', 'error');
+    }
+  },
+
+  // Remove item from cart via API
+  async remove(itemId) {
+    try {
+      await API.del('/cart/items/' + itemId);
+      this.updateBadge();
+    } catch (e) {
+      showToast(e.data?.message || 'Failed to remove item', 'error');
+    }
+  },
+
+  // Update quantity via API
+  async updateQty(itemId, quantity) {
+    try {
+      await API.put('/cart/items/' + itemId, { quantity });
+      this.updateBadge();
+    } catch (e) {
+      showToast(e.data?.message || 'Failed to update quantity', 'error');
+    }
+  },
+
+  // Clear cart via API
+  async clear() {
+    try {
+      await API.del('/cart');
+      this.updateBadge();
+    } catch (e) {
+      showToast(e.data?.message || 'Failed to clear cart', 'error');
+    }
+  },
+
+  // Update the cart badge in the nav
   updateBadge() {
-    const cart = this.get();
-    const total = cart.reduce((s, i) => s + (parseInt(i.quantity) || 0), 0);
-    const badge = document.querySelector('.badge-cart');
-    if (badge) {
-      badge.textContent = total;
-      badge.style.display = total > 0 ? 'flex' : 'none';
-    }
+    API.get('/cart').then(res => {
+      const count = res.cart?.items_count || 0;
+      const badge = document.querySelector('.badge-cart');
+      if (badge) {
+        badge.textContent = count;
+        badge.style.display = count > 0 ? 'flex' : 'none';
+      }
+    }).catch(() => {});
   },
 
+  // Redirect to cart page
   count() {
-    return this.get().reduce((s, i) => s + (parseInt(i.quantity) || 0), 0);
+    return 0; // Always use API count via updateBadge() for accurate number
   }
 };
 
-// Auth state helper
+// ── Auth helper ───────────────────────────────────────────────────────────────
 const Auth = {
   token: () => localStorage.getItem('dh_token'),
   user: () => JSON.parse(localStorage.getItem('dh_user') || 'null'),
@@ -110,7 +173,6 @@ const Auth = {
     const data = await API.post('/auth/login', { email, password });
     API.setToken(data.token);
     localStorage.setItem('dh_user', JSON.stringify(data.user));
-    await this._mergeCart();
     return data.user;
   },
 
@@ -125,22 +187,6 @@ const Auth = {
     if (API.token) API.post('/auth/logout').catch(() => {});
     API.clearToken();
     localStorage.removeItem('dh_user');
-    Cart.set([]);
     location.href = '/auth';
-  },
-
-  async _mergeCart() {
-    if (!API.token) return;
-    const localCart = Cart.get();
-    for (const item of localCart) {
-      try {
-        await API.post('/cart/items', {
-          product_id: item.id,
-          quantity: item.quantity,
-          variant: item.variant || 'Standard'
-        });
-      } catch(e) {}
-    }
-    Cart.set([]);
   }
 };

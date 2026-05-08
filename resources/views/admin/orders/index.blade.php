@@ -63,7 +63,7 @@
     btn.addEventListener('click', function() {
       document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
-      currentStatus = btn.dataset.status;
+      currentStatus = btn.dataset.status || '';
       currentPage = 1;
       loadOrders();
     });
@@ -131,7 +131,9 @@
   }
 
   function getPaymentBadge(paymentStatus) {
-    if (paymentStatus === 'paid') return '<span class="badge-status badge-paid">Paid</span>';
+    if (paymentStatus === 'full_paid') return '<span class="badge-status badge-paid">Full Paid</span>';
+    if (paymentStatus === 'paid_deposit') return '<span class="badge-status badge-paid-deposit">Paid Deposit</span>';
+    if (paymentStatus === 'refunded') return '<span class="badge-status badge-refunded">Refunded</span>';
     return '<span class="badge-status badge-unpaid">Unpaid</span>';
   }
 

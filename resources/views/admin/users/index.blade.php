@@ -28,6 +28,13 @@
     <div class="stat-card-label">Admins</div>
   </div>
   <div class="stat-card">
+    <div class="stat-card-icon" style="background:#f3e8ff">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#6b21a8" stroke-width="1.5"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+    </div>
+    <div class="stat-card-num" id="stat-support">—</div>
+    <div class="stat-card-label">Support</div>
+  </div>
+  <div class="stat-card">
     <div class="stat-card-icon" style="background:#d1fae5">
       <svg viewBox="0 0 24 24" fill="none" stroke="#065f46" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     </div>
@@ -111,7 +118,7 @@
       if (!Array.isArray(users) && users.data) users = users.data;
 
       var total = users.length;
-      var admins = 0, customers = 0, newThisMonth = 0;
+      var admins = 0, support = 0, customers = 0, newThisMonth = 0;
 
       var now = new Date();
       var monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -119,6 +126,8 @@
       users.forEach(function(u) {
         if (u.role === 'admin' || u.is_admin === 1 || u.isAdmin === true) {
           admins++;
+        } else if (u.role === 'support') {
+          support++;
         } else {
           customers++;
         }
@@ -128,6 +137,7 @@
 
       document.getElementById('stat-total').textContent = total;
       document.getElementById('stat-admins').textContent = admins;
+      document.getElementById('stat-support').textContent = support;
       document.getElementById('stat-customers').textContent = customers;
       document.getElementById('stat-new').textContent = newThisMonth;
     } catch(e) {
@@ -147,9 +157,16 @@
     }
     tbody.innerHTML = users.map(function(u) {
       var isAdmin = u.role === 'admin' || u.is_admin === 1 || u.isAdmin === true;
-      var roleBadge = isAdmin
-        ? '<span class="badge-status badge-approved">Admin</span>'
-        : '<span class="badge-status badge-inactive">Customer</span>';
+      var isSupport = u.role === 'support';
+      
+      var roleBadge = '';
+      if (isAdmin) {
+        roleBadge = '<span class="badge-status badge-approved">Admin</span>';
+      } else if (isSupport) {
+        roleBadge = '<span class="badge-status badge-refunded">Support</span>';
+      } else {
+        roleBadge = '<span class="badge-status badge-inactive">Customer</span>';
+      }
       var joined = u.created_at
         ? new Date(u.created_at).toLocaleDateString('en-EG', { year: 'numeric', month: 'short', day: 'numeric' })
         : (u.join_date || '—');

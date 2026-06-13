@@ -353,10 +353,8 @@
     var formData = new FormData(form);
 
     // Replace file list with current selected images
-    var imageInput = document.getElementById('field-images');
-    // Remove existing images[] entries and re-add
+    formData.delete('images[]');
     for (var i = 0; i < selectedImages.length; i++) {
-      formData.delete('images[]');
       formData.append('images[]', selectedImages[i]);
     }
 

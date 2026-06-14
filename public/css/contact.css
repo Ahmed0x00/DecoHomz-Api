@@ -1,0 +1,137 @@
+/* ============================================
+   DECOHOMZ — CONTACT PAGE STYLES (v2 — Premium)
+   ============================================ */
+
+.contact-page {
+  padding: 80px 40px;
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.contact-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.contact-header h1 {
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--color-primary);
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.contact-header p {
+  font-size: 16px;
+  color: var(--color-text-secondary);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+}
+
+/* Left: Contact Info */
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.info-item {
+  display: flex;
+  gap: 20px;
+}
+
+.info-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--color-accent-glow);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.info-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke: var(--color-accent);
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.info-text h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.info-text p {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* Right: Form */
+.contact-form-wrap {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 48px;
+  box-shadow: var(--shadow-lg);
+}
+
+.contact-form-wrap h2 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-primary);
+  margin-bottom: 24px;
+}
+
+/* Map Section */
+.contact-map {
+  margin-top: 80px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  height: 400px;
+  background: var(--color-bg-warm);
+  position: relative;
+}
+
+.contact-map iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ── Responsive ────────────────────────────── */
+@media (max-width: 992px) {
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  .contact-form-wrap {
+    order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .contact-page {
+    padding: 60px 20px;
+  }
+  .contact-header h1 {
+    font-size: 32px;
+  }
+  .contact-form-wrap {
+    padding: 32px 20px;
+  }
+  .contact-map {
+    height: 300px;
+  }
+}

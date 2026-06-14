@@ -1,0 +1,289 @@
+/* ============================================
+   DECOHOMZ — ANIMATION LIBRARY
+   Shared micro-animations & scroll effects
+   ============================================ */
+
+/* ── Keyframes ─────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 169, 110, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(201, 169, 110, 0); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes bounceIn {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { opacity: 1; transform: scale(1.05); }
+  70% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+@keyframes toastOut {
+  from { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  to { opacity: 0; transform: translateX(-50%) translateY(20px) scale(0.95); }
+}
+
+@keyframes checkmark {
+  0% { stroke-dashoffset: 30; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes navShadow {
+  from { box-shadow: 0 0 0 rgba(0,0,0,0); }
+  to { box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+}
+
+@keyframes progressFill {
+  from { width: 0; }
+}
+
+@keyframes skeletonWave {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+/* ── Utility Animation Classes ─────────────── */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease both;
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.animate-fade-down {
+  animation: fadeDown 0.5s ease both;
+}
+
+.animate-fade-left {
+  animation: fadeInLeft 0.6s ease both;
+}
+
+.animate-fade-right {
+  animation: fadeInRight 0.6s ease both;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.4s ease both;
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.6s ease both;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ── Stagger Delays ────────────────────────── */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
+.stagger-7 { animation-delay: 0.35s; }
+.stagger-8 { animation-delay: 0.4s; }
+
+/* ── Scroll-Triggered Animations ───────────── */
+/* Elements start invisible and animate when .is-visible is added by JS */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s cubic-bezier(0.22, 0.61, 0.36, 1),
+              transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.animate-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.animate-on-scroll.from-left {
+  transform: translateX(-32px);
+}
+
+.animate-on-scroll.from-left.is-visible {
+  transform: translateX(0);
+}
+
+.animate-on-scroll.from-right {
+  transform: translateX(32px);
+}
+
+.animate-on-scroll.from-right.is-visible {
+  transform: translateX(0);
+}
+
+.animate-on-scroll.scale {
+  transform: scale(0.92);
+}
+
+.animate-on-scroll.scale.is-visible {
+  transform: scale(1);
+}
+
+/* ── Loading Skeleton ──────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, #f0ece6 25%, #e8e4dd 37%, #f0ece6 63%);
+  background-size: 400px 100%;
+  animation: skeletonWave 1.6s ease infinite;
+  border-radius: var(--radius-md, 12px);
+}
+
+.skeleton-text {
+  height: 14px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.skeleton-text.wide { width: 80%; }
+.skeleton-text.medium { width: 60%; }
+.skeleton-text.narrow { width: 40%; }
+
+.skeleton-card {
+  border-radius: var(--radius-md, 12px);
+  overflow: hidden;
+}
+
+.skeleton-card .skeleton-img {
+  aspect-ratio: 1;
+  background: linear-gradient(90deg, #f0ece6 25%, #e8e4dd 37%, #f0ece6 63%);
+  background-size: 400px 100%;
+  animation: skeletonWave 1.6s ease infinite;
+}
+
+.skeleton-card .skeleton-body {
+  padding: 16px;
+}
+
+/* ── Spinner ───────────────────────────────── */
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-border, #ECEAE5);
+  border-top-color: var(--color-accent, #C9A96E);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+.spinner-sm {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
+}
+
+.spinner-lg {
+  width: 48px;
+  height: 48px;
+  border-width: 4px;
+}
+
+/* ── Page Entrance ─────────────────────────── */
+main {
+  animation: fadeIn 0.4s ease;
+}
+
+/* ── Smooth Image Load ─────────────────────── */
+.img-lazy {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.img-lazy.loaded {
+  opacity: 1;
+}
+
+/* ── Reduced Motion ────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-on-scroll {
+    opacity: 1;
+    transform: none;
+  }
+}

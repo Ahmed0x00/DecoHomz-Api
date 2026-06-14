@@ -39,9 +39,20 @@ class ProductController extends Controller
             $query->where('material', $request->input('material'));
         }
 
-        // Filter by color
-        if ($request->has('color')) {
-            $query->where('color', $request->input('color'));
+        // Filter by color (product color variants or legacy JSON colors field)
+        if ($request->filled('color')) {
+            $color = $request->input('color');
+            $query->where(function ($q) use ($color) {
+                $q->whereHas('colors', function ($cq) use ($color) {
+                    $cq->where('is_active', true)
+                        ->where('name', 'like', "%{$color}%");
+                })->orWhere('colors', 'like', '%"' . $color . '"%');
+            });
+        }
+
+        // Filter by stock availability
+        if ($request->boolean('in_stock')) {
+            $query->where('stock', '>', 0);
         }
 
         // Filter by featured
@@ -57,8 +68,19 @@ class ProductController extends Controller
             $query->where('price', '<=', $request->input('max_price'));
         }
 
-        // Sorting
+        // Sorting (supports legacy and current frontend values)
         $sort = $request->input('sort', 'newest');
+        $sortMap = [
+            'price_asc' => 'price-low',
+            'price_desc' => 'price-high',
+            'price-low' => 'price-low',
+            'price-high' => 'price-high',
+            'newest' => 'newest',
+            'name' => 'name',
+            'featured' => 'featured',
+        ];
+        $sort = $sortMap[$sort] ?? 'newest';
+
         switch ($sort) {
             case 'price-low':
                 $query->orderBy('price', 'asc');
@@ -68,6 +90,9 @@ class ProductController extends Controller
                 break;
             case 'name':
                 $query->orderBy('name', 'asc');
+                break;
+            case 'featured':
+                $query->orderByDesc('is_featured')->latest();
                 break;
             case 'newest':
             default:

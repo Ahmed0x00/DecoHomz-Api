@@ -18,18 +18,34 @@ class OrderController extends Controller
 {
     private function getUserFromToken(Request $request)
     {
-        $token = $request->bearerToken();
+        $token = $request->bearerToken() ?? $request->cookie('dh_token');
         if (!$token) return null;
-        $user = auth('sanctum')->user();
-        return $user;
+        
+        if ($request->bearerToken()) {
+            return auth('sanctum')->user();
+        }
+
+        // If from cookie, manually resolve the Sanctum token
+        $accessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+        return $accessToken ? $accessToken->tokenable : null;
     }
 
     public function index(Request $request): JsonResponse
     {
-        $orders = Order::where('user_id', $request->user()->id)
-            ->with(['items.product', 'shippingAddress'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        $user = $this->getUserFromToken($request);
+        $sessionId = $request->header('X-Session-ID') ?? $request->cookie('session_id');
+
+        $query = Order::query()->with(['items.product', 'shippingAddress'])->orderBy('created_at', 'desc');
+
+        if ($user) {
+            $query->where('user_id', $user->id);
+        } elseif ($sessionId) {
+            $query->where('session_id', $sessionId)->whereNull('user_id');
+        } else {
+            return response()->json(['data' => []]);
+        }
+
+        $orders = $query->paginate(10);
 
         ActivityLog::orders($request, 'List My Orders', "User viewed their order history");
 
@@ -66,8 +82,10 @@ class OrderController extends Controller
         $user = $this->getUserFromToken($request) ?? auth()->user();
         $sessionId = $request->header('X-Session-ID') ?? $request->cookie('session_id');
         $isOwner = $user && $order->user_id && (int)$order->user_id === (int)$user->id;
-        $isGuest = !$order->user_id && $sessionId && $order->shippingAddress
-            && $order->shippingAddress->session_id === $sessionId;
+        $isGuest = !$order->user_id && $sessionId && (
+            $order->session_id === $sessionId ||
+            ($order->shippingAddress && $order->shippingAddress->session_id === $sessionId)
+        );
 
         if (!$isOwner && !$isGuest) {
             abort(403, 'Access denied');
@@ -92,8 +110,21 @@ class OrderController extends Controller
         $user = $this->getUserFromToken($request) ?? auth()->user();
         $sessionId = $request->header('X-Session-ID') ?? $request->cookie('session_id');
         $isOwner = $user && $order->user_id && (int)$order->user_id === (int)$user->id;
-        $isGuest = !$order->user_id && $sessionId && $order->shippingAddress
-            && $order->shippingAddress->session_id === $sessionId;
+        $isGuest = !$order->user_id && $sessionId && (
+            $order->session_id === $sessionId ||
+            ($order->shippingAddress && $order->shippingAddress->session_id === $sessionId)
+        );
+
+        \Illuminate\Support\Facades\Log::info('Order customerDetail Access Attempt', [
+            'order_id' => $id,
+            'order_user_id' => $order->user_id,
+            'order_session_id' => $order->session_id,
+            'cookie_dh_token' => $request->cookie('dh_token'),
+            'cookie_session_id' => $request->cookie('session_id'),
+            'resolved_user_id' => $user ? $user->id : null,
+            'is_owner' => $isOwner,
+            'is_guest' => $isGuest,
+        ]);
 
         if (!$isOwner && !$isGuest) {
             abort(403, 'Access denied');
@@ -123,7 +154,7 @@ class OrderController extends Controller
             'shipping_address.country' => 'required_with:shipping_address|string|max:100',
             'shipping_address.is_default' => 'nullable|boolean',
             'notes' => 'nullable|string|max:500',
-            'payment_method' => 'required|in:cod,card,wallet',
+            'payment_method' => 'required|in:cod,card,fawry',
         ]);
 
         $user = $this->getUserFromToken($request);
@@ -159,6 +190,14 @@ class OrderController extends Controller
         try {
             // Create or use shipping address
             $shippingAddressId = $validated['shipping_address_id'] ?? null;
+            if ($shippingAddressId && $user) {
+                $ownedAddress = ShippingAddress::where('id', $shippingAddressId)
+                    ->where('user_id', $user->id)
+                    ->first();
+                if (!$ownedAddress) {
+                    return response()->json(['message' => 'Invalid shipping address.'], 422);
+                }
+            }
             if (isset($validated['shipping_address'])) {
                 $shippingData = $validated['shipping_address'];
                 // For guests, user_id is null
@@ -204,9 +243,7 @@ class OrderController extends Controller
             // Look up delivery fee by governorate
             $deliveryFee = 0;
             if ($governorate) {
-                $feeRecord = \App\Models\GovernorateDeliveryFee::active()
-                    ->where('governorate_name', $governorate)
-                    ->first();
+                $feeRecord = \App\Models\GovernorateDeliveryFee::resolveByName($governorate);
                 if ($feeRecord) {
                     $deliveryFee = $feeRecord->getFeeForSubtotal($subtotal);
                 }
@@ -235,6 +272,7 @@ class OrderController extends Controller
             // Create order
             $order = Order::create([
                 'user_id' => $user ? $user->id : null,
+                'session_id' => $sessionId,
                 'order_number' => $orderNumber,
                 'shipping_address_id' => $shippingAddressId,
                 'subtotal' => $subtotal,

@@ -1,253 +1,247 @@
 @extends('layouts.app')
 
-@section('title', 'Sign In — DecoHomz')
+@section('title', 'Sign In / Register — DecoHomz')
 
 @section('extra_css')
-  <link rel="stylesheet" href="/css/signin.css">
+<link rel="stylesheet" href="/css/signin.css">
 @endsection
 
 @section('content')
 
-  <div class="auth-wrap">
-    <div class="auth-left">
-      <div class="auth-bg">D</div>
-      <div class="auth-tagline">Welcome Back</div>
-      <div class="auth-title">Your Perfect Home<br>Awaits You</div>
-      <div class="auth-sub">Sign in to access your orders and personalized recommendations.</div>
-      <div class="auth-room">
-        <svg viewBox="0 0 300 200" fill="none">
-          <rect x="0" y="170" width="300" height="30" fill="rgba(255,255,255,0.04)" rx="2" />
-          <ellipse cx="150" cy="172" rx="110" ry="10" fill="rgba(184,134,11,0.15)" />
-          <rect x="40" y="110" width="220" height="65" rx="10" fill="#4A3020" />
-          <rect x="40" y="92" width="46" height="60" rx="8" fill="#5C3D28" />
-          <rect x="214" y="92" width="46" height="60" rx="8" fill="#5C3D28" />
-          <rect x="86" y="104" width="58" height="71" rx="5" fill="#6B4832" />
-          <rect x="156" y="104" width="58" height="71" rx="5" fill="#6B4832" />
-          <rect x="55" y="175" width="16" height="14" rx="3" fill="#3D2418" />
-          <rect x="229" y="175" width="16" height="14" rx="3" fill="#3D2418" />
-          <ellipse cx="150" cy="162" rx="42" ry="10" fill="#5C3D28" />
-          <ellipse cx="150" cy="152" rx="42" ry="10" fill="#7A5540" />
-          <rect x="108" y="152" width="84" height="10" rx="2" fill="#8B6448" />
-          <rect x="136" y="162" width="6" height="16" rx="2" fill="#5C3D28" />
-          <rect x="158" y="162" width="6" height="16" rx="2" fill="#5C3D28" />
-          <rect x="238" y="60" width="4" height="55" rx="2" fill="#8B7060" />
-          <ellipse cx="240" cy="58" rx="22" ry="10" fill="#C4A882" opacity="0.7" />
-          <ellipse cx="240" cy="60" rx="14" ry="6" fill="#E8D5BB" opacity="0.5" />
-          <rect x="55" y="80" width="4" height="35" rx="2" fill="#6B5040" />
-          <circle cx="57" cy="72" r="18" fill="#3D5228" opacity="0.8" />
-          <circle cx="48" cy="68" r="12" fill="#4A6830" opacity="0.7" />
-          <circle cx="66" cy="66" r="10" fill="#3D5228" opacity="0.6" />
-          <rect x="50" y="114" width="14" height="16" rx="3" fill="#5C3D28" />
-        </svg>
-      </div>
-      <div class="auth-badges">
-        <div class="auth-badge">
-          <div class="badge-num">400+</div>
-          <div class="badge-txt">Products</div>
-        </div>
-        <div class="auth-badge">
-          <div class="badge-num">50K+</div>
-          <div class="badge-txt">Customers</div>
-        </div>
-        <div class="auth-badge">
-          <div class="badge-num">5★</div>
-          <div class="badge-txt">Rated</div>
-        </div>
-      </div>
+<div class="auth-page">
+  <div class="auth-container animate-scale-in">
+    
+    {{-- Tabs --}}
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">{{ __('Sign In') }}</div>
+      <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">{{ __('Create Account') }}</div>
+      <div class="auth-tab-indicator" id="auth-indicator"></div>
     </div>
 
-    <div class="auth-right">
-      <div class="auth-box">
-        <div class="tabs">
-          <div class="tab active" id="tab-signin" onclick="switchTab('signin')">Sign In</div>
-          <div class="tab" id="tab-register" onclick="switchTab('register')">Create Account</div>
-        </div>
+    {{-- Forms Wrapper --}}
+    <div class="auth-form-wrap" id="auth-wrap">
+      
+      {{-- Login Form --}}
+      <div class="auth-form" id="form-login">
+        <h2 class="auth-title">{{ __('Welcome Back') }}</h2>
+        <p class="auth-sub">{{ __('Sign in to access your saved items and history.') }}</p>
+        
+        <form id="login-form" onsubmit="event.preventDefault(); submitLogin();">
+          <div class="field">
+            <label>{{ __('Email Address') }}</label>
+            <input type="email" id="login-email" placeholder="name@example.com" required>
+          </div>
+          <div class="field">
+            <label>{{ __('Password') }}</label>
+            <input type="password" id="login-password" placeholder="••••••••" required>
+          </div>
+          <div id="login-error" style="display:none;color:var(--color-error);font-size:13px;margin-bottom:12px;padding:10px;background:rgba(192,57,43,.06);border-radius:var(--radius-sm)"></div>
+          
+          <button type="submit" class="btn-dark auth-btn" id="btn-login">{{ __('Sign In') }}</button>
+          
+          <div class="auth-links">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="checkbox" style="width:16px;height:16px;accent-color:var(--color-primary)">
+              <span style="color:var(--color-text-secondary);font-weight:500">{{ __('Remember me') }}</span>
+            </label>
+            <a href="#" class="auth-link">{{ __('Forgot Password?') }}</a>
+          </div>
+        </form>
 
-        <!-- SIGN IN -->
-        <div id="signin-form">
-          <div class="form-title">Welcome back 👋</div>
-          <div class="form-sub">Sign in to your DecoHomz account</div>
-          <div class="field">
-            <label>Email Address</label>
-            <input type="email" name="email" placeholder="you@email.com" autocomplete="email" required>
-          </div>
-          <div class="field">
-            <label>Password</label>
-            <input type="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
-          </div>
-          <a href="#" class="forgot" onclick="showToast('Password reset not implemented yet.')">Forgot password?</a>
-          <button class="btn-submit" id="btn-signin">Sign In</button>
-          <div class="divider"><span>or continue with</span></div>
-          <button class="btn-google" type="button" onclick="showToast('Google Sign-In not implemented.')">
-            <svg class="g-icon" viewBox="0 0 24 24">
-              <path fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-              <path fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-              <path fill="#FBBC05"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
-              <path fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-            </svg>
-            Continue with Google
+        <div class="auth-divider">Or continue with</div>
+        <div class="social-btns">
+          <button class="btn-social">
+            <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Google
           </button>
-        </div>
-
-        <!-- REGISTER -->
-        <div id="register-form" class="register-form">
-          <div class="form-title">Create an account</div>
-          <div class="form-sub">Join DecoHomz and start designing your space</div>
-          <div class="form-grid">
-            <div class="field"><label>First Name</label><input type="text" name="first_name" placeholder="Sara" required>
-            </div>
-            <div class="field"><label>Last Name</label><input type="text" name="last_name" placeholder="Ahmed" required>
-            </div>
-          </div>
-          <div class="field">
-            <label>Email Address</label>
-            <input type="email" name="email" placeholder="you@email.com" autocomplete="email" required>
-          </div>
-          <div class="field">
-            <label>Password</label>
-            <input type="password" name="password" placeholder="Min. 8 characters" minlength="8" required>
-          </div>
-          <div class="field">
-            <label>Confirm Password</label>
-            <input type="password" name="password_confirmation" placeholder="Confirm your password" minlength="8"
-              required>
-          </div>
-          <div class="field">
-            <label>Phone Number</label>
-            <input type="tel" name="phone" placeholder="+20 1XX XXX XXXX" required>
-          </div>
-          <button class="btn-submit" id="btn-register" style="margin-top:4px">Create Account</button>
-          <div class="divider"><span>or sign up with</span></div>
-          <button class="btn-google" type="button" onclick="showToast('Google Sign-Up not implemented.')">
-            <svg class="g-icon" viewBox="0 0 24 24">
-              <path fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-              <path fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-              <path fill="#FBBC05"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
-              <path fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-            </svg>
-            Continue with Google
+          <button class="btn-social">
+            <svg viewBox="0 0 24 24"><path fill="#1877F2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            Facebook
           </button>
-          <div class="terms">By creating an account, you agree to our <a href="#">Terms of Service</a> and <a
-              href="#">Privacy Policy</a>.</div>
         </div>
       </div>
+      
+      {{-- Register Form --}}
+      <div class="auth-form" id="form-register">
+        <h2 class="auth-title">{{ __('Join DecoHomz') }}</h2>
+        <p class="auth-sub">{{ __('Create an account to track your orders and save items.') }}</p>
+        
+        <form id="register-form" onsubmit="event.preventDefault(); submitRegister();">
+          <div class="field">
+            <label>{{ __('Full Name') }}</label>
+            <input type="text" id="reg-name" placeholder="Ahmed Ali" required>
+          </div>
+          <div class="field">
+            <label>{{ __('Email Address') }}</label>
+            <input type="email" id="reg-email" placeholder="name@example.com" required>
+          </div>
+          <div class="field">
+            <label>{{ __('Password') }}</label>
+            <input type="password" id="reg-password" placeholder="••••••••" required minlength="8">
+          </div>
+          <div class="field">
+            <label>{{ __('Confirm Password') }}</label>
+            <input type="password" id="reg-password-confirm" placeholder="••••••••" required minlength="8">
+          </div>
+          <div id="register-error" style="display:none;color:var(--color-error);font-size:13px;margin-bottom:12px;padding:10px;background:rgba(192,57,43,.06);border-radius:var(--radius-sm)"></div>
+          
+          <button type="submit" class="btn-dark auth-btn" id="btn-register">{{ __('Create Account') }}</button>
+          
+          <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--color-text-faint)">
+            {{ __('By creating an account, you agree to our') }} <br><a href="#" class="auth-link" style="font-size:12px">{{ __('Terms of Service & Privacy Policy') }}</a>.
+          </div>
+        </form>
+      </div>
+      
     </div>
   </div>
+</div>
 
 @endsection
 
 @section('extra_js')
-  <script>
-    (function () {
-      Cart.updateBadge();
+<script>
+window.switchAuthTab = function(tab) {
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  
+  const wrap = document.getElementById('auth-wrap');
+  const indicator = document.getElementById('auth-indicator');
+  
+  const isRtl = document.dir === 'rtl';
+  
+  if (tab === 'login') {
+    wrap.style.transform = 'translateX(0)';
+    indicator.style.transform = isRtl ? 'translateX(0)' : 'translateX(0)';
+  } else {
+    wrap.style.transform = isRtl ? 'translateX(50%)' : 'translateX(-50%)';
+    indicator.style.transform = isRtl ? 'translateX(-100%)' : 'translateX(100%)';
+  }
+  
+  // Clear errors
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('register-error').style.display = 'none';
+};
 
-      // Redirect if already logged in
-      if (Auth.token()) {
-        var u = Auth.user();
-        if (u) {
-            if (u.role === 'admin') location.href = '/admin/dashboard';
-            else if (u.role === 'support') location.href = '/admin/orders';
-            else location.href = '/account';
-        }
-        return;
-      }
+function showError(containerId, message) {
+  const el = document.getElementById(containerId);
+  el.textContent = message;
+  el.style.display = 'block';
+}
 
-      // ── Tab switching ───────────────────────────────────────────
-      window.switchTab = function (type) {
-        const signinForm = document.getElementById('signin-form');
-        const registerForm = document.getElementById('register-form');
-        const signinTab = document.getElementById('tab-signin');
-        const registerTab = document.getElementById('tab-register');
+// ── LOGIN ────────────────────────────────────────────────
+window.submitLogin = async function() {
+  const btn = document.getElementById('btn-login');
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  
+  document.getElementById('login-error').style.display = 'none';
+  
+  if (!email || !password) {
+    showError('login-error', "{{ __('Please fill in all fields.') }}");
+    return;
+  }
+  
+  btn.classList.add('btn-loading');
+  btn.disabled = true;
+  btn.textContent = "{{ __('Signing in...') }}";
+  
+  try {
+    const user = await Auth.login(email, password);
+    
+    showToast("{{ __('Welcome back!') }}", 'success');
+    
+    // Redirect based on role
+    if (user.role === 'admin' || user.role === 'support') {
+      setTimeout(() => { window.location.href = '/admin/dashboard'; }, 800);
+    } else {
+      // Check if there's an intended redirect (e.g. from checkout)
+      const intended = new URLSearchParams(window.location.search).get('redirect');
+      setTimeout(() => { window.location.href = intended || '/account'; }, 800);
+    }
+  } catch (e) {
+    const msg = e.data?.message || "{{ __('Invalid email or password.') }}";
+    showError('login-error', msg);
+    btn.classList.remove('btn-loading');
+    btn.disabled = false;
+    btn.textContent = "{{ __('Sign In') }}";
+  }
+};
 
-        if (type === 'signin') {
-          signinForm.style.display = 'block';
-          registerForm.style.display = 'none';
-          signinTab.classList.add('active');
-          registerTab.classList.remove('active');
-        } else {
-          signinForm.style.display = 'none';
-          registerForm.style.display = 'block';
-          signinTab.classList.remove('active');
-          registerTab.classList.add('active');
-        }
-      };
+// ── REGISTER ─────────────────────────────────────────────
+window.submitRegister = async function() {
+  const btn = document.getElementById('btn-register');
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const passwordConfirm = document.getElementById('reg-password-confirm').value;
+  
+  document.getElementById('register-error').style.display = 'none';
+  
+  if (!name || !email || !password || !passwordConfirm) {
+    showError('register-error', "{{ __('Please fill in all fields.') }}");
+    return;
+  }
+  
+  if (password !== passwordConfirm) {
+    showError('register-error', "{{ __('Passwords do not match.') }}");
+    return;
+  }
+  
+  if (password.length < 8) {
+    showError('register-error', "{{ __('Password must be at least 8 characters.') }}");
+    return;
+  }
+  
+  btn.classList.add('btn-loading');
+  btn.disabled = true;
+  btn.textContent = "{{ __('Creating account...') }}";
+  
+  try {
+    const user = await Auth.register({
+      name: name,
+      email: email,
+      password: password,
+      password_confirmation: passwordConfirm,
+    });
+    
+    showToast("{{ __('Account created successfully!') }}", 'success');
+    
+    // Redirect
+    if (user.role === 'admin' || user.role === 'support') {
+      setTimeout(() => { window.location.href = '/admin/dashboard'; }, 800);
+    } else {
+      const intended = new URLSearchParams(window.location.search).get('redirect');
+      setTimeout(() => { window.location.href = intended || '/account'; }, 800);
+    }
+  } catch (e) {
+    let msg = e.data?.message || "{{ __('Registration failed. Please try again.') }}";
+    // Handle Laravel validation errors
+    if (e.data?.errors) {
+      const firstError = Object.values(e.data.errors)[0];
+      msg = Array.isArray(firstError) ? firstError[0] : firstError;
+    }
+    showError('register-error', msg);
+    btn.classList.remove('btn-loading');
+    btn.disabled = false;
+    btn.textContent = "{{ __('Create Account') }}";
+  }
+};
 
-      // ── Sign In ────────────────────────────────────────────────
-      document.getElementById('btn-signin').addEventListener('click', async function () {
-        const email = document.querySelector('#signin-form [name="email"]').value.trim();
-        const password = document.querySelector('#signin-form [name="password"]').value;
-
-        if (!email || !password) {
-          showToast('Please fill in all fields.');
-          return;
-        }
-
-        this.disabled = true;
-        this.textContent = 'Signing in...';
-
-        try {
-          await Auth.login(email, password);
-          showToast('Welcome back!');
-          var user = Auth.user();
-          if (user) {
-              if (user.role === 'admin') location.href = '/admin/dashboard';
-              else if (user.role === 'support') location.href = '/admin/orders';
-              else location.href = '/account';
-          }
-        } catch (e) {
-          showToast(e.data?.message || 'Invalid credentials');
-          this.disabled = false;
-          this.textContent = 'Sign In';
-        }
-      });
-
-      // ── Register ───────────────────────────────────────────────
-      document.getElementById('btn-register').addEventListener('click', async function () {
-        const form = document.getElementById('register-form');
-        const firstName = form.querySelector('[name="first_name"]').value.trim();
-        const lastName = form.querySelector('[name="last_name"]').value.trim();
-        const email = form.querySelector('#register-form [name="email"]').value.trim();
-        const password = form.querySelector('#register-form [name="password"]').value;
-        const passwordConfirmation = form.querySelector('#register-form [name="password_confirmation"]').value;
-        const phone = form.querySelector('#register-form [name="phone"]').value.trim();
-
-        if (!firstName || !lastName || !email || !password || !phone) {
-          showToast('Please fill in all fields.');
-          return;
-        }
-
-        if (password.length < 8) {
-          showToast('Password must be at least 8 characters.');
-          return;
-        }
-
-        this.disabled = true;
-        this.textContent = 'Creating account...';
-
-        try {
-          await Auth.register({
-            name: firstName + ' ' + lastName,
-            email: email,
-            password: password,
-            password_confirmation: passwordConfirmation,
-            phone: phone
-          });
-          showToast('Account created! Welcome to DecoHomz.');
-          location.href = '/account';
-        } catch (e) {
-          showToast(e.data?.message || 'Registration failed. Please try again.');
-          this.disabled = false;
-          this.textContent = 'Create Account';
-        }
-      });
-    })();
-  </script>
+// If already logged in, redirect
+document.addEventListener('DOMContentLoaded', () => {
+  if (Auth.token()) {
+    const user = Auth.user();
+    if (user && (user.role === 'admin' || user.role === 'support')) {
+      window.location.href = '/admin/dashboard';
+    } else {
+      window.location.href = '/account';
+    }
+  }
+  
+  if (document.dir === 'rtl') {
+    document.getElementById('auth-indicator').style.transformOrigin = 'right';
+  }
+});
+</script>
 @endsection

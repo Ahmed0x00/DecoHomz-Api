@@ -10,6 +10,7 @@
 
   <div class="breadcrumb">{{ __('Home') }} › <span>{{ __('My Account') }}</span></div>
 
+  <div class="account-page">
   <div class="account-layout">
     <!-- Sidebar -->
     <div class="acc-sidebar">
@@ -184,10 +185,9 @@
         <div id="addresses-container"></div>
 
         <!-- Add/Edit Address Modal -->
-        <div id="address-modal"
-          style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:1000; align-items:center; justify-content:center;">
-          <div style="background:#fff; border-radius:10px; padding:28px; width:100%; max-width:460px; margin:20px;">
-            <div style="font-size:15px; font-weight:700; color:#2C1F14; margin-bottom:20px" id="address-modal-title">{{ __('Add Address') }}</div>
+        <div id="address-modal" class="address-modal-overlay">
+          <div class="address-modal">
+            <div class="address-modal-title" id="address-modal-title">{{ __('Add Address') }}</div>
             <input type="hidden" id="edit-address-id">
             <div class="form-grid">
               <div class="field full">
@@ -216,7 +216,9 @@
               </div>
               <div class="field">
                 <label>{{ __('Governorate') }}</label>
-                <input type="text" id="addr-state" required>
+                <select id="addr-state" required>
+                  <option value="">{{ __('Select Governorate') }}</option>
+                </select>
               </div>
               <div class="field">
                 <label>{{ __('Postal Code') }}</label>
@@ -227,15 +229,16 @@
                 <input type="tel" id="addr-phone" required>
               </div>
             </div>
-            <div style="display:flex; gap:10px; margin-top:20px">
-              <button class="save-btn" id="btn-save-address" style="flex:1">{{ __('Save Address') }}</button>
-              <button class="btn-edit" id="btn-cancel-address" style="flex:1">{{ __('Cancel') }}</button>
+            <div class="address-modal-actions">
+              <button class="save-btn" id="btn-save-address">{{ __('Save Address') }}</button>
+              <button class="btn-edit" id="btn-cancel-address">{{ __('Cancel') }}</button>
             </div>
           </div>
         </div>
       </div>
 
     </div>
+  </div>
   </div>
 
 @endsection
@@ -245,23 +248,78 @@
     (function () {
       Cart.updateBadge();
 
-      // ── Auth guard ─────────────────────────────────────────────
-      if (!Auth.token()) {
-        location.href = '/auth';
-        return;
-      }
+      var isGuest = !Auth.token();
 
       // ── Load user & data ────────────────────────────────────────
       (async function init() {
-        try {
-          const res = await API.get('/auth/user');
-          const user = res.data || res;
-          renderUserInfo(user);
-        } catch (e) {
-          location.href = '/auth';
-          return;
+        if (isGuest) {
+          try {
+            // Fetch guest orders to see if they have any
+            const res = await API.get('/orders');
+            // Support paginated or flat list response format
+            const orders = res.data || res.orders || [];
+            if (orders.length === 0) {
+              // Guest has no orders to track, redirect to login
+              location.href = '/auth';
+              return;
+            }
+
+            // Set up guest UI: Hide profile, address, and logout actions
+            var profileMenuItem = document.querySelector('[data-tab="profile"]');
+            var addressesMenuItem = document.querySelector('[data-tab="addresses"]');
+            var logoutMenuItem = document.querySelector('.acc-menu .logout');
+
+            if (profileMenuItem) profileMenuItem.parentNode.style.display = 'none';
+            if (addressesMenuItem) addressesMenuItem.parentNode.style.display = 'none';
+
+            if (logoutMenuItem) {
+              logoutMenuItem.innerHTML = `
+                <a href="/auth">
+                  <svg viewBox="0 0 24 24" stroke-width="1.5">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                    <polyline points="10 17 15 12 10 7" />
+                    <line x1="15" y1="12" x2="3" y2="12" />
+                  </svg>
+                  {{ __('Sign In') }}
+                </a>
+              `;
+            }
+
+            // Show guest tracking info in sidebar
+            var nameEl = document.getElementById('acc-name');
+            var emailEl = document.getElementById('acc-email');
+            var sinceEl = document.getElementById('acc-since');
+            if (nameEl) nameEl.textContent = "{{ __('Guest Customer') }}";
+            if (emailEl) emailEl.textContent = "{{ __('Guest Session') }}";
+            if (sinceEl) sinceEl.textContent = "{{ __('Tracking guest orders') }}";
+
+            // Render guest orders in overview
+            renderRecentOrders(orders);
+
+            // Compute and render stats manually for guest
+            const total = orders.length;
+            const delivered = orders.filter(o => ['delivered', 'completed'].includes((o.status || '').toLowerCase())).length;
+            const processing = orders.filter(o => ['pending', 'processing'].includes((o.status || '').toLowerCase())).length;
+
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-delivered').textContent = delivered;
+            document.getElementById('stat-pending').textContent = processing;
+            document.getElementById('stat-wishlist').textContent = '0';
+          } catch (e) {
+            location.href = '/auth';
+            return;
+          }
+        } else {
+          try {
+            const res = await API.get('/auth/user');
+            const user = res.data || res;
+            renderUserInfo(user);
+          } catch (e) {
+            location.href = '/auth';
+            return;
+          }
+          loadOverview();
         }
-        loadOverview();
       })();
 
       function renderUserInfo(user) {
@@ -278,14 +336,11 @@
         }
 
         // Pre-fill profile tab
-        const nameParts = (fullName || '').split(' ');
-        const firstName = document.getElementById('profile-first-name');
-        const lastName = document.getElementById('profile-last-name');
+        const nameInput = document.getElementById('profile-name');
         const emailInput = document.getElementById('profile-email');
         const phoneInput = document.getElementById('profile-phone');
 
-        if (firstName) firstName.value = user.first_name || nameParts[0] || '';
-        if (lastName) lastName.value = nameParts.slice(1).join(' ') || user.last_name || '';
+        if (nameInput) nameInput.value = fullName || '';
         if (emailInput) emailInput.value = user.email || '';
         if (phoneInput) phoneInput.value = user.phone || '';
       }
@@ -360,7 +415,7 @@
                 ${items.length > 3 ? `<div class="order-thumb-more">+${items.length - 3}</div>` : ''}
               </div>
             </div>
-            <div>
+            <div class="order-meta">
               <div class="order-total">EGP ${(parseFloat(o.total) || 0).toLocaleString()}</div>
               <a class="order-action" href="/account/orders/${o.id}">${"{{ __('Details →') }}"}</a>
             </div>
@@ -415,17 +470,17 @@
         }
 
         container.innerHTML = addresses.map(addr => `
-          <div class="address-card" style="background:#fff;border:1px solid #EDE8E2;border-radius:10px;padding:20px;margin-bottom:12px">
-            <div style="font-size:13px;font-weight:600;color:#2C1F14;margin-bottom:4px">
+          <div class="address-card">
+            <div class="address-card-title">
               ${addr.label || "{{ __('Address') }}"} ${addr.is_default ? (' — ' + "{{ __('Default') }}") : ''}
             </div>
-            <div style="font-size:12px;color:#888;line-height:1.7">
+            <div class="address-card-body">
               ${addr.first_name || ''} ${addr.last_name || ''}<br>
               ${addr.address_line_1 || ''}${addr.address_line_2 ? ', ' + addr.address_line_2 : ''}<br>
               ${addr.city || ''}${addr.state ? ', ' + addr.state : ''} ${addr.postal_code || ''}<br>
               ${addr.phone || ''}
             </div>
-            <div style="margin-top:12px;display:flex;gap:8px">
+            <div class="address-card-actions">
               <button class="btn-edit" onclick="editAddress('${addr.id}')">${"{{ __('Edit') }}"}</button>
               <button class="btn-edit" style="color:#c0392b" onclick="deleteAddress('${addr.id}')">${"{{ __('Remove') }}"}</button>
             </div>
@@ -435,12 +490,11 @@
 
       // ── Profile save ───────────────────────────────────────────
       document.getElementById('btn-save-profile').addEventListener('click', async function () {
-        const firstName = document.getElementById('profile-first-name').value.trim();
-        const lastName = document.getElementById('profile-last-name').value.trim();
+        const name = document.getElementById('profile-name').value.trim();
         const phone = document.getElementById('profile-phone').value.trim();
 
-        if (!firstName || !lastName) {
-          showToast("{{ __('First and last name are required.') }}");
+        if (!name) {
+          showToast("{{ __('Name is required.') }}");
           return;
         }
 
@@ -449,12 +503,11 @@
 
         try {
           await API.put('/auth/profile', {
-            first_name: firstName,
-            last_name: lastName,
+            name: name,
             phone: phone
           });
           showToast("{{ __('Profile updated!') }}");
-          document.getElementById('acc-name').textContent = firstName + ' ' + lastName;
+          document.getElementById('acc-name').textContent = name;
         } catch (e) {
           showToast(e.data?.message || "{{ __('Update failed.') }}");
         } finally {
@@ -497,15 +550,38 @@
       });
 
       // ── Address management ─────────────────────────────────────
+      var accountGovernorates = [];
+
+      async function loadGovernorateOptions() {
+        try {
+          const res = await API.get('/shipping/governorate-fees/active');
+          accountGovernorates = res.fees || res.data || [];
+          const select = document.getElementById('addr-state');
+          if (!select) return;
+          const current = select.value;
+          select.innerHTML = '<option value="">' + "{{ __('Select Governorate') }}" + '</option>' +
+            accountGovernorates.map(function(g) {
+              return '<option value="' + esc(g.governorate_name) + '">' + esc(g.governorate_name) + '</option>';
+            }).join('');
+          if (current) select.value = current;
+        } catch (e) {}
+      }
+
+      loadGovernorateOptions();
+
       document.getElementById('btn-add-address').addEventListener('click', function () {
         document.getElementById('address-modal-title').textContent = "{{ __('Add Address') }}";
         document.getElementById('edit-address-id').value = '';
         clearAddressForm();
-        document.getElementById('address-modal').style.display = 'flex';
+        document.getElementById('address-modal').classList.add('open');
       });
 
       document.getElementById('btn-cancel-address').addEventListener('click', function () {
-        document.getElementById('address-modal').style.display = 'none';
+        document.getElementById('address-modal').classList.remove('open');
+      });
+
+      document.getElementById('address-modal').addEventListener('click', function (e) {
+        if (e.target === this) this.classList.remove('open');
       });
 
       document.getElementById('btn-save-address').addEventListener('click', async function () {
@@ -523,7 +599,7 @@
           country: 'Egypt'
         };
 
-        if (!payload.first_name || !payload.address_line_1 || !payload.city || !payload.phone) {
+        if (!payload.first_name || !payload.address_line_1 || !payload.city || !payload.state || !payload.phone) {
           showToast("{{ __('Please fill in all required fields.') }}");
           return;
         }
@@ -539,7 +615,7 @@
             await API.post('/addresses', payload);
             showToast("{{ __('Address added!') }}");
           }
-          document.getElementById('address-modal').style.display = 'none';
+          document.getElementById('address-modal').classList.remove('open');
           loadAddressesTab();
         } catch (e) {
           showToast(e.data?.message || "{{ __('Failed to save address.') }}");
@@ -563,10 +639,10 @@
           document.getElementById('addr-line-1').value = addr.address_line_1 || '';
           document.getElementById('addr-line-2').value = addr.address_line_2 || '';
           document.getElementById('addr-city').value = addr.city || '';
-          document.getElementById('addr-state').value = addr.state || '';
+          document.getElementById('addr-state').value = addr.state || addr.governorate || '';
           document.getElementById('addr-postal').value = addr.postal_code || '';
           document.getElementById('addr-phone').value = addr.phone || '';
-          document.getElementById('address-modal').style.display = 'flex';
+          document.getElementById('address-modal').classList.add('open');
         } catch (e) {
           showToast("{{ __('Could not load address.') }}");
         }

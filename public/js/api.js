@@ -8,9 +8,11 @@ const API = {
 
   setToken(token) {
     localStorage.setItem('dh_token', token);
+    document.cookie = "dh_token=" + token + "; path=/; max-age=31536000; SameSite=Lax";
   },
   clearToken() {
     localStorage.removeItem('dh_token');
+    document.cookie = "dh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
   },
 
   // Session ID for guest cart tracking
@@ -20,6 +22,8 @@ const API = {
       sid = 'guest_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
       localStorage.setItem('dh_session_id', sid);
     }
+    // Always ensure cookie is set for server-side views
+    document.cookie = "session_id=" + sid + "; path=/; max-age=31536000; SameSite=Lax";
     return sid;
   },
 

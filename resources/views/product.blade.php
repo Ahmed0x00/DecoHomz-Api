@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Product — DecoHomz')
+@section('title')
+  {{ $product['name'] ?? 'Product' }} — DecoHomz
+@endsection
 
 @section('extra_css')
 <link rel="stylesheet" href="/css/product.css">
@@ -8,443 +10,425 @@
 
 @section('content')
 
-<input type="hidden" id="product-id" value="{{ $id }}">
-
-<div class="breadcrumb">{{ __('Home') }} › <span id="bc-category">…</span> › <span id="bc-product">{{ __('Loading…') }}</span></div>
-
-<div class="product-page" id="product-page">
-  <!-- Filled by JS -->
-  <div style="text-align:center;padding:60px;color:#aaa">{{ __('Loading product…') }}</div>
+{{-- Breadcrumb --}}
+<div class="breadcrumb">
+  <a href="/">{{ __('Home') }}</a> › 
+  <a href="/shop">{{ __('Shop') }}</a> › 
+  @if(isset($product['category']))
+    <a href="/shop?category={{ urlencode($product['category']['name']) }}">{{ $product['category']['name'] }}</a> › 
+  @endif
+  <span>{{ $product['name'] ?? 'Product' }}</span>
 </div>
 
-<div class="tabs-section" id="tabs-section" style="display:none">
-  <div class="tabs">
-    <div class="tab active" data-tab="description">{{ __('Description') }}</div>
-    <div class="tab" data-tab="specs">{{ __('Specifications') }}</div>
-    <div class="tab" data-tab="reviews" id="reviews-tab">{{ __('Reviews') }} (0)</div>
+<div class="product-wrap">
+  
+  {{-- ═══ LEFT: GALLERY ═══ --}}
+  <div class="product-gallery animate-fade-right">
+    <div class="main-img" id="main-image-container">
+      @if(isset($product['badge']))
+        <div class="gallery-badges">
+          <div class="tag-sale" style="background:{{ $product['badge_color'] ?? 'var(--color-accent)' }}">{{ $product['badge'] }}</div>
+        </div>
+      @endif
+      @php
+        $primaryImg = '/img/placeholder.svg';
+        if(isset($product['primary_image'])) {
+            $primaryImg = $product['primary_image']['url'] ?? $product['primary_image']['thumbnail_url'] ?? $primaryImg;
+        }
+      @endphp
+      <img src="{{ $primaryImg }}" id="main-image" alt="{{ $product['name'] ?? 'Product Image' }}">
+    </div>
+
+    @if(isset($product['images']) && count($product['images']) > 1)
+    <div class="thumb-row">
+      @foreach($product['images'] as $index => $img)
+        @php
+          $thumbUrl = $img['thumbnail_url'] ?? $img['url'] ?? '/img/placeholder.svg';
+          $fullUrl = $img['url'] ?? $thumbUrl;
+        @endphp
+        <div class="thumb {{ $index === 0 ? 'active' : '' }}" onclick="changeImage(this, '{{ $fullUrl }}')">
+          <img src="{{ $thumbUrl }}" alt="Thumbnail {{ $index + 1 }}">
+        </div>
+      @endforeach
+    </div>
+    @endif
   </div>
-  <div class="tab-content" id="tab-content">
-    <div id="tab-description"></div>
-    <div class="spec-grid" id="tab-specs" style="display:none"></div>
-    <div id="tab-reviews" style="display:none"></div>
+
+  {{-- ═══ RIGHT: INFO ═══ --}}
+  <div class="product-info animate-fade-left">
+    <div class="prod-meta-top">
+      <div class="prod-cat">{{ $product['category']['name'] ?? 'Furniture' }}</div>
+      <div class="prod-reviews-mini" onclick="document.getElementById('tab-reviews').click(); window.scrollBy({top: document.querySelector('.tabs-section').getBoundingClientRect().top - 100, behavior: 'smooth'});">
+        <div class="stars">
+          @php $stars = $product['stars'] ?? 5; @endphp
+          {{ str_repeat('★', $stars) }}{{ str_repeat('☆', 5 - $stars) }}
+        </div>
+        <span>(128 {{ __('Reviews') }})</span>
+      </div>
+    </div>
+
+    <h1 class="prod-title">{{ $product['name'] ?? 'Product Name' }}</h1>
+
+    <div class="price-block">
+      <div class="main-price">EGP {{ number_format($product->price ?? 0, 2) }}</div>
+      @if(isset($product->old_price) && $product->old_price > $product->price)
+        <div class="old-price">EGP {{ number_format($product->old_price, 2) }}</div>
+      @endif
+      @if(($product->stock ?? 0) <= 0)
+        <div class="stock-badge out-of-stock">{{ __('Out of Stock') }}</div>
+      @endif
+    </div>
+
+    <div class="prod-desc-short">
+      {{ $product['description'] ?? 'Premium quality furniture crafted to elevate your living space.' }}
+    </div>
+
+    {{-- Options --}}
+    <form id="add-to-cart-form" onsubmit="event.preventDefault(); submitAddToCart();">
+      
+      {{-- Colors (from database) --}}
+      @php $colors = $product->colors ?? collect(); @endphp
+      @if($colors->count() > 0)
+      <div class="options-group">
+        <div class="opt-label">
+          <span>{{ __('Color') }}</span>
+          <span class="opt-val" id="color-val">{{ $colors->first()->name ?? 'Standard' }}</span>
+        </div>
+        <div class="color-row">
+          @foreach($colors as $i => $color)
+            <div class="color-swatch {{ $i === 0 ? 'active' : '' }}" style="background:{{ $color->hex_code ?? '#4A3626' }}" title="{{ $color->name }}" onclick="selectColor(this, '{{ addslashes($color->name ?? 'Standard') }}')"></div>
+          @endforeach
+        </div>
+        <input type="hidden" id="selected-color" value="{{ $colors->first()->name ?? 'Standard' }}">
+      </div>
+      @else
+      <input type="hidden" id="selected-color" value="Standard">
+      @endif
+
+      {{-- Action Bar --}}
+      <div class="action-bar">
+        <div class="qty-ctrl">
+          <button type="button" class="qty-btn" onclick="updateLocalQty(-1)">−</button>
+          <span class="qty-num" id="qty-val">1</span>
+          <button type="button" class="qty-btn" onclick="updateLocalQty(1)">+</button>
+          <input type="hidden" id="selected-qty" value="1">
+        </div>
+        <button type="submit" class="btn-dark" id="add-btn" @if(($product->stock ?? 0) <= 0) disabled @endif>
+          <span>{{ ($product->stock ?? 0) > 0 ? __('Add to Cart') : __('Out of Stock') }}</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </button>
+      </div>
+
+    </form>
+
+    {{-- Delivery Info --}}
+    <div class="delivery-info">
+      <div class="del-item">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <div class="del-item-txt">
+          <h5>{{ __('Free Delivery') }}</h5>
+          <p>{{ __('Estimated arrival: 3-5 business days.') }}</p>
+        </div>
+      </div>
+      <div class="del-item">
+        <svg viewBox="0 0 24 24" fill="none"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+        <div class="del-item-txt">
+          <h5>{{ __('Easy Returns') }}</h5>
+          <p>{{ __('Return within 14 days if you are not satisfied.') }}</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
-<div class="related" id="related-section" style="display:none">
-  <div class="sec-row">
-    <div class="sec-title">{{ __('You might also like') }}</div>
-    <a href="/shop" class="sec-link">{{ __('View All →') }}</a>
+{{-- ═══ TABS ═══ --}}
+<div class="tabs-section">
+  <div class="tab-nav" id="tab-nav">
+    <div class="tab active" id="tab-desc" onclick="switchTab('desc')">{{ __('Description') }}</div>
+    <div class="tab" id="tab-specs" onclick="switchTab('specs')">{{ __('Specifications') }}</div>
+    <div class="tab" id="tab-reviews" onclick="switchTab('reviews')">{{ __('Reviews') }} (128)</div>
+    <div class="tab-indicator" id="tab-indicator"></div>
   </div>
-  <div class="rel-grid" id="related-grid"></div>
+
+  <div class="tab-content">
+    {{-- Description --}}
+    <div class="tab-pane active" id="pane-desc">
+      <div class="prod-details">
+        <p>{{ $product['description'] ?? 'No description available.' }}</p>
+        <p>{{ __('Crafted with precision and designed for ultimate comfort, this piece brings a touch of modern elegance to any room. The high-quality materials ensure durability, while the sleek finish complements various decor styles seamlessly.') }}</p>
+      </div>
+    </div>
+
+    {{-- Specs --}}
+    <div class="tab-pane" id="pane-specs">
+      <div class="spec-grid">
+        <div class="spec-row"><div class="k">{{ __('Material') }}</div><div class="v">{{ $product->material ?: __('N/A') }}</div></div>
+        @if($product->upholstery)
+        <div class="spec-row"><div class="k">{{ __('Upholstery') }}</div><div class="v">{{ $product->upholstery }}</div></div>
+        @endif
+        <div class="spec-row"><div class="k">{{ __('Dimensions') }}</div><div class="v">{{ $product->dimensions ?: __('N/A') }}</div></div>
+        <div class="spec-row"><div class="k">{{ __('Weight') }}</div><div class="v">{{ $product->weight ? $product->weight : __('N/A') }}</div></div>
+        <div class="spec-row"><div class="k">{{ __('Stock') }}</div><div class="v">{{ ($product->stock ?? 0) > 0 ? $product->stock . ' ' . __('available') : __('Out of stock') }}</div></div>
+        <div class="spec-row"><div class="k">{{ __('SKU') }}</div><div class="v">#{{ $product->id }}</div></div>
+      </div>
+    </div>
+
+    {{-- Reviews --}}
+    <div class="tab-pane" id="pane-reviews">
+      <div class="reviews-container">
+        <div class="review-sidebar">
+          <div class="review-summary">
+            <h3>4.8</h3>
+            <div class="stars">★★★★★</div>
+            <div style="font-size:13px;color:var(--color-text-secondary)">{{ __('Based on 128 reviews') }}</div>
+            
+            <div class="review-bars">
+              <div class="r-bar-row">
+                <div class="r-bar-label">5★</div>
+                <div class="r-bar-track"><div class="r-bar-fill" style="width:85%"></div></div>
+                <div class="r-bar-count">109</div>
+              </div>
+              <div class="r-bar-row">
+                <div class="r-bar-label">4★</div>
+                <div class="r-bar-track"><div class="r-bar-fill" style="width:10%"></div></div>
+                <div class="r-bar-count">12</div>
+              </div>
+              <div class="r-bar-row">
+                <div class="r-bar-label">3★</div>
+                <div class="r-bar-track"><div class="r-bar-fill" style="width:4%"></div></div>
+                <div class="r-bar-count">5</div>
+              </div>
+              <div class="r-bar-row">
+                <div class="r-bar-label">2★</div>
+                <div class="r-bar-track"><div class="r-bar-fill" style="width:1%"></div></div>
+                <div class="r-bar-count">2</div>
+              </div>
+              <div class="r-bar-row">
+                <div class="r-bar-label">1★</div>
+                <div class="r-bar-track"><div class="r-bar-fill" style="width:0%"></div></div>
+                <div class="r-bar-count">0</div>
+              </div>
+            </div>
+            
+            <button class="btn-outline" style="width:100%;margin-top:24px">{{ __('Write a Review') }}</button>
+          </div>
+        </div>
+        
+        <div class="review-list">
+          <div class="review-item">
+            <div class="review-head">
+              <div>
+                <div class="review-user">Ahmed M.</div>
+                <div class="stars" style="font-size:12px;margin-top:2px;color:var(--color-accent)">★★★★★</div>
+              </div>
+              <div class="review-date">2 weeks ago</div>
+            </div>
+            <div class="review-comment">
+              "{{ __('Absolutely stunning! The build quality is excellent and it fits perfectly in my living room. Delivery was on time and the setup was a breeze.') }}"
+            </div>
+          </div>
+          <div class="review-item">
+            <div class="review-head">
+              <div>
+                <div class="review-user">Sara K.</div>
+                <div class="stars" style="font-size:12px;margin-top:2px;color:var(--color-accent)">★★★★★</div>
+              </div>
+              <div class="review-date">1 month ago</div>
+            </div>
+            <div class="review-comment">
+              "{{ __('Very comfortable and looks exactly like the pictures. I was hesitant to buy furniture online but DecoHomz exceeded my expectations.') }}"
+            </div>
+          </div>
+          <button class="btn-outline" style="margin-top:16px">{{ __('Load More Reviews') }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{-- ═══ RELATED PRODUCTS ═══ --}}
+<div class="related">
+  <div class="related-inner">
+  <div class="sec-row animate-on-scroll">
+    <div class="sec-title">{{ __('You May Also Like') }}</div>
+  </div>
+  <div class="prod-grid" id="related-grid">
+    {{-- Loaded via JS --}}
+    @for($i = 0; $i < 4; $i++)
+    <div class="skeleton-card">
+      <div class="skeleton-img skeleton"></div>
+      <div class="skeleton-body">
+        <div class="skeleton-text narrow skeleton"></div>
+        <div class="skeleton-text wide skeleton"></div>
+        <div class="skeleton-text medium skeleton"></div>
+      </div>
+    </div>
+    @endfor
+  </div>
+  </div>
+</div>
+
+{{-- ═══ MOBILE STICKY CART ═══ --}}
+<div class="mobile-sticky-cart">
+  <div class="sticky-price">
+    @if(isset($product['old_price']) && $product['old_price'] > $product['price'])
+      <div class="sticky-old-price">EGP {{ number_format($product['old_price'], 2) }}</div>
+    @endif
+    <div class="sticky-main-price">EGP {{ number_format($product['price'] ?? 0, 2) }}</div>
+  </div>
+  <button class="btn-dark" onclick="submitAddToCart()" @if(($product->stock ?? 0) <= 0) disabled @endif>{{ ($product->stock ?? 0) > 0 ? __('Add to Cart') : __('Out of Stock') }}</button>
 </div>
 
 @endsection
 
 @section('extra_js')
 <script>
-(function() {
-  var productId = document.getElementById('product-id').value;
-  var currentProduct = null;
-  var selectedColor = null;
-  var selectedSize = null;
-  var quantity = 1;
+const PRODUCT = {
+  id: {{ $product->id ?? 0 }},
+  slug: "{{ addslashes($product->slug ?? '') }}",
+  name: "{{ addslashes($product->name ?? 'Product') }}",
+  price: {{ $product->price ?? 0 }},
+  stock: {{ $product->stock ?? 0 }}
+};
 
-  // ── Bootstrap ────────────────────────────────────────────
-  (async function() {
-    Cart.updateBadge();
-    initTabs();
-    initQuantityButtons();
+window.changeImage = function(el, url) {
+  document.querySelectorAll('.thumb').forEach(function(t) { t.classList.remove('active'); });
+  el.classList.add('active');
 
-    try {
-      var res = await API.get('/products/' + productId);
-      currentProduct = res.product;
-      renderProduct(currentProduct, res.rating || {});
-      initAddToCart();
-      initColorSelection();
-      initSizeSelection();
-      loadRelated();
-      loadReviews();
-    } catch(e) {
-      document.getElementById('product-page').innerHTML =
-        '<div style="text-align:center;padding:60px;color:#aaa"><p>Product not found.</p><a href="/shop" class="btn-dark" style="display:inline-block;margin-top:16px">Back to Shop</a></div>';
-    }
-  })();
+  const mainImg = document.getElementById('main-image');
+  if (!mainImg) return;
+  mainImg.style.opacity = '0';
+  setTimeout(function() {
+    mainImg.src = url;
+    mainImg.style.opacity = '1';
+  }, 200);
+};
 
-  // ── Render product ───────────────────────────────────────
-  function renderProduct(p, rating) {
-    // Page title
-    document.title = p.name + ' — DecoHomz';
+window.selectColor = function(el, color) {
+  document.querySelectorAll('.color-swatch').forEach(function(sw) { sw.classList.remove('active'); });
+  el.classList.add('active');
+  document.getElementById('selected-color').value = color;
+  const colorVal = document.getElementById('color-val');
+  if (colorVal) colorVal.textContent = color;
+};
 
-    // Breadcrumb
-    document.getElementById('bc-category').textContent = p.category ? p.category.name : '';
-    document.getElementById('bc-product').textContent = p.name;
+window.updateLocalQty = function(delta) {
+  const input = document.getElementById('selected-qty');
+  const display = document.getElementById('qty-val');
+  let current = parseInt(input.value, 10) || 1;
+  current += delta;
+  if (current < 1) current = 1;
+  if (current > 10) current = 10;
 
-    // Images
-    var images = p.images || [];
-    var primaryImg = p.primary_image;
-    var displayUrl = (primaryImg && primaryImg.url) ? primaryImg.url : (images[0] ? images[0].url : '/img/placeholder.svg');
+  input.value = current;
+  display.textContent = current;
+};
 
-    var mainImgHtml = '<img src="' + displayUrl + '" alt="' + p.name + '" style="width:100%;height:100%;object-fit:contain" onerror="this.outerHTML=\'<svg viewBox=&quot;0 0 240 200&quot; fill=&quot;none&quot;><rect width=&quot;240&quot; height=&quot;200&quot; fill=&quot;#F5F0E8&quot;/></svg>\'">';
-
-    var thumbHtml = images.map(function(img, i) {
-      var url = img.url || '/img/placeholder.svg';
-      return '<div class="thumb' + (i === 0 ? ' active' : '') + '" data-url="' + url + '" style="cursor:pointer">' +
-        '<img src="' + url + '" alt="" onerror="this.style.display=\'none\'"></div>';
-    }).join('');
-
-    // Rating
-    var avgRating = rating.average || p.stars || 5;
-    var reviewCount = rating.count || 0;
-    var starsStr = '★'.repeat(Math.round(avgRating)) + '☆'.repeat(5 - Math.round(avgRating));
-
-    // Price
-    var priceHtml = '<span class="main-price">EGP ' + parseFloat(p.price).toLocaleString() + '</span>';
-    if (p.old_price && parseFloat(p.old_price) > parseFloat(p.price)) {
-      var discount = Math.round((1 - parseFloat(p.price) / parseFloat(p.old_price)) * 100);
-      priceHtml += '<span class="old-price">EGP ' + parseFloat(p.old_price).toLocaleString() + '</span>';
-      priceHtml += '<span class="sale-tag">' + discount + '% Off</span>';
-    }
-
-    // Colors
-    var colorsHtml = '';
-    if (p.colors && p.colors.length > 0) {
-      colorsHtml = '<div class="option-label">' + "{{ __('Color') }}" + '</div>' +
-        '<div class="color-row" id="color-row">' +
-        p.colors.map(function(c, i) {
-          return '<div class="color-swatch' + (i === 0 ? ' active' : '') + '" style="background:' + c + '" data-color="' + c + '"></div>';
-        }).join('') +
-        '</div>';
-    }
-
-    // Perks
-    var perksHtml = '<div class="perks">' +
-      '<div class="perk"><svg viewBox="0 0 24 24" stroke-width="1.5"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><div class="perk-text">' + "{{ __('Free delivery above EGP 2,000') }}" + '</div></div>' +
-      '<div class="perk"><svg viewBox="0 0 24 24" stroke-width="1.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg><div class="perk-text">' + "{{ __('Easy 14-day returns') }}" + '</div></div>' +
-      '<div class="perk"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><div class="perk-text">' + "{{ __('5-year warranty') }}" + '</div></div>' +
-      '<div class="perk"><svg viewBox="0 0 24 24" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><div class="perk-text">' + "{{ __('Secure payment') }}" + '</div></div>' +
-      '</div>';
-
-    document.getElementById('product-page').innerHTML =
-      '<div class="img-section">' +
-        '<div class="main-img-wrapper">' +
-          '<div class="main-img" id="main-img">' + mainImgHtml + '</div>' +
-        '</div>' +
-        '<div class="thumb-row" id="thumb-row">' + thumbHtml + '</div>' +
-      '</div>' +
-      '<div class="info-section">' +
-        '<div class="prod-meta">' +
-          '<span class="prod-cat-tag">' + (p.category ? p.category.name : "{{ __('Furniture') }}") + '</span>' +
-          (p.stock > 0 ? '<span class="stock-tag in">' + "{{ __('In Stock') }}" + '</span>' : '<span class="stock-tag out">' + "{{ __('Out of Stock') }}" + '</span>') +
-        '</div>' +
-        '<h1 class="prod-title">' + p.name + '</h1>' +
-        '<div class="rating-row">' +
-          '<div class="stars-outer"><div class="stars-inner" style="width:' + (avgRating / 5 * 100) + '%"></div></div>' +
-          '<span class="rating-text">' + avgRating.toFixed(1) + ' (' + reviewCount + ' ' + "{{ __('reviews') }}" + ')</span>' +
-        '</div>' +
-        '<div class="price-container">' +
-          priceHtml +
-        '</div>' +
-        '<p class="short-desc">' + (p.description ? p.description.substring(0, 160) + '...' : "{{ __('Premium quality piece designed for modern living spaces.') }}") + '</p>' +
-        '<div class="options-container">' +
-          colorsHtml +
-        '</div>' +
-        '<div class="purchase-section">' +
-          '<div class="qty-selector">' +
-            '<button class="qty-btn" id="qty-minus" aria-label="' + "{{ __('Decrease quantity') }}" + '">−</button>' +
-            '<span class="qty-num" id="qty-num">1</span>' +
-            '<button class="qty-btn" id="qty-plus" aria-label="' + "{{ __('Increase quantity') }}" + '">+</button>' +
-          '</div>' +
-          '<button class="btn-primary-lg" id="add-to-cart-btn">' +
-            '<span>' + "{{ __('Add to Cart') }}" + '</span>' +
-            '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4H6z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>' +
-          '</button>' +
-        '</div>' +
-        '<div class="trust-badges">' +
-          '<div class="trust-item"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>' + "{{ __('5-Year Warranty') }}" + '</span></div>' +
-          '<div class="trust-item"><svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><span>' + "{{ __('Fast Shipping') }}" + '</span></div>' +
-          '<div class="trust-item"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg><span>' + "{{ __('Easy Returns') }}" + '</span></div>' +
-        '</div>' +
-      '</div>';
-
-    // Show tabs now that product loaded
-    document.getElementById('tabs-section').style.display = 'block';
-
-    // Set initial color
-    if (p.colors && p.colors.length > 0) {
-      selectedColor = p.colors[0];
-    }
-
-    // Description content
-    document.getElementById('tab-description').textContent =
-      p.description || "{{ __('Premium quality furniture crafted for your home.') }}";
-
-    // Reviews tab label
-    document.getElementById('reviews-tab').textContent = "{{ __('Reviews') }}" + ' (' + reviewCount + ')';
+window.submitAddToCart = async function() {
+  if (PRODUCT.stock <= 0) {
+    showToast("{{ __('This product is out of stock.') }}", 'error');
+    return;
   }
 
-  // ── Image gallery ────────────────────────────────────────
-  document.addEventListener('click', function(e) {
-    var thumb = e.target.closest('.thumb');
-    if (!thumb) return;
-    var url = thumb.dataset.url;
-    if (!url) return;
-    var mainImg = document.getElementById('main-img');
-    if (mainImg) {
-      mainImg.innerHTML = '<img src="' + url + '" alt="" style="width:100%;height:100%;object-fit:contain" onerror="this.outerHTML=\'<svg viewBox=&quot;0 0 240 200&quot; fill=&quot;none&quot;><rect width=&quot;240&quot; height=&quot;200&quot; fill=&quot;#F5F0E8&quot;/></svg>\'">';
-    }
-    document.querySelectorAll('.thumb').forEach(function(t) { t.classList.remove('active'); });
-    thumb.classList.add('active');
-  });
+  const qty = parseInt(document.getElementById('selected-qty').value, 10) || 1;
+  const color = document.getElementById('selected-color').value;
+  const btn = document.getElementById('add-btn');
 
-  // ── Quantity ─────────────────────────────────────────────
-  function initQuantityButtons() {
-    document.addEventListener('click', function(e) {
-      var btn = e.target.closest('.qty-btn');
-      if (!btn) return;
-      
-      var numEl = document.getElementById('qty-num');
-      if (!numEl) return;
-      var val = parseInt(numEl.textContent) || 1;
-      
-      if (btn.id === 'qty-minus' && val > 1) {
-        numEl.textContent = val - 1;
-        quantity = val - 1;
-      }
-      if (btn.id === 'qty-plus') {
-        numEl.textContent = val + 1;
-        quantity = val + 1;
-      }
+  if (!window.Cart || typeof Cart.add !== 'function') return;
+
+  if (btn) {
+    btn.disabled = true;
+    btn.querySelector('span').textContent = "{{ __('Adding...') }}";
+  }
+
+  try {
+    await Cart.add({
+      id: PRODUCT.id,
+      name: PRODUCT.name,
+      price: PRODUCT.price,
+      quantity: qty,
+      variant: color
     });
-  }
 
-  // ── Color selection ─────────────────────────────────────
-  function initColorSelection() {
-    document.addEventListener('click', function(e) {
-      var swatch = e.target.closest('.color-swatch');
-      if (!swatch) return;
-      document.querySelectorAll('.color-swatch').forEach(function(s) { s.classList.remove('active'); });
-      swatch.classList.add('active');
-      selectedColor = swatch.dataset.color;
-    });
-  }
-
-  // ── Size selection ───────────────────────────────────────
-  function initSizeSelection() {
-    document.addEventListener('click', function(e) {
-      var btn = e.target.closest('.size-btn');
-      if (!btn) return;
-      document.querySelectorAll('.size-btn').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      selectedSize = btn.textContent;
-    });
-  }
-
-  // ── Add to Cart ──────────────────────────────────────────
-  function initAddToCart() {
-    document.addEventListener('click', function(e) {
-      var btn = e.target.closest('#add-to-cart-btn');
-      if (!btn) return;
-      if (!currentProduct) return;
-      var qtyEl = document.getElementById('qty-num');
-      var qty = parseInt(qtyEl ? qtyEl.textContent : 1) || 1;
-      var variant = selectedSize || 'Standard';
-      Cart.add({
-        id: currentProduct.id,
-        name: currentProduct.name,
-        price: parseFloat(currentProduct.price),
-        quantity: qty,
-        variant: variant,
-        image: currentProduct.primary_image ? currentProduct.primary_image.url : null
-      });
-    });
-  }
-
-  // ── Tabs ────────────────────────────────────────────────
-  function initTabs() {
-    document.addEventListener('click', function(e) {
-      var tab = e.target.closest('.tab');
-      if (!tab) return;
-      var tabName = tab.dataset.tab;
-      document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
-      tab.classList.add('active');
-
-      document.getElementById('tab-description').style.display = 'none';
-      document.getElementById('tab-specs').style.display = 'none';
-      document.getElementById('tab-reviews').style.display = 'none';
-
-      if (tabName === 'description') {
-        document.getElementById('tab-description').style.display = 'block';
-      } else if (tabName === 'specs') {
-        document.getElementById('tab-specs').style.display = 'grid';
-        renderSpecs();
-      } else if (tabName === 'reviews') {
-        document.getElementById('tab-reviews').style.display = 'block';
-      }
-    });
-  }
-
-  function renderSpecs() {
-    var el = document.getElementById('tab-specs');
-    if (!el || el.dataset.loaded) return;
-    el.dataset.loaded = '1';
-    if (!currentProduct) return;
-
-    var specs = [];
-    if (currentProduct.dimensions) specs.push({ key: 'Dimensions', val: currentProduct.dimensions });
-    if (currentProduct.weight) specs.push({ key: 'Weight', val: currentProduct.weight });
-    if (currentProduct.material) specs.push({ key: 'Material', val: currentProduct.material });
-    if (currentProduct.upholstery) specs.push({ key: 'Upholstery', val: currentProduct.upholstery });
-    specs.push({ key: 'Availability', val: (currentProduct.stock > 0) ? 'In Stock (' + currentProduct.stock + ')' : 'Out of Stock' });
-
-    // 2-column grid
-    var half = Math.ceil(specs.length / 2);
-    var col1 = specs.slice(0, half);
-    var col2 = specs.slice(half);
-
-    var html = '<div>';
-    col1.forEach(function(s) { html += '<div class="spec-row"><span class="key">' + s.key + '</span><span class="val">' + s.val + '</span></div>'; });
-    html += '</div><div>';
-    col2.forEach(function(s) { html += '<div class="spec-row"><span class="key">' + s.key + '</span><span class="val">' + s.val + '</span></div>'; });
-    html += '</div>';
-    el.innerHTML = html;
-  }
-
-  // ── Reviews ──────────────────────────────────────────────
-  async function loadReviews() {
-    try {
-      var res = await API.get('/products/' + currentProduct.id + '/reviews');
-      renderReviews(res.reviews || [], res.stats || {});
-    } catch(e) {}
-  }
-
-  function renderReviews(reviews, stats) {
-    document.getElementById('reviews-tab').textContent = 'Reviews (' + (stats.count || 0) + ')';
-
-    var container = document.getElementById('tab-reviews');
-    if (!container) return;
-
-    var isLoggedIn = !!Auth.token();
-    var formHtml = '';
-
-    if (isLoggedIn) {
-      formHtml = '<div style="margin-bottom:28px;padding:20px;border:1px solid #EDE8E2;border-radius:10px;background:#FAFAF7">' +
-        '<div style="font-weight:600;margin-bottom:14px">Write a Review</div>' +
-        '<div style="margin-bottom:12px">' +
-          '<label style="font-size:13px;color:#666;display:block;margin-bottom:6px">Your Rating</label>' +
-          '<div class="star-picker" id="star-picker">' +
-            '<span class="star-btn" data-val="1">★</span>' +
-            '<span class="star-btn" data-val="2">★</span>' +
-            '<span class="star-btn" data-val="3">★</span>' +
-            '<span class="star-btn" data-val="4">★</span>' +
-            '<span class="star-btn" data-val="5">★</span>' +
-          '</div>' +
-        '</div>' +
-        '<div style="margin-bottom:12px">' +
-          '<label style="font-size:13px;color:#666;display:block;margin-bottom:6px">Your Review</label>' +
-          '<textarea id="review-comment" rows="4" placeholder="Share your experience with this product..." style="width:100%;padding:10px;border:1px solid #DDD;border-radius:6px;font-size:14px;resize:vertical;font-family:inherit"></textarea>' +
-        '</div>' +
-        '<button class="btn-dark" id="btn-submit-review" onclick="submitReview()" style="padding:10px 24px;font-size:14px;border:none;cursor:pointer;border-radius:6px">Submit Review</button>' +
-        '<div id="review-msg" style="margin-top:10px;font-size:13px;display:none"></div>' +
-        '</div>';
-    } else {
-      formHtml = '<div style="margin-bottom:24px;padding:16px;background:#FFF8E6;border:1px solid #F0E0B0;border-radius:8px;text-align:center">' +
-        '<a href="/auth" onclick="location.href=\'/auth\'" style="color:#C9A96E;font-weight:600">Sign in</a> to write a review' +
-        '</div>';
+    if (typeof openCart === 'function') openCart();
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.querySelector('span').textContent = "{{ __('Add to Cart') }}";
     }
+  }
+};
 
-    if (reviews.length === 0) {
-      container.innerHTML = formHtml + '<p style="color:#aaa;text-align:center;padding:20px">No reviews yet. Be the first to review this product!</p>';
-      initStarPicker(5);
+window.switchTab = function(tabId) {
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
+
+  const targetTab = document.getElementById('tab-' + tabId);
+  if (targetTab) targetTab.classList.add('active');
+
+  const pane = document.getElementById('pane-' + tabId);
+  if (pane) pane.classList.add('active');
+
+  updateTabIndicator(targetTab);
+};
+
+function updateTabIndicator(activeTabEl) {
+  const indicator = document.getElementById('tab-indicator');
+  if (!activeTabEl || !indicator) return;
+
+  indicator.style.width = activeTabEl.offsetWidth + 'px';
+  indicator.style.left = activeTabEl.offsetLeft + 'px';
+}
+
+async function loadRelated() {
+  const grid = document.getElementById('related-grid');
+  if (!grid) return;
+
+  try {
+    const res = await API.get('/products/' + (PRODUCT.slug || PRODUCT.id) + '/related');
+    const products = (res.products || []).filter(function(p) { return p.id !== PRODUCT.id; });
+
+    if (products.length === 0) {
+      grid.innerHTML = '<p class="related-empty">' + "{{ __('No related products found.') }}" + '</p>';
       return;
     }
 
-    var reviewsHtml = '';
-    reviews.forEach(function(r) {
-      var starsStr = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
-      var userName = r.user ? r.user.name : 'Anonymous';
-      var date = r.created_at ? new Date(r.created_at).toLocaleDateString() : '';
-      reviewsHtml += '<div style="margin-bottom:20px;padding:16px;border:1px solid #EDE8E2;border-radius:8px">' +
-        '<div style="color:#B8860B;margin-bottom:6px">' + starsStr + '</div>' +
-        '<div style="font-weight:600;margin-bottom:4px">' + userName + '</div>' +
-        '<div style="font-size:11px;color:#888;margin-bottom:8px">Verified Purchase' + (date ? ' · ' + date : '') + '</div>' +
-        '<div style="color:#444;font-size:14px">' + (r.comment || '') + '</div>' +
-        '</div>';
-    });
+    grid.innerHTML = products.map(function(p, i) {
+      const imgUrl = (p.primary_image && p.primary_image.thumbnail_url) ? p.primary_image.thumbnail_url : ((p.primary_image && p.primary_image.url) ? p.primary_image.url : '/img/placeholder.svg');
+      const stars = p.stars || 5;
+      const starsStr = '★'.repeat(stars) + '☆'.repeat(5 - stars);
+      const price = p.price ? parseFloat(p.price).toLocaleString() : '0';
+      const productUrl = '/product/' + (p.slug || p.id);
 
-    container.innerHTML = formHtml + reviewsHtml;
-    initStarPicker(5);
-  }
-
-  function initStarPicker(defaultVal) {
-    var picker = document.getElementById('star-picker');
-    if (!picker) return;
-    window._reviewRating = defaultVal;
-    function setStars(val) {
-      window._reviewRating = val;
-      picker.querySelectorAll('.star-btn').forEach(function(s) {
-        s.style.color = parseInt(s.dataset.val) <= val ? '#C9A96E' : '#DDD';
-      });
-    }
-    picker.querySelectorAll('.star-btn').forEach(function(s) {
-      s.style.cursor = 'pointer';
-      s.style.fontSize = '20px';
-      s.style.transition = 'color .1s';
-      s.addEventListener('click', function() { setStars(parseInt(this.dataset.val)); });
-    });
-    setStars(defaultVal);
-  }
-
-  window.submitReview = async function() {
-    var btn = document.getElementById('btn-submit-review');
-    var msg = document.getElementById('review-msg');
-    var comment = document.getElementById('review-comment').value.trim();
-    var rating = window._reviewRating || 5;
-
-    if (!rating) { msg.style.color = '#D44'; msg.style.display = 'block'; msg.textContent = 'Please select a star rating.'; return; }
-
-    btn.disabled = true;
-    btn.textContent = 'Submitting...';
-    msg.style.display = 'none';
-
-    try {
-      await API.post('/reviews', { product_id: currentProduct.id, rating: rating, comment: comment });
-      msg.style.color = '#2A2'; msg.style.display = 'block'; msg.textContent = 'Review submitted! It will appear after approval.';
-      document.getElementById('review-comment').value = '';
-      initStarPicker(5);
-    } catch(e) {
-      msg.style.color = '#D44'; msg.style.display = 'block';
-      msg.textContent = e.data?.message || 'Failed to submit review. Please try again.';
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Submit Review';
-    }
-  }
-
-  // ── Related products ─────────────────────────────────────
-  async function loadRelated() {
-    try {
-      var res = await API.get('/products/' + currentProduct.id + '/related');
-      var products = res.products || [];
-      if (products.length > 0) {
-        renderRelated(products);
-        document.getElementById('related-section').style.display = 'block';
-      }
-    } catch(e) {}
-  }
-
-  function renderRelated(products) {
-    var grid = document.getElementById('related-grid');
-    grid.innerHTML = products.map(function(p) {
-      var imgUrl = (p.primary_image && p.primary_image.url) ? p.primary_image.url : '/img/placeholder.svg';
-      return '<div class="rel-card" onclick="location.href=\'/product/' + p.id + '\'" style="cursor:pointer">' +
-        '<div class="rel-img"><img src="' + imgUrl + '" alt="' + p.name + '" onerror="this.src=\'/img/placeholder.svg\'"></div>' +
-        '<div class="rel-info">' +
-          '<div class="rel-name">' + p.name + '</div>' +
-          '<div class="rel-price">EGP ' + parseFloat(p.price).toLocaleString() + '</div>' +
+      return '<div class="prod-card animate-fade-up stagger-' + (i + 1) + '" onclick="location.href=\'' + productUrl + '\'">' +
+        '<div class="prod-img">' +
+          '<img src="' + imgUrl + '" alt="' + esc(p.name) + '" loading="lazy" onerror="this.src=\'/img/placeholder.svg\'">' +
+        '</div>' +
+        '<div class="prod-info">' +
+          '<div class="stars">' + starsStr + '</div>' +
+          '<div class="prod-name">' + esc(p.name) + '</div>' +
+          '<div class="prod-price">EGP ' + price + '</div>' +
         '</div>' +
       '</div>';
     }).join('');
+  } catch (e) {
+    grid.innerHTML = '';
   }
-})();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof Cart !== 'undefined' && Cart.updateBadge) Cart.updateBadge();
+
+  setTimeout(function() {
+    updateTabIndicator(document.getElementById('tab-desc'));
+  }, 100);
+
+  window.addEventListener('resize', function() {
+    updateTabIndicator(document.querySelector('.tab.active'));
+  });
+
+  loadRelated();
+});
 </script>
 @endsection

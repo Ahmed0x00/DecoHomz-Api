@@ -130,6 +130,22 @@ $couponDiscount = $coupon ? ($coupon->discount_amount ?? $coupon->discount ?? 0)
     </div>
   </div>
 
+  @if(!empty($order->notes))
+  <div class="info-card" style="margin-bottom: 32px;">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+        <polyline points="10 9 9 9 8 9" />
+      </svg>
+      Order Notes
+    </div>
+    <div style="font-size: 14px; color: var(--color-text); line-height: 1.6; white-space: pre-line;">{{ $order->notes }}</div>
+  </div>
+  @endif
+
   {{-- Timeline --}}
   <div class="timeline">
     <div class="tl-title">
@@ -239,7 +255,7 @@ $couponDiscount = $coupon ? ($coupon->discount_amount ?? $coupon->discount ?? 0)
 
   {{-- CTA Buttons --}}
   <div class="cta-row">
-    <button class="btn-outline" onclick="location.href='/account'">Track Order</button>
+    <button class="btn-outline" onclick="location.href='/account/orders/{{ $order->id }}'">Track Order</button>
     <button class="btn-dark" onclick="location.href='/account'">My Orders</button>
     <button class="btn-gold" onclick="location.href='/shop'">Continue Shopping</button>
   </div>

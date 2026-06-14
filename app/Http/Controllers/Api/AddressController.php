@@ -84,6 +84,10 @@ class AddressController extends Controller
                 ->update(['is_default' => false]);
         }
 
+        if (isset($validated['state'])) {
+            $validated['governorate'] = $validated['state'];
+        }
+
         $address->update($validated);
 
         return response()->json([

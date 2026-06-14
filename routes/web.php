@@ -4,7 +4,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => view('home'));
 Route::get('/shop', fn() => view('shop'));
-Route::get('/product/{id}', fn($id) => view('product', ['id' => $id]));
+Route::get('/product/{id}', function($id) {
+    $product = \App\Models\Product::where('id', $id)
+        ->orWhere('slug', $id)
+        ->with(['category', 'primaryImage', 'images', 'colors' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order')])
+        ->firstOrFail();
+    return view('product', ['product' => $product]);
+});
 Route::get('/cart', fn() => view('cart'));
 Route::get('/checkout', fn() => view('checkout'));
 Route::get('/orders/confirmation/{orderId}', [App\Http\Controllers\Api\OrderController::class, 'confirmation']);

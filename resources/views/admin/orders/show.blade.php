@@ -447,6 +447,14 @@
                         <label class="info-label">Payment Method</label>
                         <div class="info-value" style="text-transform: uppercase;">${order.payment_method || 'N/A'}</div>
                     </div>
+                    ${order.notes ? `
+                    <div class="info-group" style="grid-column: span 2; border-top: 1px solid var(--border); padding-top: 16px; margin-top: 8px;">
+                        <label class="info-label">Order Notes / Special Instructions</label>
+                        <div class="info-value" style="white-space: pre-line; font-weight: normal; color: var(--text-main); line-height: 1.6; background: #fafafa; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border);">
+                            ${esc(order.notes)}
+                        </div>
+                    </div>
+                    ` : ''}
                 </div>
             `;
         }

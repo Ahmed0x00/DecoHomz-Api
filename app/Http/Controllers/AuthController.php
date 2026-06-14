@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Cart;
+use App\Models\Order;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -33,6 +35,10 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        // Migrate guest data (cart + orders) to the new user
+        $sessionId = $request->header('X-Session-ID');
+        $this->migrateGuestData($sessionId, $user);
+
         return response()->json([
             'message' => 'Registration successful',
             'user' => $user,
@@ -57,6 +63,10 @@ class AuthController extends Controller
         ActivityLog::auth($request, 'Login', "User logged in: {$user->name}", $user);
 
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        // Migrate guest data (cart + orders) to the logged-in user
+        $sessionId = $request->header('X-Session-ID');
+        $this->migrateGuestData($sessionId, $user);
 
         return response()->json([
             'message' => 'Login successful',
@@ -126,5 +136,88 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Password changed successfully',
         ]);
+    }
+
+    /**
+     * Migrate ALL guest data (cart + orders) to a newly registered user.
+     */
+    private function migrateGuestData(?string $sessionId, User $user): void
+    {
+        if (!$sessionId) return;
+
+        $this->migrateGuestCart($sessionId, $user);
+
+        // Claim all guest orders that were placed with this session
+        Order::where('session_id', $sessionId)
+            ->whereNull('user_id')
+            ->update(['user_id' => $user->id]);
+
+        // Also claim any shipping addresses from those orders
+        $guestOrderIds = Order::where('session_id', $sessionId)
+            ->where('user_id', $user->id)
+            ->pluck('id');
+
+        if ($guestOrderIds->isNotEmpty()) {
+            \App\Models\ShippingAddress::whereIn('order_id', $guestOrderIds)
+                ->whereNull('user_id')
+                ->update(['user_id' => $user->id]);
+        }
+    }
+
+    /**
+     * Merge guest cart items into the user's cart.
+     * If user already has a cart, merge items. Otherwise, just reassign the guest cart.
+     */
+    private function migrateGuestCart(?string $sessionId, User $user): void
+    {
+        if (!$sessionId) return;
+
+        $guestCart = Cart::where('session_id', $sessionId)
+            ->whereNull('user_id')
+            ->with('items')
+            ->first();
+
+        if (!$guestCart || $guestCart->items->isEmpty()) return;
+
+        $userCart = Cart::where('user_id', $user->id)->with('items')->first();
+
+        if (!$userCart) {
+            // No existing user cart — just reassign the guest cart
+            $guestCart->update([
+                'user_id' => $user->id,
+                'session_id' => null,
+            ]);
+        } else {
+            // Merge guest items into user cart
+            foreach ($guestCart->items as $guestItem) {
+                $existingItem = $userCart->items()
+                    ->where('product_id', $guestItem->product_id)
+                    ->where('variant', $guestItem->variant)
+                    ->first();
+
+                if ($existingItem) {
+                    $existingItem->update([
+                        'quantity' => $existingItem->quantity + $guestItem->quantity,
+                    ]);
+                } else {
+                    $guestItem->update(['cart_id' => $userCart->id]);
+                }
+            }
+
+            // Carry over coupon if user cart doesn't have one
+            if (!$userCart->coupon_code && $guestCart->coupon_code) {
+                $userCart->update([
+                    'coupon_code' => $guestCart->coupon_code,
+                    'discount' => $guestCart->discount,
+                ]);
+            }
+
+            // Delete the empty guest cart
+            $guestCart->items()->delete();
+            $guestCart->delete();
+
+            // Recalculate discount on merged cart
+            $userCart->recalculateDiscount();
+        }
     }
 }

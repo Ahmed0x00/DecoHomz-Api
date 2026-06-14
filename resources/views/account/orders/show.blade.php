@@ -1,545 +1,197 @@
 @extends('layouts.app')
+
 @section('title', 'Order #' . ($order->order_number ?? $order->id) . ' — DecoHomz')
 
 @section('extra_css')
-<link rel="stylesheet" href="/css/account.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+<link rel="stylesheet" href="/css/order-confirmation.css">
 <style>
-/* ── Reset & Base ─────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; }
-
-:root {
-  --cream:       #FAF7F2;
-  --cream-mid:   #F2EDE4;
-  --cream-dark:  #E8DFD0;
-  --sand:        #D4C4A8;
-  --gold:        #B8860B;
-  --gold-light:  #C9A84C;
-  --ink:         #1C1209;
-  --ink-mid:     #3D2B14;
-  --ink-soft:    #6B5340;
-  --ink-muted:   #9C876E;
-  --white:       #FFFFFF;
-  --radius-sm:   8px;
-  --radius-md:   14px;
-  --radius-lg:   20px;
-  --shadow-sm:   0 1px 4px rgba(0,0,0,.06);
-  --shadow-md:   0 4px 16px rgba(0,0,0,.08);
-  --shadow-lg:   0 12px 40px rgba(0,0,0,.10);
-}
-
-/* ── Page Wrapper ─────────────────────────────────────── */
-.od-wrap {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 40px 24px 80px;
-  font-family: 'DM Sans', sans-serif;
-  color: var(--ink);
-  background: var(--cream);
-  min-height: 100vh;
-}
-
-/* ── Back Link ────────────────────────────────────────── */
+/* ── Extra Styles for Order Details ── */
 .od-back {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
   text-decoration: none;
-  margin-bottom: 32px;
-  transition: color .2s;
+  margin-bottom: 24px;
+  transition: color 0.2s;
 }
-.od-back:hover { color: var(--gold); }
-.od-back svg { width: 14px; height: 14px; }
+.od-back:hover { color: var(--color-primary); }
+.od-back svg { width: 16px; height: 16px; }
 
-/* ── Flash Messages ───────────────────────────────────── */
 .od-flash {
-  padding: 14px 18px;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  margin-bottom: 20px;
-  font-family: 'DM Sans', sans-serif;
+  padding: 16px 24px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  margin-bottom: 24px;
+  font-weight: 500;
 }
-.od-flash-success { background: #e6f5ee; color: #1a6640; border-left: 3px solid #2ECC71; }
-.od-flash-error   { background: #fef0ee; color: #8B1A1A; border-left: 3px solid #E74C3C; }
+.od-flash-success { background: var(--color-success-bg); color: var(--color-success); border: 1px solid rgba(46, 204, 113, 0.2); }
+.od-flash-error   { background: #fef0ee; color: #E74C3C; border: 1px solid rgba(231, 76, 60, 0.2); }
 
-/* ── Order Hero Header ────────────────────────────────── */
-.od-hero {
-  background: var(--ink);
+.refund-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 28px 32px 28px;
-  margin-bottom: 24px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 24px;
-  position: relative;
-  overflow: hidden;
+  padding: 32px;
+  margin-bottom: 32px;
 }
-.od-hero::before {
-  content: '';
-  position: absolute;
-  top: -60px; right: -60px;
-  width: 240px; height: 240px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(184,134,11,.18) 0%, transparent 70%);
-  pointer-events: none;
-}
-.od-hero-left {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  min-width: 0; /* allow text truncation */
-}
-.od-hero-eyebrow {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,.35);
-  margin-bottom: 6px;
-}
-.od-hero-number {
-  font-family: 'DM Sans', sans-serif;
-  font-size: clamp(22px, 4vw, 34px);
-  font-weight: 700;
-  color: var(--white);
-  line-height: 1.1;
-  margin-bottom: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.od-hero-badges {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.od-hero-right {
-  text-align: right;
-  flex-shrink: 0;
-}
-.od-hero-total-label {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,.35);
-  margin-bottom: 6px;
-}
-.od-hero-total {
-  font-family: 'DM Sans', sans-serif;
-  font-size: clamp(26px, 3.5vw, 36px);
-  font-weight: 700;
-  color: var(--gold-light);
-  line-height: 1;
-  white-space: nowrap;
-}
-
-/* ── Status Badges ────────────────────────────────────── */
-/* Light-surface badges (meta bar, cards) */
-.od-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 12px;
-  border-radius: 50px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.od-badge::before {
-  content: '';
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: currentColor;
-  opacity: 0.7;
-  flex-shrink: 0;
-}
-.badge-pending    { background: rgba(234,179,8,.12);   color: #B45309; }
-.badge-processing { background: rgba(59,130,246,.12);  color: #1D4ED8; }
-.badge-shipped    { background: rgba(139,92,246,.12);  color: #6D28D9; }
-.badge-delivered  { background: rgba(34,197,94,.12);   color: #15803D; }
-.badge-cancelled  { background: rgba(239,68,68,.12);   color: #B91C1C; }
-.badge-unpaid     { background: rgba(239,68,68,.12);   color: #B91C1C; }
-.badge-paid_deposit { background: rgba(234,179,8,.12); color: #B45309; }
-.badge-full_paid  { background: rgba(34,197,94,.12);   color: #15803D; }
-.badge-refunded   { background: rgba(139,92,246,.12);  color: #6D28D9; }
-
-/* Dark-surface badge overrides (inside .od-hero) */
-.od-hero .badge-pending    { background: rgba(234,179,8,.2);  color: #FCD34D; }
-.od-hero .badge-processing { background: rgba(59,130,246,.2); color: #93C5FD; }
-.od-hero .badge-shipped    { background: rgba(139,92,246,.2); color: #C4B5FD; }
-.od-hero .badge-delivered  { background: rgba(34,197,94,.2);  color: #86EFAC; }
-.od-hero .badge-cancelled  { background: rgba(239,68,68,.2);  color: #FCA5A5; }
-.od-hero .badge-unpaid     { background: rgba(239,68,68,.2);  color: #FCA5A5; }
-.od-hero .badge-paid_deposit { background: rgba(234,179,8,.2); color: #FCD34D; }
-.od-hero .badge-full_paid  { background: rgba(34,197,94,.2);  color: #86EFAC; }
-.od-hero .badge-refunded   { background: rgba(139,92,246,.2); color: #C4B5FD; }
-
-/* ── Meta Bar ─────────────────────────────────────────── */
-.od-meta {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--cream-dark);
-  border: 1px solid var(--cream-dark);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  margin-bottom: 24px;
-}
-.od-meta-item {
-  background: var(--white);
-  padding: 18px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.od-meta-label {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-}
-.od-meta-value {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--ink);
-  line-height: 1.4;
-}
-
-/* ── Card ─────────────────────────────────────────────── */
-.od-card {
-  background: var(--white);
-  border: 1px solid var(--cream-dark);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  margin-bottom: 16px;
-  box-shadow: var(--shadow-sm);
-}
-.od-card-head {
-  padding: 14px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--cream);
-  border-bottom: 1px solid var(--cream-dark);
-}
-.od-card-title {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
-.od-card-body { padding: 24px; }
-
-/* ── Items Table ──────────────────────────────────────── */
-.items-tbl { width: 100%; border-collapse: collapse; }
-.items-tbl th {
-  text-align: left;
-  padding: 10px 16px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-  background: var(--cream);
-  border-bottom: 1px solid var(--cream-dark);
-}
-.items-tbl th:last-child { text-align: right; }
-.items-tbl td {
-  padding: 16px;
-  font-size: 13px;
-  color: var(--ink);
-  border-bottom: 1px solid var(--cream-mid);
-  vertical-align: middle;
-}
-.items-tbl tr:last-child td { border-bottom: none; }
-
-.item-thumb {
-  width: 54px; height: 54px;
-  border-radius: var(--radius-sm);
-  background: var(--cream-mid);
-  overflow: hidden;
-  border: 1px solid var(--cream-dark);
-  flex-shrink: 0;
-}
-.item-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.item-thumb-placeholder {
-  width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-}
-.item-thumb-placeholder svg { width: 22px; height: 22px; color: var(--sand); }
-
-.item-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--ink);
-  line-height: 1.3;
-}
-.item-variant {
-  font-size: 11px;
-  color: var(--ink-muted);
-  margin-top: 3px;
-  font-weight: 400;
-}
-.item-qty {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  background: var(--cream-mid);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink-soft);
-}
-.item-price-cell {
-  text-align: right;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink);
-  white-space: nowrap;
-}
-
-/* ── Two Column Grid ──────────────────────────────────── */
-.od-two-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-/* ── Summary Table ────────────────────────────────────── */
-.sum-tbl { width: 100%; border-collapse: collapse; }
-.sum-tbl tr td { padding: 8px 0; font-size: 13px; color: var(--ink-soft); }
-.sum-tbl tr td:last-child { text-align: right; font-weight: 500; color: var(--ink); }
-.sum-tbl .sum-divider td { border-top: 1px solid var(--cream-dark); padding-top: 14px; }
-.sum-tbl .sum-total td {
+.refund-title {
   font-size: 16px;
   font-weight: 700;
-  color: var(--ink);
-  padding-top: 12px;
-  font-family: 'DM Sans', sans-serif;
+  color: var(--color-primary);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.sum-tbl .sum-discount td { color: #B91C1C; }
-.sum-tbl .sum-deposit  td { color: #92400E; }
-.sum-tbl .sum-balance td:last-child { color: #B91C1C; font-weight: 700; }
-
-/* ── Address Block ────────────────────────────────────── */
-.addr-block { line-height: 1.7; font-size: 13.5px; color: var(--ink-soft); }
-.addr-name { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
-.addr-phone { margin-top: 10px; font-size: 13px; font-weight: 600; color: var(--ink); }
-.addr-email { font-size: 12px; color: var(--ink-muted); }
-
-/* ── Support / Refund Card ────────────────────────────── */
-.od-support {
-  background: linear-gradient(135deg, var(--ink) 0%, #2C1F14 100%);
-  border-radius: var(--radius-lg);
-  padding: 0;
-  overflow: hidden;
+.refund-title svg {
+  width: 18px;
+  height: 18px;
+  stroke: var(--color-accent);
+  fill: none;
+}
+.refund-text {
+  font-size: 14px;
+  color: var(--color-text-secondary);
   margin-bottom: 16px;
+  line-height: 1.5;
 }
-.od-support-inner {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-}
-.od-support-col {
-  padding: 32px 36px;
-}
-.od-support-col + .od-support-col {
-  border-left: 1px solid rgba(255,255,255,.07);
-}
-.od-support-eyebrow {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-  margin-bottom: 10px;
-}
-.od-support-heading {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 22px;
-  font-weight: 600;
-  color: var(--white);
-  margin-bottom: 10px;
-  line-height: 1.3;
-}
-.od-support-text {
-  font-size: 12.5px;
-  color: rgba(255,255,255,.5);
-  line-height: 1.65;
-}
-.od-support-text strong { color: rgba(255,255,255,.8); font-weight: 500; }
-
-/* Refund Form */
 .refund-textarea {
   width: 100%;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  color: var(--white);
-  font-size: 13px;
-  font-family: 'DM Sans', sans-serif;
-  padding: 12px 14px;
+  color: var(--color-text);
+  font-size: 14px;
+  padding: 12px 16px;
   resize: vertical;
-  min-height: 72px;
+  min-height: 80px;
   outline: none;
-  transition: border-color .2s;
-  margin-top: 14px;
+  margin-bottom: 12px;
+  font-family: inherit;
 }
-.refund-textarea::placeholder { color: rgba(255,255,255,.3); }
-.refund-textarea:focus { border-color: var(--gold-light); }
-
+.refund-textarea:focus { border-color: var(--color-accent); }
 .btn-refund {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 10px;
-  padding: 9px 20px;
-  border-radius: var(--radius-sm);
-  background: var(--gold);
-  color: var(--white);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
+  background: var(--color-accent);
+  color: #fff;
   border: none;
-  cursor: pointer;
-  transition: background .2s, transform .1s;
-}
-.btn-refund:hover { background: var(--gold-light); transform: translateY(-1px); }
-.btn-refund:active { transform: translateY(0); }
-
-#customerRefundMsg {
-  margin-top: 10px;
-  font-size: 12px;
-  min-height: 16px;
-}
-
-/* Refund Status Badge */
-.refund-status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 14px;
-  border-radius: 50px;
-  font-size: 11px;
+  padding: 10px 24px;
+  border-radius: var(--radius-sm);
   font-weight: 600;
-  letter-spacing: 0.08em;
+  cursor: pointer;
+  font-size: 13px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+  transition: background 0.2s;
 }
-.refund-pending  { background: rgba(234,179,8,.2);  color: #FDE68A; }
-.refund-approved { background: rgba(34,197,94,.2);  color: #86EFAC; }
-.refund-rejected { background: rgba(239,68,68,.2);  color: #FCA5A5; }
-
-.refund-reason-label {
-  font-size: 10px;
-  letter-spacing: 0.14em;
+.btn-refund:hover { background: var(--color-accent-dark); }
+.refund-status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--ink-muted);
-  margin-top: 14px;
-  margin-bottom: 4px;
+  letter-spacing: 0.05em;
 }
-.refund-reason-text {
-  font-size: 12.5px;
-  color: rgba(255,255,255,.55);
-  line-height: 1.6;
+.refund-pending  { background: rgba(234,179,8,.15);  color: #B45309; }
+.refund-approved { background: rgba(34,197,94,.15);  color: #15803D; }
+.refund-rejected { background: rgba(239,68,68,.15);  color: #B91C1C; }
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
+.status-pending { background: rgba(234,179,8,.15); color: #B45309; }
+.status-processing { background: rgba(59,130,246,.15); color: #1D4ED8; }
+.status-shipped { background: rgba(139,92,246,.15); color: #6D28D9; }
+.status-delivered { background: rgba(34,197,94,.15); color: #15803D; }
+.status-cancelled { background: rgba(239,68,68,.15); color: #B91C1C; }
 
-/* ── Responsive ───────────────────────────────────────── */
-@media (max-width: 680px) {
-  .od-hero { grid-template-columns: 1fr; padding: 24px; gap: 16px; }
-  .od-hero-right { text-align: left; }
-  .od-hero-total { font-size: 26px; }
-
-  .od-meta { grid-template-columns: 1fr 1fr; }
-  .od-meta-item:last-child { grid-column: 1 / -1; border-top: 1px solid var(--cream-dark); }
-
-  .od-two-col { grid-template-columns: 1fr; }
-
-  .od-support-inner { grid-template-columns: 1fr; }
-  .od-support-col + .od-support-col { border-left: none; border-top: 1px solid rgba(255,255,255,.07); }
-  .od-support-col { padding: 24px; }
-
-  .items-tbl th:nth-child(3),
-  .items-tbl td:nth-child(3) { display: none; }
+.od-banner {
+  padding: 32px 40px;
 }
 
-@media (max-width: 480px) {
-  .od-wrap { padding: 24px 16px 60px; }
-  .od-meta { grid-template-columns: 1fr; }
-  .od-meta-item:last-child { grid-column: auto; }
+.od-banner .confirm-title {
+  margin-bottom: 12px;
+}
+
+.od-banner .status-badge {
+  margin-top: 12px;
+}
+
+.od-banner-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
 }
 </style>
 @endsection
 
 @section('content')
 <?php
-$orderNumber    = $order->order_number ?? $order->id;
-$status         = $order->status ?? 'pending';
-$paymentStatus  = $order->payment_status ?? 'unpaid';
-$addr           = $order->shippingAddress;
-$items          = $order->items ?? collect([]);
-$coupon         = $order->coupon;
-$paymentMethod  = $order->payment_method ?? 'cod';
-$subtotal       = $order->subtotal ?? 0;
-$discount       = $order->discount ?? 0;
-$deliveryFee    = $order->delivery_fee ?? 0;
-$vatAmount      = $order->vat_amount ?? 0;
-$depositAmount  = $order->deposit_amount ?? 0;
-$total          = $order->total ?? 0;
-$itemCount      = $items->sum('quantity') ?? 0;
-$balanceDue     = max(0, $total - $depositAmount);
+$orderNumber = $order->order_number ?? $order->id;
+$status = $order->status ?? 'pending';
+$paymentStatus = $order->payment_status ?? 'unpaid';
+$addr = $order->shippingAddress;
+$items = $order->items ?? collect([]);
+$coupon = $order->coupon;
+$paymentMethod = $order->payment_method ?? 'cod';
+$subtotal = $order->subtotal ?? 0;
+$discount = $order->discount ?? 0;
+$deliveryFee = $order->delivery_fee ?? 0;
+$vatAmount = $order->vat_amount ?? 0;
+$depositAmount = $order->deposit_amount ?? 0;
+$total = $order->total ?? 0;
+$itemCount = $items->sum('quantity') ?? 0;
+$balanceDue = max(0, $total - $depositAmount);
 
+// Payment method display
 $paymentDisplay = match($paymentMethod) {
-    'cod'    => 'Cash on Delivery',
-    'card'   => 'Credit / Debit Card',
+    'cod' => 'Cash on Delivery',
+    'card' => 'Credit/Debit Card',
     'wallet' => 'Fawry Wallet',
-    default  => ucfirst($paymentMethod),
+    default => ucfirst($paymentMethod),
 };
 
-$statusBadge = match($status) {
-    'pending'    => 'badge-pending',
-    'processing' => 'badge-processing',
-    'shipped'    => 'badge-shipped',
-    'delivered'  => 'badge-delivered',
-    'cancelled'  => 'badge-cancelled',
-    default      => 'badge-pending',
-};
+// Delivery fee display
+$deliveryDisplay = $deliveryFee == 0 ? 'Free' : 'EGP ' . number_format($deliveryFee);
 
-$paymentBadge = match($paymentStatus) {
-    'unpaid'       => 'badge-unpaid',
-    'paid_deposit' => 'badge-paid_deposit',
-    'full_paid'    => 'badge-full_paid',
-    'refunded'     => 'badge-refunded',
-    default        => 'badge-unpaid',
-};
+// Delivery estimate: 3-5 days from order
+$orderDate = \Carbon\Carbon::parse($order->created_at);
+$estStart = $orderDate->copy()->addDays(3)->format('M d');
+$estEnd = $orderDate->copy()->addDays(6)->format('M d');
+$estDelivery = "$estStart – $estEnd";
 
-$paymentLabel = match($paymentStatus) {
-    'paid_deposit' => 'Deposit Paid',
-    'full_paid'    => 'Paid in Full',
-    'refunded'     => 'Refunded',
-    default        => ucfirst($paymentStatus),
-};
+// Status steps
+$steps = [
+    ['key' => 'placed',    'label' => "Order\nPlaced",      'icon' => 'check'],
+    ['key' => 'processing','label' => "Processing",           'icon' => 'doc'],
+    ['key' => 'shipped',   'label' => "Shipped",             'icon' => 'truck'],
+    ['key' => 'delivered', 'label' => "Delivered",           'icon' => 'home'],
+];
+$statusOrder = ['pending','confirmed','processing','shipped','delivered'];
+$currentIdx = array_search($status, $statusOrder);
+if ($currentIdx === false) $currentIdx = 0;
 
-$refundStatus    = $order->refund_status ?? null;
+if ($status === 'cancelled') {
+    $currentIdx = -1; // hide timeline progress
+}
+
+// Coupon discount for display
+$couponDiscount = $coupon ? ($coupon->discount_amount ?? $coupon->discount ?? 0) : 0;
+
+// Refund Status
+$refundStatus = $order->refund_status ?? null;
 $canRequestRefund = in_array($paymentStatus, ['paid_deposit', 'full_paid']) && is_null($refundStatus);
 
 $refundBadgeClass = match($refundStatus) {
@@ -555,17 +207,24 @@ $refundBadgeLabel = match($refundStatus) {
     'rejected' => 'Refund Rejected',
     default    => '',
 };
+
+$statusBadgeClass = match($status) {
+    'pending', 'confirmed' => 'status-pending',
+    'processing' => 'status-processing',
+    'shipped' => 'status-shipped',
+    'delivered' => 'status-delivered',
+    'cancelled' => 'status-cancelled',
+    default => 'status-pending',
+};
 ?>
 
-<div class="od-wrap">
+<div class="confirm-wrap">
 
-  {{-- Back --}}
   <a href="/account" class="od-back">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-    My Account
+    Back to My Account
   </a>
 
-  {{-- Flash Messages --}}
   @if(session('success'))
     <div class="od-flash od-flash-success">{{ session('success') }}</div>
   @endif
@@ -573,223 +232,251 @@ $refundBadgeLabel = match($refundStatus) {
     <div class="od-flash od-flash-error">{{ session('error') }}</div>
   @endif
 
-  {{-- ── Hero Header ───────────────────────── --}}
-  <div class="od-hero">
-    <div class="od-hero-left">
-      <div class="od-hero-eyebrow">DecoHomz Order</div>
-      <div class="od-hero-number">#{{ $orderNumber }}</div>
-      <div class="od-hero-badges">
-        <span class="od-badge {{ $statusBadge }}">{{ ucfirst($status) }}</span>
-        <span class="od-badge {{ $paymentBadge }}">{{ $paymentLabel }}</span>
-      </div>
-    </div>
-    <div class="od-hero-right">
-      <div class="od-hero-total-label">Order Total</div>
-      <div class="od-hero-total">EGP {{ number_format($total) }}</div>
+  {{-- Top Banner --}}
+  <div class="success-banner od-banner">
+    <div class="confirm-title">Order Details</div>
+    <div class="order-num">Order ID: <span>#{{ $orderNumber }}</span></div>
+    <div>
+        <span class="status-badge {{ $statusBadgeClass }}">{{ ucfirst($status) }}</span>
     </div>
   </div>
 
-  {{-- ── Meta Bar ──────────────────────────── --}}
-  <div class="od-meta">
-    <div class="od-meta-item">
-      <span class="od-meta-label">Order Date</span>
-      <span class="od-meta-value">{{ \Carbon\Carbon::parse($order->created_at)->format('M j, Y') }}</span>
+  {{-- Info Cards --}}
+  <div class="confirm-grid">
+    {{-- Delivery Address --}}
+    <div class="info-card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
+        Delivery Address
+      </div>
+      @if($addr)
+      <div class="info-row"><span class="key">Name</span><span class="val">{{ $addr->first_name }} {{ $addr->last_name }}</span></div>
+      <div class="info-row"><span class="key">Phone</span><span class="val">{{ $addr->phone }}</span></div>
+      <div class="info-row"><span class="key">Address</span><span class="val">{{ $addr->address_line_1 }}{{ $addr->address_line_2 ? ', ' . $addr->address_line_2 : '' }}</span></div>
+      <div class="info-row"><span class="key">City</span><span class="val">{{ $addr->city }}{{ $addr->state ? ', ' . $addr->state : '' }}, {{ $addr->country }}</span></div>
+      @if($addr->postal_code)
+      <div class="info-row"><span class="key">Postal Code</span><span class="val">{{ $addr->postal_code }}</span></div>
+      @endif
+      @else
+      <div class="info-row"><span class="val" style="color:#888">No address on file</span></div>
+      @endif
     </div>
-    <div class="od-meta-item">
-      <span class="od-meta-label">Payment</span>
-      <span class="od-meta-value">{{ $paymentDisplay }}</span>
-    </div>
-    <div class="od-meta-item">
-      <span class="od-meta-label">Items</span>
-      <span class="od-meta-value">{{ $itemCount }} piece{{ $itemCount !== 1 ? 's' : '' }}</span>
+
+    {{-- Payment Details --}}
+    <div class="info-card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor">
+          <rect x="1" y="4" width="22" height="16" rx="2" />
+          <line x1="1" y1="10" x2="23" y2="10" />
+        </svg>
+        Payment Details
+      </div>
+      <div class="info-row"><span class="key">Method</span><span class="val">{{ $paymentDisplay }}</span></div>
+      <div class="info-row"><span class="key">Status</span><span class="val">{{ ucfirst(str_replace('_', ' ', $paymentStatus)) }}</span></div>
+      <div class="info-row"><span class="key">Subtotal</span><span class="val">EGP {{ number_format($subtotal) }}</span></div>
+      @if($couponDiscount > 0)
+      <div class="info-row">
+        <span class="key">Coupon ({{ $coupon->code ?? 'DISCOUNT' }})</span>
+        <span class="val" style="color:#c0392b">− EGP {{ number_format($couponDiscount) }}</span>
+      </div>
+      @elseif($discount > 0)
+      <div class="info-row">
+        <span class="key">Discount</span>
+        <span class="val" style="color:#c0392b">− EGP {{ number_format($discount) }}</span>
+      </div>
+      @endif
+      <div class="info-row"><span class="key">Delivery</span><span class="val" style="color:#4A7C3F">{{ $deliveryDisplay }}</span></div>
+      @if($vatAmount > 0)
+      <div class="info-row"><span class="key">VAT (14%)</span><span class="val">EGP {{ number_format($vatAmount) }}</span></div>
+      @endif
+      @if($depositAmount > 0)
+      <div class="info-row"><span class="key">Deposit Required</span><span class="val" style="color:#92400e">EGP {{ number_format($depositAmount) }}</span></div>
+      <div class="info-row"><span class="key">Balance Due</span><span class="val" style="color:#c0392b">EGP {{ number_format($balanceDue) }}</span></div>
+      @endif
+      <div class="info-row" style="padding-top:8px;border-top:1px solid #F5F0E8;margin-top:4px">
+        <span class="key" style="font-weight:700;color:#2C1F14">Total</span>
+        <span class="val" style="font-size:15px">EGP {{ number_format($total) }}</span>
+      </div>
     </div>
   </div>
 
-  {{-- ── Items ─────────────────────────────── --}}
-  <div class="od-card">
-    <div class="od-card-head">
-      <span class="od-card-title">Order Items &ensp;·&ensp; {{ $itemCount }}</span>
+  @if(!empty($order->notes))
+  <div class="info-card" style="margin-bottom: 32px;">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+        <polyline points="10 9 9 9 8 9" />
+      </svg>
+      Order Notes
     </div>
-    <table class="items-tbl">
-      <thead>
-        <tr>
-          <th style="width:70px; padding-left:24px"></th>
-          <th>Product</th>
-          <th style="text-align:center">Qty</th>
-          <th style="padding-right:24px">Total</th>
-        </tr>
-      </thead>
-      <tbody>
-        @foreach($items as $item)
-        <tr>
-          <td style="padding-left:24px">
-            <div class="item-thumb">
-              <img src="{{ $item->product?->primaryImage?->url ?? '' }}"
-                   alt="{{ $item->product?->name ?? 'Product' }}"
-                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-              <div class="item-thumb-placeholder" style="display:none">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <rect x="3" y="3" width="18" height="18" rx="3"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <path d="m21 15-5-5L5 21"/>
-                </svg>
-              </div>
-            </div>
-          </td>
-          <td>
-            <div class="item-name">{{ $item->product?->name ?? $item->name }}</div>
-            @if($item->variant && $item->variant !== 'Standard')
-              <div class="item-variant">{{ $item->variant }}</div>
-            @endif
-          </td>
-          <td style="text-align:center">
-            <span class="item-qty">{{ $item->quantity }}</span>
-          </td>
-          <td class="item-price-cell" style="padding-right:24px">
-            EGP {{ number_format($item->price * $item->quantity) }}
-          </td>
-        </tr>
-        @endforeach
-      </tbody>
-    </table>
+    <div style="font-size: 14px; color: var(--color-text); line-height: 1.6; white-space: pre-line;">{{ $order->notes }}</div>
   </div>
+  @endif
 
-  {{-- ── Summary + Shipping ────────────────── --}}
-  <div class="od-two-col">
-
-    {{-- Order Summary --}}
-    <div class="od-card">
-      <div class="od-card-head">
-        <span class="od-card-title">Order Summary</span>
-      </div>
-      <div class="od-card-body">
-        <table class="sum-tbl">
-          <tr>
-            <td>Subtotal</td>
-            <td>EGP {{ number_format($subtotal) }}</td>
-          </tr>
-          @if($discount > 0)
-          <tr class="sum-discount">
-            <td>Discount</td>
-            <td>− EGP {{ number_format($discount) }}</td>
-          </tr>
-          @endif
-          <tr>
-            <td>Delivery</td>
-            <td>{{ $deliveryFee == 0 ? 'Free' : 'EGP ' . number_format($deliveryFee) }}</td>
-          </tr>
-          @if($vatAmount > 0)
-          <tr>
-            <td>VAT (14%)</td>
-            <td>EGP {{ number_format($vatAmount) }}</td>
-          </tr>
-          @endif
-          @if($depositAmount > 0)
-          <tr class="sum-deposit">
-            <td>Deposit {{ $paymentStatus === 'refunded' ? 'Refunded' : 'Required' }}</td>
-            <td>{{ $paymentStatus === 'refunded' ? '− ' : '' }}EGP {{ number_format($depositAmount) }}</td>
-          </tr>
-          @endif
-          <tr class="sum-divider sum-total">
-            <td>Total</td>
-            <td>EGP {{ number_format($total) }}</td>
-          </tr>
-          @if($depositAmount > 0 && $paymentStatus !== 'refunded')
-          <tr class="sum-balance">
-            <td style="font-size:12px;color:var(--ink-muted)">Balance Due on Delivery</td>
-            <td>EGP {{ number_format($balanceDue) }}</td>
-          </tr>
-          @endif
-        </table>
-      </div>
+  @if($status !== 'cancelled')
+  {{-- Timeline --}}
+  <div class="timeline">
+    <div class="tl-title">
+      <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor">
+        <rect x="1" y="3" width="15" height="13" rx="1" />
+        <path d="M16 8h4l3 5v3h-7V8z" />
+        <circle cx="5.5" cy="18.5" r="2.5" />
+        <circle cx="18.5" cy="18.5" r="2.5" />
+      </svg>
+      Delivery Status
     </div>
-
-    {{-- Shipping Address --}}
-    <div class="od-card">
-      <div class="od-card-head">
-        <span class="od-card-title">Shipping Address</span>
-      </div>
-      <div class="od-card-body">
-        @if($addr)
-          <div class="addr-block">
-            <div class="addr-name">{{ $addr->first_name }} {{ $addr->last_name }}</div>
-            <div>{{ $addr->address_line_1 }}{{ $addr->address_line_2 ? ', ' . $addr->address_line_2 : '' }}</div>
-            <div>{{ $addr->city }}{{ $addr->state ? ', ' . $addr->state : '' }}, {{ $addr->country }}</div>
-            @if($addr->postal_code)
-              <div style="margin-top:4px;font-size:12px;color:var(--ink-muted)">Postal Code: {{ $addr->postal_code }}</div>
-            @endif
-            <div class="addr-phone">{{ $addr->phone }}</div>
-            @if($addr->email)
-              <div class="addr-email">{{ $addr->email }}</div>
+    <div class="tl-steps">
+      @foreach($steps as $i => $step)
+        <?php
+          $stepIdx = $i;
+          $isDone = $stepIdx < $currentIdx;
+          $isActive = $stepIdx === $currentIdx;
+          $dotClass = $isDone ? 'done' : ($isActive ? 'active' : '');
+          $labelClass = $isDone || $isActive ? 'done' : '';
+        ?>
+        <div class="tl-step">
+          <div class="tl-dot {{ $dotClass }}">
+            @if($isDone)
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            @elseif($isActive)
+              @if($step['icon'] === 'doc')
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+              @elseif($step['icon'] === 'truck')
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              @elseif($step['icon'] === 'home')
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              @else
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              @endif
+            @else
+              <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor">
+                @if($step['icon'] === 'truck')
+                  <rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+                @elseif($step['icon'] === 'home')
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                @else
+                  <circle cx="12" cy="12" r="10"/>
+                @endif
+              </svg>
             @endif
           </div>
-        @else
-          <div style="color:var(--ink-muted);font-size:13px;font-style:italic">No shipping address on file.</div>
-        @endif
-      </div>
-    </div>
-
-  </div>{{-- /od-two-col --}}
-
-  {{-- ── Help & Support ────────────────────── --}}
-  <div class="od-support">
-    <div class="od-support-inner">
-
-      {{-- Contact --}}
-      <div class="od-support-col">
-        <div class="od-support-eyebrow">Customer Support</div>
-        <div class="od-support-heading">Need help with your order?</div>
-        <div class="od-support-text">
-          Our team is available on WhatsApp to assist you with any questions about your order, delivery, or our return policy.<br><br>
-          <strong>+20 103 774 3273</strong>
+          <div class="tl-label {{ $labelClass }}">{!! nl2br(e($step['label'])) !!}</div>
         </div>
-      </div>
-
-      {{-- Refund --}}
-      <div class="od-support-col">
-        @if($canRequestRefund)
-          <div class="od-support-eyebrow">Refund Request</div>
-          <div class="od-support-heading">Request a Refund</div>
-          <div class="od-support-text">Your order is eligible for a refund. Please share your reason below and our team will review it shortly.</div>
-          <textarea id="customerRefundReason" class="refund-textarea" placeholder="Please describe the reason for your refund request…" maxlength="500"></textarea>
-          <br>
-          <button type="button" class="btn-refund" onclick="submitCustomerRefund()">
-            Submit Request
-          </button>
-          <div id="customerRefundMsg"></div>
-
-        @elseif($refundStatus)
-          <div class="od-support-eyebrow">Refund Status</div>
-          <div class="od-support-heading">Your Refund</div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-            <span class="refund-status-badge {{ $refundBadgeClass }}">{{ $refundBadgeLabel }}</span>
-            @if($order->refund_handled_at)
-              <span style="font-size:11px;color:rgba(255,255,255,.35)">
-                {{ \Carbon\Carbon::parse($order->refund_handled_at)->format('M j, Y') }}
-              </span>
-            @endif
-          </div>
-          @if($order->refund_reason)
-            <div class="refund-reason-label">Your Reason</div>
-            <div class="refund-reason-text">{{ $order->refund_reason }}</div>
-          @endif
-
-        @else
-          <div class="od-support-eyebrow">Refund Policy</div>
-          <div class="od-support-heading">Returns & Refunds</div>
-          <div class="od-support-text">Refunds are available for orders with a confirmed payment. If you believe your paid order isn't showing the refund option, please contact our support team directly.</div>
-        @endif
-      </div>
-
+      @endforeach
     </div>
   </div>
+  @endif
 
-</div>{{-- /od-wrap --}}
+  {{-- Order Items --}}
+  <div class="order-items">
+    <div class="items-title">
+      <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor">
+        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <path d="M16 10a4 4 0 0 1-8 0" />
+      </svg>
+      Order Items ({{ $itemCount }})
+    </div>
+    @foreach($items as $item)
+    <div class="order-item">
+      <div class="item-thumb">
+        <img src="{{ $item->product?->primaryImage?->url ?? '/img/placeholder.svg' }}"
+             alt="{{ $item->product?->name ?? 'Product' }}"
+             onerror="this.src='/img/placeholder.svg'"
+             style="width:100%;height:100%;object-fit:cover;border-radius:6px">
+      </div>
+      <div>
+        <div class="item-name">{{ $item->product?->name ?? $item->name ?? 'Product' }}</div>
+        @if($item->variant && $item->variant !== 'Standard')
+        <div class="item-meta">{{ $item->variant }}</div>
+        @endif
+        <div class="item-meta">Qty: {{ $item->quantity }}</div>
+      </div>
+      <div class="item-price">EGP {{ number_format($item->total ?? ($item->price * $item->quantity)) }}</div>
+    </div>
+    @endforeach
+  </div>
+
+  {{-- Summary Bar --}}
+  <div class="summary-bar">
+    <div class="sum-item">
+      <div class="sum-label">Order Total</div>
+      <div class="sum-val gold">EGP {{ number_format($total) }}</div>
+    </div>
+    <div class="sum-divider"></div>
+    <div class="sum-item">
+      <div class="sum-label">Est. Delivery</div>
+      <div class="sum-val">{{ $estDelivery }}</div>
+    </div>
+    <div class="sum-divider"></div>
+    <div class="sum-item">
+      <div class="sum-label">Items</div>
+      <div class="sum-val">{{ $itemCount }} piece{{ $itemCount !== 1 ? 's' : '' }}</div>
+    </div>
+    @if(($couponDiscount ?? $discount) > 0)
+    <div class="sum-divider"></div>
+    <div class="sum-item">
+      <div class="sum-label">You Saved</div>
+      <div class="sum-val" style="color:#7BC67E">EGP {{ number_format($couponDiscount ?: $discount) }}</div>
+    </div>
+    @endif
+  </div>
+
+  {{-- Refund Section --}}
+  <div class="refund-section">
+    @if($canRequestRefund)
+      <div class="refund-title">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor"><path d="M3 10h11a8 8 0 0 1 0 16H8"/><polyline points="3 10 9 4 9 16"/></svg>
+        Request a Refund
+      </div>
+      <div class="refund-text">Your order is eligible for a refund. Please share your reason below and our team will review it shortly.</div>
+      <textarea id="customerRefundReason" class="refund-textarea" placeholder="Please describe the reason for your refund request…" maxlength="500"></textarea>
+      <button type="button" class="btn-refund" onclick="submitCustomerRefund()">
+        Submit Request
+      </button>
+      <div id="customerRefundMsg" style="margin-top: 10px; font-size: 13px;"></div>
+    @elseif($refundStatus)
+      <div class="refund-title">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        Refund Status
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <span class="refund-status-badge {{ $refundBadgeClass }}">{{ $refundBadgeLabel }}</span>
+        @if($order->refund_handled_at)
+          <span style="font-size:13px;color:var(--color-text-faint)">
+            {{ \Carbon\Carbon::parse($order->refund_handled_at)->format('M j, Y') }}
+          </span>
+        @endif
+      </div>
+      @if($order->refund_reason)
+        <div class="refund-text" style="margin-bottom:4px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Your Reason</div>
+        <div class="refund-text">{{ $order->refund_reason }}</div>
+      @endif
+    @else
+      <div class="refund-title">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        Returns & Refunds
+      </div>
+      <div class="refund-text" style="margin-bottom:0;">Refunds are available for orders with a confirmed payment. If you believe your paid order isn't showing the refund option, please contact our support team directly via WhatsApp: <strong>+20 103 774 3273</strong>.</div>
+    @endif
+  </div>
+
+</div>
 @endsection
 
 @section('extra_js')
 <script>
-(function () { Cart.updateBadge(); })();
+(function () { 
+  if (typeof Cart !== 'undefined' && Cart.updateBadge) {
+    Cart.updateBadge(); 
+  }
+})();
 
 function submitCustomerRefund() {
   var reason = document.getElementById('customerRefundReason').value.trim();
@@ -797,13 +484,13 @@ function submitCustomerRefund() {
 
   if (!reason) {
     msg.textContent  = 'Please enter a reason for your refund request.';
-    msg.style.color  = '#FCA5A5';
+    msg.style.color  = '#E74C3C';
     return;
   }
   if (!confirm('Are you sure you want to request a refund for this order?')) return;
 
   msg.textContent = 'Submitting…';
-  msg.style.color = 'rgba(255,255,255,.5)';
+  msg.style.color = 'var(--color-text-secondary)';
 
   var fd = new FormData();
   fd.append('reason', reason);
@@ -821,7 +508,7 @@ function submitCustomerRefund() {
   .then(res => {
     if (res.status === 401 || res.status === 403) {
       msg.textContent = 'Access denied. Please make sure you are logged in.';
-      msg.style.color = '#FCA5A5';
+      msg.style.color = '#E74C3C';
       return null;
     }
     return res.json().catch(() => ({}));
@@ -830,17 +517,17 @@ function submitCustomerRefund() {
     if (!data) return;
     if (data.error) {
       msg.textContent = data.error;
-      msg.style.color = '#FCA5A5';
+      msg.style.color = '#E74C3C';
     } else {
       msg.textContent = 'Refund request submitted successfully.';
-      msg.style.color = '#86EFAC';
+      msg.style.color = '#15803D';
       document.getElementById('customerRefundReason').value = '';
       setTimeout(() => location.reload(), 1500);
     }
   })
   .catch(() => {
     msg.textContent = 'Failed to submit refund request. Please try again.';
-    msg.style.color = '#FCA5A5';
+    msg.style.color = '#E74C3C';
   });
 }
 </script>

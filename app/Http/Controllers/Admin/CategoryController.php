@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\OptimizeUploadedImage;
 use App\Models\Category;
 use App\Models\ActivityLog;
+use App\Services\CloudflareService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -80,9 +81,11 @@ class CategoryController extends Controller
         }
 
         if ($request->hasFile('image')) {
-            // Delete old image
+            // Delete old image and purge from Cloudflare
             if ($category->image) {
-                Storage::disk('public')->delete($category->image);
+                $oldImagePath = $category->image;
+                Storage::disk('public')->delete($oldImagePath);
+                (new CloudflareService())->purgeStoragePaths([$oldImagePath]);
             }
             $validated['image'] = $request->file('image')->store('categories', 'public');
             OptimizeUploadedImage::dispatch($validated['image']);
@@ -107,6 +110,12 @@ class CategoryController extends Controller
             return response()->json([
                 'message' => 'Cannot delete category with associated products. Please remove or reassign products first.',
             ], 422);
+        }
+
+        // Clean up category image from disk and Cloudflare
+        if ($category->image) {
+            Storage::disk('public')->delete($category->image);
+            (new CloudflareService())->purgeStoragePaths([$category->image]);
         }
 
         ActivityLog::categories($request, 'Delete Category', "Admin deleted category: {$category->name} (#{$id})", ['type' => 'category', 'id' => $id], 'deletion');

@@ -41,4 +41,10 @@ return [
         'verify_token' => env('WHATSAPP_VERIFY_TOKEN', 'decohomz_webhook_secret'),
     ],
 
+    'cloudflare' => [
+        'api_token' => env('CLOUDFLARE_API_TOKEN'),
+        'zone_id' => env('CLOUDFLARE_ZONE_ID'),
+        'site_url' => env('CLOUDFLARE_SITE_URL', env('APP_URL')),
+    ],
+
 ];

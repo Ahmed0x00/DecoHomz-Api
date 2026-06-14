@@ -12,12 +12,13 @@ class ProductImage extends Model
     protected $fillable = [
         'product_id',
         'image',
+        'thumbnail',
         'alt_text',
         'sort_order',
         'is_primary',
     ];
 
-    protected $appends = ['url'];
+    protected $appends = ['url', 'thumbnail_url'];
 
     protected $casts = [
         'is_primary' => 'boolean',
@@ -32,5 +33,10 @@ class ProductImage extends Model
     public function getUrlAttribute()
     {
         return asset('storage/' . $this->image);
+    }
+
+    public function getThumbnailUrlAttribute()
+    {
+        return $this->thumbnail ? asset('storage/' . $this->thumbnail) : $this->url;
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\OptimizeUploadedImage;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Services\CloudflareService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -76,13 +77,25 @@ class ProductImageController extends Controller
     {
         $image = ProductImage::where('product_id', $productId)->findOrFail($imageId);
 
-        // Delete the file
+        // Collect paths for CF cache purge
+        $pathsToPurge = [$image->image];
+
+        // Delete the main image file
         if (Storage::disk('public')->exists($image->image)) {
             Storage::disk('public')->delete($image->image);
         }
 
+        // Delete the thumbnail file
+        if ($image->thumbnail && Storage::disk('public')->exists($image->thumbnail)) {
+            $pathsToPurge[] = $image->thumbnail;
+            Storage::disk('public')->delete($image->thumbnail);
+        }
+
         $wasPrimary = $image->is_primary;
         $image->delete();
+
+        // Purge deleted image URLs from Cloudflare
+        (new CloudflareService())->purgeStoragePaths($pathsToPurge);
 
         // If deleted image was primary, make another one primary
         if ($wasPrimary) {

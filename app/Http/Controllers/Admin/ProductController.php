@@ -7,6 +7,7 @@ use App\Jobs\OptimizeUploadedImage;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ActivityLog;
+use App\Services\CloudflareService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -213,9 +214,26 @@ class ProductController extends Controller
             $toRemove = ProductImage::whereIn('id', $request->remove_images)
                 ->where('product_id', $product->id)
                 ->get();
+
+            $pathsToPurge = [];
             foreach ($toRemove as $img) {
+                // Collect paths for CF purge
+                $pathsToPurge[] = $img->image;
+                if ($img->thumbnail) {
+                    $pathsToPurge[] = $img->thumbnail;
+                }
+
+                // Delete files from disk
                 Storage::disk('public')->delete($img->image);
+                if ($img->thumbnail) {
+                    Storage::disk('public')->delete($img->thumbnail);
+                }
                 $img->delete();
+            }
+
+            // Purge removed image URLs from Cloudflare
+            if (!empty($pathsToPurge)) {
+                (new CloudflareService())->purgeStoragePaths($pathsToPurge);
             }
         }
 
@@ -265,6 +283,29 @@ class ProductController extends Controller
             return response()->json([
                 'message' => 'Product has existing orders. Marked as inactive instead of deletion.',
             ]);
+        }
+
+        // Clean up image files from disk before deleting the product
+        $images = $product->images()->get();
+        $pathsToPurge = [];
+
+        foreach ($images as $img) {
+            // Collect paths for CF cache purge
+            $pathsToPurge[] = $img->image;
+            if ($img->thumbnail) {
+                $pathsToPurge[] = $img->thumbnail;
+            }
+
+            // Delete files from disk
+            Storage::disk('public')->delete($img->image);
+            if ($img->thumbnail) {
+                Storage::disk('public')->delete($img->thumbnail);
+            }
+        }
+
+        // Purge deleted image URLs from Cloudflare cache
+        if (!empty($pathsToPurge)) {
+            (new CloudflareService())->purgeStoragePaths($pathsToPurge);
         }
 
         ActivityLog::products($request, 'Delete Product', "Permanently deleted product: {$product->name} (#{$id})", ['type' => 'product', 'id' => $id], 'deletion');

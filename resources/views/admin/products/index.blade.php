@@ -196,8 +196,8 @@
       return;
     }
     tbody.innerHTML = products.map(function(p) {
-      var img = p.primaryImage && p.primaryImage.url
-        ? '<img src="' + p.primaryImage.image_url + '" style="width:44px;height:44px;object-fit:cover;border-radius:6px;">'
+      var img = p.primary_image && p.primary_image.url 
+        ? '<img src="' + p.primary_image.url + '" style="width:44px;height:44px;object-fit:cover;border-radius:6px;">' 
         : '<img src="/img/placeholder.svg" style="width:44px;height:44px;object-fit:cover;border-radius:6px;opacity:0.4;">';
       var catName = p.category ? p.category.name : (p.category_name || '—');
       var price = 'EGP ' + parseFloat(p.price || 0).toLocaleString();

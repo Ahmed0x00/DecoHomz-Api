@@ -81,7 +81,7 @@
 
     // Images
     var images = p.images || [];
-    var primaryImg = p.primaryImage;
+    var primaryImg = p.primary_image;
     var displayUrl = (primaryImg && primaryImg.url) ? primaryImg.url : (images[0] ? images[0].url : '/img/placeholder.svg');
 
     var mainImgHtml = '<img src="' + displayUrl + '" alt="' + p.name + '" style="width:100%;height:100%;object-fit:contain" onerror="this.outerHTML=\'<svg viewBox=&quot;0 0 240 200&quot; fill=&quot;none&quot;><rect width=&quot;240&quot; height=&quot;200&quot; fill=&quot;#F5F0E8&quot;/></svg>\'">';
@@ -254,7 +254,7 @@
         price: parseFloat(currentProduct.price),
         quantity: qty,
         variant: variant,
-        image: currentProduct.primaryImage ? currentProduct.primaryImage.url : null
+        image: currentProduct.primary_image ? currentProduct.primary_image.url : null
       });
     });
   }
@@ -435,7 +435,7 @@
   function renderRelated(products) {
     var grid = document.getElementById('related-grid');
     grid.innerHTML = products.map(function(p) {
-      var imgUrl = (p.primaryImage && p.primaryImage.url) ? p.primaryImage.url : '/img/placeholder.svg';
+      var imgUrl = (p.primary_image && p.primary_image.url) ? p.primary_image.url : '/img/placeholder.svg';
       return '<div class="rel-card" onclick="location.href=\'/product/' + p.id + '\'" style="cursor:pointer">' +
         '<div class="rel-img"><img src="' + imgUrl + '" alt="' + p.name + '" onerror="this.src=\'/img/placeholder.svg\'"></div>' +
         '<div class="rel-info">' +

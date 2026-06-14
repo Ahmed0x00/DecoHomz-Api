@@ -55,7 +55,7 @@
     }
 
     grid.innerHTML = products.map(function(p) {
-      var imgUrl = (p.primaryImage && p.primaryImage.url) ? p.primaryImage.url : '/img/placeholder.svg';
+      var imgUrl = (p.primary_image && p.primary_image.url) ? p.primary_image.url : '/img/placeholder.svg';
       var stars = p.stars || 5;
       var starsStr = '★'.repeat(stars) + '☆'.repeat(5 - stars);
       var badgeColor = p.badge_color || '#B8860B';

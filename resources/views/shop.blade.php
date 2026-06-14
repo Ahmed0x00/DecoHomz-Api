@@ -316,7 +316,7 @@
         }
 
         grid.innerHTML = products.map(function (p) {
-          const imgUrl = (p.primaryImage && p.primaryImage.url) ? p.primaryImage.url : '/img/placeholder.svg';
+          const imgUrl = (p.primary_image && p.primary_image.url) ? p.primary_image.url : '/img/placeholder.svg';
           const stars = p.stars || 5;
           const starsStr = '★'.repeat(stars) + '☆'.repeat(5 - stars);
           const badgeHtml = p.badge

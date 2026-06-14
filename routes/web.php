@@ -7,7 +7,7 @@ Route::get('/shop', fn() => view('shop'));
 Route::get('/product/{id}', function($id) {
     $product = \App\Models\Product::where('id', $id)
         ->orWhere('slug', $id)
-        ->with(['category', 'primaryImage', 'images', 'colors' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order')])
+        ->with(['category', 'primaryImage', 'images', 'activeColors'])
         ->firstOrFail();
     return view('product', ['product' => $product]);
 });

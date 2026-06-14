@@ -114,7 +114,7 @@ function renderFullCart() {
                   '</a>' +
                   '<div class="c-item-details">' +
                     '<a href="/product/' + (item.product?.slug || item.product_id) + '" class="c-item-name">' + esc(item.name) + '</a>' +
-                    '<div class="c-item-meta">' + (item.variant || 'Standard') + '</div>' +
+                    '<div class="c-item-meta">' + (item.color ? '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:' + esc(item.color.hex_code) + ';vertical-align:middle;margin-right:6px;border:1px solid var(--color-border)"></span>' + esc(item.color.name) : 'Standard') + '</div>' +
                     '<div class="c-item-unit-price">EGP ' + parseFloat(item.price).toLocaleString() + '</div>' +
                   '</div>' +
                 '</div>' +

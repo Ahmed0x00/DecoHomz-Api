@@ -265,6 +265,16 @@
   box-shadow: 0 0 0 4px var(--color-surface), 0 0 0 6px var(--color-primary);
 }
 
+.color-swatch-none {
+  opacity: 0.6;
+}
+
+.color-swatch-none.active {
+  opacity: 1;
+  border-style: solid;
+  border-color: var(--color-primary);
+}
+
 .size-row {
   display: flex;
   gap: 12px;

@@ -111,7 +111,7 @@ window.Cart = {
       await API.post('/cart/items', {
         product_id: product.id,
         quantity: product.quantity || 1,
-        variant: product.variant || 'Standard',
+        color_slug: product.color_slug || null,
       });
       showToast(`${product.name} added to cart!`);
       this.updateBadge();

@@ -65,26 +65,6 @@
       </div>
     </div>
 
-    <!-- Colors -->
-    <div class="filter-group">
-      <div class="filter-head" onclick="toggleFilter(this)">
-        <h4>{{ __('Colors') }}</h4>
-        <div class="filter-toggle">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-        </div>
-      </div>
-      <div class="filter-body">
-        <div class="color-filter-dots">
-          <div class="color-dot" style="background:#2C1F14" title="Brown" onclick="toggleColor(this, 'Brown')"></div>
-          <div class="color-dot" style="background:#FFFFFF" title="White" onclick="toggleColor(this, 'White')"></div>
-          <div class="color-dot" style="background:#000000" title="Black" onclick="toggleColor(this, 'Black')"></div>
-          <div class="color-dot" style="background:#808080" title="Grey" onclick="toggleColor(this, 'Grey')"></div>
-          <div class="color-dot" style="background:#F5F5DC" title="Beige" onclick="toggleColor(this, 'Beige')"></div>
-          <div class="color-dot" style="background:#000080" title="Navy" onclick="toggleColor(this, 'Navy')"></div>
-        </div>
-      </div>
-    </div>
-
     <!-- Availability -->
     <div class="filter-group" style="border-bottom:none; margin-bottom:0; padding-bottom:0">
       <div class="filter-head" onclick="toggleFilter(this)">

@@ -37,4 +37,14 @@ class OrderItem extends Model
     {
         return $this->price * $this->quantity;
     }
+
+    public function getColorAttribute()
+    {
+        if (!$this->variant) {
+            return null;
+        }
+        return ProductColor::where('product_id', $this->product_id)
+            ->where('color_slug', $this->variant)
+            ->first();
+    }
 }

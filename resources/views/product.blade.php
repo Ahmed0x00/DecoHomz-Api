@@ -86,7 +86,7 @@
     <form id="add-to-cart-form" onsubmit="event.preventDefault(); submitAddToCart();">
       
       {{-- Colors (from database) --}}
-      @php $colors = $product->colors ?? collect(); @endphp
+      @php $colors = $product->activeColors ?? collect(); @endphp
       @if($colors->count() > 0)
       <div class="options-group">
         <div class="opt-label">
@@ -94,14 +94,17 @@
           <span class="opt-val" id="color-val">{{ $colors->first()->name ?? 'Standard' }}</span>
         </div>
         <div class="color-row">
+          <div class="color-swatch color-swatch-none active" style="background:var(--color-surface);border:2px dashed var(--color-border)" title="{{ __('No color') }}" data-color="{{ __('Standard') }}" data-color-slug="" data-price-modifier="0" onclick="selectColor(this)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
           @foreach($colors as $i => $color)
-            <div class="color-swatch {{ $i === 0 ? 'active' : '' }}" style="background:{{ $color->hex_code ?? '#4A3626' }}" title="{{ $color->name }}" data-color="{{ $color->name ?? 'Standard' }}" onclick="selectColor(this)"></div>
+            <div class="color-swatch" style="background:{{ $color->hex_code ?? '#4A3626' }}" title="{{ $color->name }}" data-color="{{ $color->name ?? 'Standard' }}" data-color-slug="{{ $color->color_slug ?? '' }}" data-price-modifier="{{ $color->price_modifier ?? 0 }}" onclick="selectColor(this)"></div>
           @endforeach
         </div>
-        <input type="hidden" id="selected-color" value="{{ $colors->first()->name ?? 'Standard' }}">
+        <input type="hidden" id="selected-color" value="">
       </div>
       @else
-      <input type="hidden" id="selected-color" value="Standard">
+      <input type="hidden" id="selected-color" value="">
       @endif
 
       {{-- Action Bar --}}
@@ -275,6 +278,8 @@ const PRODUCT = {
   stock: {{ $product->stock ?? 0 }}
 };
 
+const BASE_PRICE = PRODUCT.price;
+
 function esc(str) {
   if (!str) return '';
   return str.toString()
@@ -301,11 +306,21 @@ window.changeImage = changeImage;
 
 function selectColor(el) {
   const color = el.getAttribute('data-color') || 'Standard';
+  const colorSlug = el.getAttribute('data-color-slug') || '';
+  const priceModifier = parseFloat(el.getAttribute('data-price-modifier')) || 0;
+
   document.querySelectorAll('.color-swatch').forEach(function(sw) { sw.classList.remove('active'); });
   el.classList.add('active');
-  document.getElementById('selected-color').value = color;
+  document.getElementById('selected-color').value = colorSlug;
   const colorVal = document.getElementById('color-val');
   if (colorVal) colorVal.textContent = color;
+
+  // Update displayed price based on color's price_modifier
+  const newPrice = BASE_PRICE + priceModifier;
+  const mainPrice = document.querySelector('.main-price');
+  if (mainPrice) mainPrice.textContent = 'EGP ' + newPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const stickyPrice = document.querySelector('.sticky-main-price');
+  if (stickyPrice) stickyPrice.textContent = 'EGP ' + newPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 }
 window.selectColor = selectColor;
 
@@ -329,7 +344,7 @@ async function submitAddToCart() {
   }
 
   const qty = parseInt(document.getElementById('selected-qty').value, 10) || 1;
-  const color = document.getElementById('selected-color').value;
+  const colorSlug = document.getElementById('selected-color').value;
   const btn = document.getElementById('add-btn');
 
   if (!window.Cart || typeof Cart.add !== 'function') return;
@@ -345,7 +360,7 @@ async function submitAddToCart() {
       name: PRODUCT.name,
       price: PRODUCT.price,
       quantity: qty,
-      variant: color
+      color_slug: colorSlug
     });
 
     if (typeof openCart === 'function') openCart();

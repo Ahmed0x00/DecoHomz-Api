@@ -451,7 +451,7 @@ function renderCart() {
                 '</div>' +
                 '<div style="flex:1;min-width:0">' +
                     '<div style="font-size:14px;font-weight:600;color:var(--color-text);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(item.name) + '</div>' +
-                    '<div style="font-size:12px;color:var(--color-text-faint);margin-bottom:8px">' + (item.variant || 'Standard') + ' × ' + item.quantity + '</div>' +
+                    '<div style="font-size:12px;color:var(--color-text-faint);margin-bottom:8px">' + (item.color ? '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + esc(item.color.hex_code) + ';vertical-align:middle;margin-right:4px;border:1px solid var(--color-border)"></span>' + esc(item.color.name) : 'Standard') + ' × ' + item.quantity + '</div>' +
                     '<div style="display:flex;justify-content:space-between;align-items:center">' +
                         '<div class="qty-ctrl" style="transform:scale(0.85);transform-origin:left">' +
                             '<button class="qty-btn" onclick="cartDrawerQty(' + item.id + ', -1)">−</button>' +

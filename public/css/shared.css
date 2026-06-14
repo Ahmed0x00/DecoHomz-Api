@@ -238,6 +238,12 @@ nav {
     height: 65%
 }
 
+.prod-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 .prod-badge {
     position: absolute;
     top: 8px;

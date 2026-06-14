@@ -59,11 +59,10 @@
     <div class="prod-meta-top">
       <div class="prod-cat">{{ $product['category']['name'] ?? 'Furniture' }}</div>
       <div class="prod-reviews-mini" onclick="document.getElementById('tab-reviews').click(); window.scrollBy({top: document.querySelector('.tabs-section').getBoundingClientRect().top - 100, behavior: 'smooth'});">
-        <div class="stars">
-          @php $stars = $product['stars'] ?? 5; @endphp
-          {{ str_repeat('★', $stars) }}{{ str_repeat('☆', 5 - $stars) }}
+        <div class="stars" id="mini-stars">
+          ★★★★★
         </div>
-        <span>(128 {{ __('Reviews') }})</span>
+        <span id="mini-reviews-count">(0 {{ __('Reviews') }})</span>
       </div>
     </div>
 
@@ -96,7 +95,7 @@
         </div>
         <div class="color-row">
           @foreach($colors as $i => $color)
-            <div class="color-swatch {{ $i === 0 ? 'active' : '' }}" style="background:{{ $color->hex_code ?? '#4A3626' }}" title="{{ $color->name }}" onclick="selectColor(this, '{{ addslashes($color->name ?? 'Standard') }}')"></div>
+            <div class="color-swatch {{ $i === 0 ? 'active' : '' }}" style="background:{{ $color->hex_code ?? '#4A3626' }}" title="{{ $color->name }}" data-color="{{ $color->name ?? 'Standard' }}" onclick="selectColor(this)"></div>
           @endforeach
         </div>
         <input type="hidden" id="selected-color" value="{{ $colors->first()->name ?? 'Standard' }}">
@@ -126,8 +125,8 @@
       <div class="del-item">
         <svg viewBox="0 0 24 24" fill="none"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
         <div class="del-item-txt">
-          <h5>{{ __('Free Delivery') }}</h5>
-          <p>{{ __('Estimated arrival: 3-5 business days.') }}</p>
+          <h5>{{ __('Delivery Options') }}</h5>
+          <p>{{ __('Delivery fees are calculated at checkout based on your governorate. Estimated arrival: 3-5 business days.') }}</p>
         </div>
       </div>
       <div class="del-item">
@@ -147,7 +146,7 @@
   <div class="tab-nav" id="tab-nav">
     <div class="tab active" id="tab-desc" onclick="switchTab('desc')">{{ __('Description') }}</div>
     <div class="tab" id="tab-specs" onclick="switchTab('specs')">{{ __('Specifications') }}</div>
-    <div class="tab" id="tab-reviews" onclick="switchTab('reviews')">{{ __('Reviews') }} (128)</div>
+    <div class="tab" id="tab-reviews" onclick="switchTab('reviews')">{{ __('Reviews') }} <span id="tab-reviews-count">(0)</span></div>
     <div class="tab-indicator" id="tab-indicator"></div>
   </div>
 
@@ -179,68 +178,20 @@
       <div class="reviews-container">
         <div class="review-sidebar">
           <div class="review-summary">
-            <h3>4.8</h3>
-            <div class="stars">★★★★★</div>
-            <div style="font-size:13px;color:var(--color-text-secondary)">{{ __('Based on 128 reviews') }}</div>
+            <h3 id="avg-rating">0.0</h3>
+            <div class="stars" id="avg-stars">☆☆☆☆☆</div>
+            <div style="font-size:13px;color:var(--color-text-secondary)" id="total-reviews-label">{{ __('Based on 0 reviews') }}</div>
             
-            <div class="review-bars">
-              <div class="r-bar-row">
-                <div class="r-bar-label">5★</div>
-                <div class="r-bar-track"><div class="r-bar-fill" style="width:85%"></div></div>
-                <div class="r-bar-count">109</div>
-              </div>
-              <div class="r-bar-row">
-                <div class="r-bar-label">4★</div>
-                <div class="r-bar-track"><div class="r-bar-fill" style="width:10%"></div></div>
-                <div class="r-bar-count">12</div>
-              </div>
-              <div class="r-bar-row">
-                <div class="r-bar-label">3★</div>
-                <div class="r-bar-track"><div class="r-bar-fill" style="width:4%"></div></div>
-                <div class="r-bar-count">5</div>
-              </div>
-              <div class="r-bar-row">
-                <div class="r-bar-label">2★</div>
-                <div class="r-bar-track"><div class="r-bar-fill" style="width:1%"></div></div>
-                <div class="r-bar-count">2</div>
-              </div>
-              <div class="r-bar-row">
-                <div class="r-bar-label">1★</div>
-                <div class="r-bar-track"><div class="r-bar-fill" style="width:0%"></div></div>
-                <div class="r-bar-count">0</div>
-              </div>
+            <div class="review-bars" id="review-bars-container">
+              <!-- Dynamically populated -->
             </div>
             
-            <button class="btn-outline" style="width:100%;margin-top:24px">{{ __('Write a Review') }}</button>
+            <button class="btn-outline" style="width:100%;margin-top:24px" onclick="openReviewModal()">{{ __('Write a Review') }}</button>
           </div>
         </div>
         
-        <div class="review-list">
-          <div class="review-item">
-            <div class="review-head">
-              <div>
-                <div class="review-user">Ahmed M.</div>
-                <div class="stars" style="font-size:12px;margin-top:2px;color:var(--color-accent)">★★★★★</div>
-              </div>
-              <div class="review-date">2 weeks ago</div>
-            </div>
-            <div class="review-comment">
-              "{{ __('Absolutely stunning! The build quality is excellent and it fits perfectly in my living room. Delivery was on time and the setup was a breeze.') }}"
-            </div>
-          </div>
-          <div class="review-item">
-            <div class="review-head">
-              <div>
-                <div class="review-user">Sara K.</div>
-                <div class="stars" style="font-size:12px;margin-top:2px;color:var(--color-accent)">★★★★★</div>
-              </div>
-              <div class="review-date">1 month ago</div>
-            </div>
-            <div class="review-comment">
-              "{{ __('Very comfortable and looks exactly like the pictures. I was hesitant to buy furniture online but DecoHomz exceeded my expectations.') }}"
-            </div>
-          </div>
-          <button class="btn-outline" style="margin-top:16px">{{ __('Load More Reviews') }}</button>
+        <div class="review-list" id="review-list">
+          <!-- Dynamically populated -->
         </div>
       </div>
     </div>
@@ -280,6 +231,38 @@
   <button class="btn-dark" onclick="submitAddToCart()" @if(($product->stock ?? 0) <= 0) disabled @endif>{{ ($product->stock ?? 0) > 0 ? __('Add to Cart') : __('Out of Stock') }}</button>
 </div>
 
+{{-- Review Modal --}}
+<div id="review-modal" class="review-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div class="review-modal" style="background:#fff; border-radius:16px; width:100%; max-width:450px; padding:32px; box-shadow:0 24px 64px rgba(0,0,0,0.15); position:relative; margin: 20px;">
+    <button onclick="closeReviewModal()" style="position:absolute; top:20px; right:20px; background:none; border:none; font-size:24px; cursor:pointer; color:var(--color-text-faint); line-height:1;">&times;</button>
+    <h3 style="font-size:20px; font-weight:800; color:var(--color-primary); margin-bottom:20px; text-align:start;">{{ __('Write a Review') }}</h3>
+    
+    <form id="review-submit-form" onsubmit="event.preventDefault(); submitReview();">
+      <div style="margin-bottom:20px; text-align:start;">
+        <label style="display:block; font-size:13px; font-weight:700; color:var(--color-text); margin-bottom:8px;">{{ __('Your Rating') }} *</label>
+        <div class="rating-stars-select" style="display:flex; gap:8px; font-size:32px; color:var(--color-text-faint); cursor:pointer;">
+          <span data-star="1" onclick="setRatingSelect(1)">★</span>
+          <span data-star="2" onclick="setRatingSelect(2)">★</span>
+          <span data-star="3" onclick="setRatingSelect(3)">★</span>
+          <span data-star="4" onclick="setRatingSelect(4)">★</span>
+          <span data-star="5" onclick="setRatingSelect(5)">★</span>
+        </div>
+        <input type="hidden" id="review-rating" value="5">
+      </div>
+      
+      <div style="margin-bottom:24px; text-align:start;">
+        <label style="display:block; font-size:13px; font-weight:700; color:var(--color-text); margin-bottom:8px;">{{ __('Your Review') }}</label>
+        <textarea id="review-comment-textarea" style="width:100%; min-height:100px; padding:12px 16px; border:1.5px solid var(--color-border); border-radius:8px; font-size:14px; outline:none; font-family:inherit; resize:vertical; background:#fff; color:var(--color-text);" placeholder="{{ __('Tell us what you think about this product...') }}"></textarea>
+      </div>
+      
+      <div style="display:flex; gap:12px;">
+        <button type="button" class="btn-outline" style="flex:1; padding:12px;" onclick="closeReviewModal()">{{ __('Cancel') }}</button>
+        <button type="submit" class="btn-dark" style="flex:1; padding:12px;" id="btn-submit-review-action">{{ __('Submit Review') }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 @endsection
 
 @section('extra_js')
@@ -292,7 +275,17 @@ const PRODUCT = {
   stock: {{ $product->stock ?? 0 }}
 };
 
-window.changeImage = function(el, url) {
+function esc(str) {
+  if (!str) return '';
+  return str.toString()
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+}
+
+function changeImage(el, url) {
   document.querySelectorAll('.thumb').forEach(function(t) { t.classList.remove('active'); });
   el.classList.add('active');
 
@@ -303,17 +296,20 @@ window.changeImage = function(el, url) {
     mainImg.src = url;
     mainImg.style.opacity = '1';
   }, 200);
-};
+}
+window.changeImage = changeImage;
 
-window.selectColor = function(el, color) {
+function selectColor(el) {
+  const color = el.getAttribute('data-color') || 'Standard';
   document.querySelectorAll('.color-swatch').forEach(function(sw) { sw.classList.remove('active'); });
   el.classList.add('active');
   document.getElementById('selected-color').value = color;
   const colorVal = document.getElementById('color-val');
   if (colorVal) colorVal.textContent = color;
-};
+}
+window.selectColor = selectColor;
 
-window.updateLocalQty = function(delta) {
+function updateLocalQty(delta) {
   const input = document.getElementById('selected-qty');
   const display = document.getElementById('qty-val');
   let current = parseInt(input.value, 10) || 1;
@@ -323,9 +319,10 @@ window.updateLocalQty = function(delta) {
 
   input.value = current;
   display.textContent = current;
-};
+}
+window.updateLocalQty = updateLocalQty;
 
-window.submitAddToCart = async function() {
+async function submitAddToCart() {
   if (PRODUCT.stock <= 0) {
     showToast("{{ __('This product is out of stock.') }}", 'error');
     return;
@@ -358,9 +355,10 @@ window.submitAddToCart = async function() {
       btn.querySelector('span').textContent = "{{ __('Add to Cart') }}";
     }
   }
-};
+}
+window.submitAddToCart = submitAddToCart;
 
-window.switchTab = function(tabId) {
+function switchTab(tabId) {
   document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
   document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
 
@@ -371,7 +369,8 @@ window.switchTab = function(tabId) {
   if (pane) pane.classList.add('active');
 
   updateTabIndicator(targetTab);
-};
+}
+window.switchTab = switchTab;
 
 function updateTabIndicator(activeTabEl) {
   const indicator = document.getElementById('tab-indicator');
@@ -417,6 +416,192 @@ async function loadRelated() {
   }
 }
 
+let allReviews = [];
+let displayedCount = 5;
+
+async function loadReviews() {
+  try {
+    const res = await API.get('/products/' + PRODUCT.id + '/reviews');
+    const reviews = res.reviews || [];
+    const stats = res.stats || { average: 0, count: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    
+    allReviews = reviews;
+    displayedCount = 5;
+
+    // 1. Mini reviews (under title)
+    const miniStars = document.getElementById('mini-stars');
+    const miniCount = document.getElementById('mini-reviews-count');
+    if (miniStars) {
+      const avg = Math.round(stats.average || 0);
+      miniStars.textContent = '★'.repeat(avg) + '☆'.repeat(5 - avg);
+    }
+    if (miniCount) {
+      miniCount.textContent = `(${stats.count || 0} ${"{{ __('Reviews') }}"})`;
+    }
+
+    // 2. Tab header reviews count
+    const tabCount = document.getElementById('tab-reviews-count');
+    if (tabCount) {
+      tabCount.textContent = `(${stats.count || 0})`;
+    }
+
+    // 3. Tab pane reviews summary
+    const avgRating = document.getElementById('avg-rating');
+    const avgStars = document.getElementById('avg-stars');
+    const totalReviewsLabel = document.getElementById('total-reviews-label');
+
+    if (avgRating) avgRating.textContent = stats.average || '0.0';
+    if (avgStars) {
+      const avg = Math.round(stats.average || 0);
+      avgStars.textContent = '★'.repeat(avg) + '☆'.repeat(5 - avg);
+    }
+    if (totalReviewsLabel) {
+      totalReviewsLabel.textContent = `Based on ${stats.count || 0} reviews`;
+    }
+
+    // 4. Progress bars
+    const barsContainer = document.getElementById('review-bars-container');
+    if (barsContainer) {
+      let barsHtml = '';
+      const totalCount = stats.count || 0;
+      for (let star = 5; star >= 1; star--) {
+        const starCount = stats[star] || 0;
+        const pct = totalCount > 0 ? Math.round((starCount / totalCount) * 100) : 0;
+        barsHtml += `
+          <div class="r-bar-row">
+            <div class="r-bar-label">${star}★</div>
+            <div class="r-bar-track"><div class="r-bar-fill" style="width:${pct}%"></div></div>
+            <div class="r-bar-count">${starCount}</div>
+          </div>
+        `;
+      }
+      barsContainer.innerHTML = barsHtml;
+    }
+
+    // 5. Render list
+    renderReviewList();
+
+  } catch (e) {
+    console.error("Failed to load reviews:", e);
+  }
+}
+
+function renderReviewList() {
+  const container = document.getElementById('review-list');
+  if (!container) return;
+  
+  if (allReviews.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; color: var(--color-text-muted); padding: 40px 0;">
+        <p>${"{{ __('No reviews yet. Be the first to review this product!') }}"}</p>
+      </div>
+    `;
+    return;
+  }
+  
+  const toDisplay = allReviews.slice(0, displayedCount);
+  let html = toDisplay.map(r => {
+    const name = r.user ? esc(r.user.name) : "{{ __('Anonymous') }}";
+    const dateStr = new Date(r.created_at).toLocaleDateString('en-US', {
+      year: 'numeric', month: 'short', day: 'numeric'
+    });
+    const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+    const comment = r.comment ? esc(r.comment) : '';
+    
+    return `
+      <div class="review-item">
+        <div class="review-head">
+          <div>
+            <div class="review-user">${name}</div>
+            <div class="stars" style="font-size:12px;margin-top:2px;color:var(--color-accent)">${stars}</div>
+          </div>
+          <div class="review-date">${dateStr}</div>
+        </div>
+        <div class="review-comment">
+          ${comment ? `"${comment}"` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  if (allReviews.length > displayedCount) {
+    html += `
+      <button class="btn-outline" id="btn-load-more-reviews" style="margin-top:16px" onclick="loadMoreReviews()">${"{{ __('Load More Reviews') }}"}</button>
+    `;
+  }
+  
+  container.innerHTML = html;
+}
+
+window.loadMoreReviews = function() {
+  displayedCount += 5;
+  renderReviewList();
+};
+
+function setRatingSelect(rating) {
+  document.getElementById('review-rating').value = rating;
+  const stars = document.querySelectorAll('.rating-stars-select span');
+  stars.forEach((s, idx) => {
+    if (idx < rating) {
+      s.style.color = 'var(--color-accent)';
+    } else {
+      s.style.color = 'var(--color-text-faint)';
+    }
+  });
+}
+window.setRatingSelect = setRatingSelect;
+
+function openReviewModal() {
+  if (!Auth.token()) {
+    showToast("{{ __('Please login to write a review.') }}", 'error');
+    setTimeout(() => location.href = '/auth', 1500);
+    return;
+  }
+  
+  // Reset fields
+  document.getElementById('review-rating').value = '5';
+  document.getElementById('review-comment-textarea').value = '';
+  setRatingSelect(5);
+  
+  document.getElementById('review-modal').style.display = 'flex';
+}
+window.openReviewModal = openReviewModal;
+
+function closeReviewModal() {
+  document.getElementById('review-modal').style.display = 'none';
+}
+window.closeReviewModal = closeReviewModal;
+
+async function submitReview() {
+  const rating = parseInt(document.getElementById('review-rating').value, 10) || 5;
+  const comment = document.getElementById('review-comment-textarea').value.trim();
+  const btn = document.getElementById('btn-submit-review-action');
+  
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "{{ __('Submitting...') }}";
+  }
+  
+  try {
+    const res = await API.post('/reviews', {
+      product_id: PRODUCT.id,
+      rating: rating,
+      comment: comment
+    });
+    
+    showToast(res.message || "{{ __('Review submitted successfully! It will be visible after approval.') }}", 'success');
+    closeReviewModal();
+  } catch (e) {
+    showToast(e.data?.message || "{{ __('Failed to submit review.') }}", 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "{{ __('Submit Review') }}";
+    }
+  }
+}
+window.submitReview = submitReview;
+
 document.addEventListener('DOMContentLoaded', function() {
   if (typeof Cart !== 'undefined' && Cart.updateBadge) Cart.updateBadge();
 
@@ -429,6 +614,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   loadRelated();
+  loadReviews();
 });
 </script>
 @endsection

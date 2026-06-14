@@ -9,6 +9,7 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Coupon;
 use App\Models\Product;
+use App\Models\ProductColor;
 use App\Models\ActivityLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -48,25 +49,60 @@ class CartController extends Controller
 
         $product = Product::findOrFail($validated['product_id']);
 
-        // Check stock
-        if ($product->stock < ($validated['quantity'] ?? 1)) {
-            return response()->json([
-                'message' => 'Not enough stock available.',
-            ], 422);
-        }
+        // Resolve color_slug to variant
+        $colorSlug = $validated['color_slug'] ?? $validated['variant'] ?? null;
+        $productColor = null;
 
-        // Check if item already exists in cart
-        $existingItem = $cart->items()->where('product_id', $product->id)
-            ->where('variant', $validated['variant'] ?? null)
-            ->first();
+        if ($colorSlug) {
+            $productColor = ProductColor::where('product_id', $product->id)
+                ->where('color_slug', $colorSlug)
+                ->where('is_active', true)
+                ->first();
 
-        if ($existingItem) {
-            $newQuantity = $existingItem->quantity + ($validated['quantity'] ?? 1);
-            if ($product->stock < $newQuantity) {
+            if (!$productColor) {
+                return response()->json([
+                    'message' => 'Selected color is not available for this product.',
+                ], 422);
+            }
+
+            // Check per-color stock
+            $requestedQty = $validated['quantity'] ?? 1;
+            if ($productColor->stock < $requestedQty) {
+                return response()->json([
+                    'message' => "Not enough stock for color '{$productColor->name}'. Available: {$productColor->stock}",
+                ], 422);
+            }
+        } else {
+            // No color selected — check product-level stock
+            if ($product->stock < ($validated['quantity'] ?? 1)) {
                 return response()->json([
                     'message' => 'Not enough stock available.',
                 ], 422);
             }
+        }
+
+        // Check if item already exists in cart (same product + same color)
+        $existingItem = $cart->items()->where('product_id', $product->id)
+            ->where('variant', $colorSlug)
+            ->first();
+
+        if ($existingItem) {
+            $newQuantity = $existingItem->quantity + ($validated['quantity'] ?? 1);
+
+            if ($productColor) {
+                if ($productColor->stock < $newQuantity) {
+                    return response()->json([
+                        'message' => "Not enough stock for color '{$productColor->name}'. Available: {$productColor->stock}",
+                    ], 422);
+                }
+            } else {
+                if ($product->stock < $newQuantity) {
+                    return response()->json([
+                        'message' => 'Not enough stock available.',
+                    ], 422);
+                }
+            }
+
             $existingItem->update(['quantity' => $newQuantity]);
             $message = 'Cart item quantity updated';
             ActivityLog::cart($request, 'Update Cart Quantity', "Updated '{$product->name}' quantity to {$newQuantity} in cart", $product);
@@ -75,7 +111,7 @@ class CartController extends Controller
                 'cart_id' => $cart->id,
                 'product_id' => $product->id,
                 'quantity' => $validated['quantity'] ?? 1,
-                'variant' => $validated['variant'] ?? null,
+                'variant' => $colorSlug,
             ]);
             $message = 'Item added to cart';
             ActivityLog::cart($request, 'Add to Cart', "Added '{$product->name}' to shopping cart", $product);
@@ -114,17 +150,38 @@ class CartController extends Controller
             ]);
         }
 
-        // Check stock
         $product = $cartItem->product;
-        if ($product->stock < $validated['quantity']) {
-            return response()->json([
-                'message' => 'Not enough stock available.',
-            ], 422);
+        $colorSlug = $validated['color_slug'] ?? $validated['variant'] ?? $cartItem->variant;
+        $productColor = null;
+
+        if ($colorSlug) {
+            $productColor = ProductColor::where('product_id', $product->id)
+                ->where('color_slug', $colorSlug)
+                ->where('is_active', true)
+                ->first();
+
+            if (!$productColor) {
+                return response()->json([
+                    'message' => 'Selected color is not available for this product.',
+                ], 422);
+            }
+
+            if ($productColor->stock < $validated['quantity']) {
+                return response()->json([
+                    'message' => "Not enough stock for color '{$productColor->name}'. Available: {$productColor->stock}",
+                ], 422);
+            }
+        } else {
+            if ($product->stock < $validated['quantity']) {
+                return response()->json([
+                    'message' => 'Not enough stock available.',
+                ], 422);
+            }
         }
 
         $cartItem->update([
             'quantity' => $validated['quantity'],
-            'variant' => $validated['variant'] ?? $cartItem->variant,
+            'variant' => $colorSlug,
         ]);
 
         ActivityLog::cart($request, 'Update Cart Item', "Updated quantity for '{$cartItem->product->name}' in cart to {$validated['quantity']}", $cartItem->product);
@@ -327,11 +384,14 @@ class CartController extends Controller
     protected function formatCart(Cart $cart): array
     {
         $items = $cart->items->map(function ($item) {
-            return [
+            $productColor = $item->color;
+            $price = $item->price;
+
+            $result = [
                 'id' => $item->id,
                 'product_id' => $item->product_id,
                 'name' => $item->product->name,
-                'price' => $item->product->price,
+                'price' => $price,
                 'quantity' => $item->quantity,
                 'variant' => $item->variant,
                 'subtotal' => $item->getTotalAttribute(),
@@ -342,6 +402,20 @@ class CartController extends Controller
                     'image' => $item->product->primaryImage?->image,
                 ],
             ];
+
+            if ($productColor) {
+                $result['color'] = [
+                    'id' => $productColor->id,
+                    'name' => $productColor->name,
+                    'hex_code' => $productColor->hex_code,
+                    'color_slug' => $productColor->color_slug,
+                    'price_modifier' => (float) $productColor->price_modifier,
+                ];
+            } else {
+                $result['color'] = null;
+            }
+
+            return $result;
         });
 
         $subtotal = $cart->getSubtotalAttribute();

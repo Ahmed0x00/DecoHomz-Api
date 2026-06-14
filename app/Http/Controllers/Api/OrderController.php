@@ -7,6 +7,7 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\ProductColor;
 use App\Models\ShippingAddress;
 use App\Models\ActivityLog;
 use App\Models\DepositRule;
@@ -179,10 +180,22 @@ class OrderController extends Controller
         // Check stock for all items
         foreach ($cart->items as $item) {
             $product = $item->product;
-            if ($product->stock < $item->quantity) {
-                return response()->json([
-                    'message' => "Not enough stock for {$product->name}. Available: {$product->stock}",
-                ], 422);
+            $productColor = $item->color;
+
+            if ($productColor) {
+                // Check per-color stock
+                if ($productColor->stock < $item->quantity) {
+                    return response()->json([
+                        'message' => "Not enough stock for {$product->name} (color: {$productColor->name}). Available: {$productColor->stock}",
+                    ], 422);
+                }
+            } else {
+                // Check product-level stock
+                if ($product->stock < $item->quantity) {
+                    return response()->json([
+                        'message' => "Not enough stock for {$product->name}. Available: {$product->stock}",
+                    ], 422);
+                }
             }
         }
 
@@ -301,16 +314,22 @@ class OrderController extends Controller
 
             // Create order items and reduce stock
             foreach ($cart->items as $item) {
+                $productColor = $item->color;
+                $itemPrice = $item->price;
+
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $item->product_id,
                     'name' => $item->product->name,
-                    'price' => $item->product->price,
+                    'price' => $itemPrice,
                     'quantity' => $item->quantity,
                     'variant' => $item->variant,
                 ]);
 
                 // Reduce stock
+                if ($productColor) {
+                    $productColor->decrement('stock', $item->quantity);
+                }
                 $item->product->decrement('stock', $item->quantity);
             }
 
@@ -357,6 +376,14 @@ class OrderController extends Controller
         try {
             // Restore stock
             foreach ($order->items as $item) {
+                if ($item->variant) {
+                    $productColor = ProductColor::where('product_id', $item->product_id)
+                        ->where('color_slug', $item->variant)
+                        ->first();
+                    if ($productColor) {
+                        $productColor->increment('stock', $item->quantity);
+                    }
+                }
                 $item->product->increment('stock', $item->quantity);
             }
 

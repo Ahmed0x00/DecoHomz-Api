@@ -16,6 +16,7 @@ class UpdateCartItemRequest extends FormRequest
         return [
             'quantity' => 'required|integer|min:0|max:99',
             'variant' => 'nullable|string|max:100',
+            'color_slug' => 'nullable|string|max:100',
         ];
     }
 }

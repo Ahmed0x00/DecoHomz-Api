@@ -82,14 +82,14 @@
 
 @section('content')
 
-<div class="breadcrumb">{{ __('Home') }} › <span>{{ __('Categories') }}</span></div>
+<div class="breadcrumb animate-fade-up">{{ __('Home') }} › <span>{{ __('Categories') }}</span></div>
 
-<div class="cat-hero">
+<div class="cat-hero animate-fade-up">
   <h1 class="premium-title">{{ __('Browse Our Collections') }}</h1>
   <p class="premium-subtitle">{{ __('Expertly curated furniture for every corner of your home.') }}</p>
 </div>
 
-<div class="cat-grid-large" id="categories-container">
+<div class="cat-grid-large animate-fade-up stagger-1" id="categories-container">
   <!-- Loading state -->
   <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
     <div class="spinner"></div>
@@ -115,10 +115,11 @@
       return;
     }
     
-    container.innerHTML = categories.map(cat => {
+    container.innerHTML = categories.map((cat, i) => {
       const imgSrc = cat.url || '/img/placeholder.svg';
+      const staggerClass = 'stagger-' + ((i % 6) + 1);
       return `
-        <a href="/shop?category=${encodeURIComponent(cat.slug || cat.name)}" class="cat-card-l">
+        <a href="/shop?category=${encodeURIComponent(cat.slug || cat.name)}" class="cat-card-l animate-fade-up ${staggerClass}">
           <div class="cat-img-l">
             <img src="${imgSrc}" alt="${cat.name}" onerror="this.innerHTML='<svg viewBox=&quot;0 0 48 48&quot;><rect x=&quot;4&quot; y=&quot;20&quot; width=&quot;40&quot; height=&quot;18&quot; rx=&quot;4&quot; fill=&quot;none&quot; stroke=&quot;#8B6A48&quot; stroke-width=&quot;1.5&quot;/></svg>'">
           </div>

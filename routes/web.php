@@ -12,8 +12,6 @@ Route::get('/auth', fn() => view('auth'))->name('login');
 Route::get('/account', fn() => view('account'));
 Route::get('/account/orders/{id}', [App\Http\Controllers\Api\OrderController::class, 'customerDetail']);
 Route::post('/account/orders/{id}/refund', [App\Http\Controllers\RefundController::class, 'request']);
-Route::post('/admin/orders/{id}/refund', [App\Http\Controllers\RefundController::class, 'handle']);
-Route::view('/admin/refunds', 'admin.refunds.index');
 Route::get('/contact', fn() => view('contact'));
 Route::get('/about', fn() => view('about'));
 Route::get('/faq', fn() => view('faq'));
@@ -27,6 +25,7 @@ Route::prefix('admin')->middleware(['admin.token', 'admin'])->group(function () 
     Route::middleware(['support.access'])->group(function () {
         Route::get('/orders', fn() => view('admin.orders.index'));
         Route::get('/orders/{id}', fn($id) => view('admin.orders.show', ['id' => $id]));
+        Route::post('/orders/{id}/refund', [App\Http\Controllers\RefundController::class, 'handle']);
         Route::view('/refunds', 'admin.refunds.index');
         Route::get('/contacts', fn() => view('admin.contacts.index'));
     });

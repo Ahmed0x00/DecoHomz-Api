@@ -51,7 +51,7 @@ class OrderController extends Controller
     }
 
     /**
-     * Order confirmation page (web view) — accessible by order ID alone.
+     * Order confirmation page (web view) — accessible by order owner only.
      * Works for both guests (via session) and authenticated users.
      */
     public function confirmation(Request $request, string $orderId)
@@ -62,13 +62,23 @@ class OrderController extends Controller
             abort(404, 'Order not found');
         }
 
+        // Verify ownership: authenticated user or guest session
+        $user = $this->getUserFromToken($request) ?? auth()->user();
+        $sessionId = $request->header('X-Session-ID') ?? $request->cookie('session_id');
+        $isOwner = $user && $order->user_id && (int)$order->user_id === (int)$user->id;
+        $isGuest = !$order->user_id && $sessionId && $order->shippingAddress
+            && $order->shippingAddress->session_id === $sessionId;
+
+        if (!$isOwner && !$isGuest) {
+            abort(403, 'Access denied');
+        }
+
         return view('orders.confirmation', ['order' => $order]);
     }
 
     /**
      * Customer order detail page (web view) — clean read-only view.
-     * Accessible by order ID alone (no auth required), like the confirmation page.
-     * Customers get the link via email after ordering.
+     * Requires authentication — user must own the order.
      */
     public function customerDetail(Request $request, string $id)
     {
@@ -76,6 +86,17 @@ class OrderController extends Controller
 
         if (!$order) {
             abort(404, 'Order not found');
+        }
+
+        // Verify ownership
+        $user = $this->getUserFromToken($request) ?? auth()->user();
+        $sessionId = $request->header('X-Session-ID') ?? $request->cookie('session_id');
+        $isOwner = $user && $order->user_id && (int)$order->user_id === (int)$user->id;
+        $isGuest = !$order->user_id && $sessionId && $order->shippingAddress
+            && $order->shippingAddress->session_id === $sessionId;
+
+        if (!$isOwner && !$isGuest) {
+            abort(403, 'Access denied');
         }
 
         return view('account.orders.show', ['order' => $order]);

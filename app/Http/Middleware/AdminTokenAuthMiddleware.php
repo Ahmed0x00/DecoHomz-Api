@@ -66,8 +66,11 @@ class AdminTokenAuthMiddleware
         if ($token) {
             $accessToken = PersonalAccessToken::findToken($token);
             if ($accessToken) {
-                $request->setUserResolver(fn() => $accessToken->tokenable);
-                return $next($request);
+                $user = $accessToken->tokenable;
+                if ($user && ($user->isAdmin() || $user->isSupport())) {
+                    $request->setUserResolver(fn() => $user);
+                    return $next($request);
+                }
             }
         }
 

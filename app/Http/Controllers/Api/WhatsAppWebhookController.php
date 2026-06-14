@@ -28,7 +28,8 @@ class WhatsAppWebhookController extends Controller
 
         Log::warning('WhatsApp webhook verification failed.', [
             'mode' => $mode,
-            'token' => $token,
+            'token_match' => false,
+            'ip' => request()->ip(),
         ]);
 
         return response('Forbidden', 403);

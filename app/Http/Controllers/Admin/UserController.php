@@ -62,13 +62,20 @@ class UserController extends Controller
             'role' => 'nullable|in:user,admin,support',
         ]);
 
+        // Prevent support users from creating admin/support accounts
+        $requestedRole = $validated['role'] ?? 'user';
+        if ($request->user()->isSupport() && in_array($requestedRole, ['admin', 'support'])) {
+            return response()->json(['message' => 'Insufficient permissions to assign this role'], 403);
+        }
+
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+            'password' => $validated['password'], // Model 'hashed' cast handles hashing
             'phone' => $validated['phone'] ?? null,
-            'role' => $validated['role'] ?? 'user',
         ]);
+        $user->role = $requestedRole;
+        $user->save();
 
         ActivityLog::users($request, 'Create User', "Admin created new user: {$user->name} ({$user->email})", $user);
 
@@ -91,14 +98,28 @@ class UserController extends Controller
             'email' => 'sometimes|required|email|unique:users,email,' . $id,
             'password' => 'sometimes|required|string|min:8',
             'phone' => 'nullable|string|max:20',
-            'role' => 'sometimes|required|in:user,admin',
+            'role' => 'sometimes|required|in:user,admin,support',
         ]);
 
-        if (isset($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
+        // Prevent support users from escalating roles
+        if (isset($validated['role']) && $request->user()->isSupport() && in_array($validated['role'], ['admin', 'support'])) {
+            return response()->json(['message' => 'Insufficient permissions to assign this role'], 403);
         }
 
+        // Handle role separately (not in $fillable)
+        $role = null;
+        if (isset($validated['role'])) {
+            $role = $validated['role'];
+            unset($validated['role']);
+        }
+
+        // Password is handled by model 'hashed' cast — no manual Hash::make needed
         $user->update($validated);
+
+        if ($role !== null) {
+            $user->role = $role;
+            $user->save();
+        }
 
         ActivityLog::users($request, 'Update User', "Admin updated user: {$user->name} (#{$id})", $user);
 

@@ -12,6 +12,11 @@ class AdminMiddleware
      * Handle admin access control.
      * GET requests to Blade views — rely on JS auth guard in the template.
      * API routes and form submissions — enforce server-side auth.
+     *
+     * This middleware enforces that only admin users can access protected routes.
+     * Support users are allowed through ONLY when the 'support.access' middleware
+     * is also applied to the route group — that middleware handles the path-based
+     * filtering for support users.
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -20,8 +25,10 @@ class AdminMiddleware
             return $next($request);
         }
 
-        // Enforce auth for API routes and non-GET requests
-        if (!$request->user() || (!$request->user()->isAdmin() && !$request->user()->isSupport())) {
+        $user = $request->user();
+
+        // No user at all — reject
+        if (!$user) {
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
                     'message' => 'Access denied. Admin privileges required.',
@@ -30,6 +37,22 @@ class AdminMiddleware
             abort(403);
         }
 
-        return $next($request);
+        // Admin users pass through unconditionally
+        if ($user->isAdmin()) {
+            return $next($request);
+        }
+
+        // Support users pass through — SupportAccessMiddleware will restrict their paths
+        if ($user->isSupport()) {
+            return $next($request);
+        }
+
+        // Regular users — reject
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return response()->json([
+                'message' => 'Access denied. Admin privileges required.',
+            ], 403);
+        }
+        abort(403);
     }
 }

@@ -38,9 +38,9 @@ Route::middleware('activity.log')->group(function () {
     // PUBLIC ROUTES
     // ============================================
 
-    // Auth
-    Route::post('/auth/register', [AuthController::class, 'register']);
-    Route::post('/auth/login', [AuthController::class, 'login']);
+    // Auth (rate limited to prevent brute force)
+    Route::post('/auth/register', [AuthController::class, 'register'])->middleware('throttle:auth');
+    Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:auth');
 
     // Categories (Public Read)
     Route::get('/categories', [CategoryController::class, 'index']);
@@ -132,7 +132,7 @@ Route::middleware('activity.log')->group(function () {
         Route::patch('/contacts/{id}/replied', [AdminContactController::class, 'markReplied']);
     });
 
-    // Admin-only routes
+    // Admin-only routes (support.access middleware blocks support users from these paths)
     Route::middleware(['admin.token', 'admin', 'support.access'])->prefix('admin')->group(function () {
         // Categories CRUD
         Route::get('/categories', [AdminCategoryController::class, 'index']);

@@ -25,8 +25,9 @@ class AuthController extends Controller
             'email' => $validated['email'],
             'password' => $validated['password'],
             'phone' => $validated['phone'] ?? null,
-            'role' => 'user',
         ]);
+        $user->role = 'user';
+        $user->save();
 
         ActivityLog::auth($request, 'Registration', "New user registered: {$user->name} ({$user->email})", $user);
 

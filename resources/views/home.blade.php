@@ -116,32 +116,34 @@
       grid.innerHTML = '<p style="padding:20px;color:#888;text-align:center;grid-column:1/-1">' + "{{ __('No products found.') }}" + '</p>';
       return;
     }
+    
     grid.innerHTML = products.map(function(p) {
-      var imgUrl = (p.primary_image && p.primary_image.thumbnail_url) ? p.primary_image.thumbnail_url : ((p.primary_image && p.primary_image.url) ? p.primary_image.url : '/img/placeholder.svg');
-      var stars = p.stars || 5;
-      var starsStr = '★'.repeat(stars) + '☆'.repeat(5 - stars);
-      var badgeHtml = p.badge
-        ? '<div class="prod-badge" style="background:' + (p.badge_color || '#B8860B') + '">' + escHtml(p.badge) + '</div>'
+      const imgUrl = (p.primary_image && p.primary_image.thumbnail_url) ? p.primary_image.thumbnail_url : ((p.primary_image && p.primary_image.url) ? p.primary_image.url : '/img/placeholder.svg');
+      const stars = p.stars || 5;
+      const starsStr = '★'.repeat(stars) + '☆'.repeat(5 - stars);
+      const badgeHtml = p.badge
+        ? `<div class="prod-badge" style="background:${p.badge_color || '#B8860B'}">${escHtml(p.badge)}</div>`
         : '';
-      var price = p.price ? parseFloat(p.price).toLocaleString() : '0';
-      var catName = p.category ? escHtml(p.category.name) : '';
-      return '<div class="prod-card" data-id="' + p.id + '" style="cursor:pointer">' +
-        '<div class="prod-img">' + badgeHtml +
-        '<img src="' + imgUrl + '" alt="' + escHtml(p.name) + '" onerror="this.src=\'/img/placeholder.svg\'">' +
-        '</div>' +
-        '<div class="stars">' + starsStr + '</div>' +
-        '<div class="prod-name">' + escHtml(p.name) + '</div>' +
-        '<div class="prod-cat">' + catName + '</div>' +
-        '<div class="prod-price">EGP ' + price + '</div>' +
-        '<button class="btn-add-cart" onclick="event.stopPropagation(); homeAddToCart(' + p.id + ', \'' + escHtml(p.name) + '\', ' + (p.price || 0) + ')" style="margin-top:8px;background:#2C1F14;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;font-size:12px;width:100%">' + "{{ __('Add to Cart') }}" + '</button>' +
-        '</div>';
+      const price = p.price ? parseFloat(p.price).toLocaleString() : '0';
+      const oldPriceHtml = p.old_price
+        ? ` <s style="color:#aaa;font-size:13px">EGP ${parseFloat(p.old_price).toLocaleString()}</s>`
+        : '';
+      const catName = p.category ? escHtml(p.category.name) : '';
+      
+      return `
+        <div class="prod-card" data-id="${p.id}" style="cursor:pointer" onclick="location.href='/product/${p.slug || p.id}'">
+          <div class="prod-img">
+            ${badgeHtml}
+            <img src="${imgUrl}" alt="${escHtml(p.name)}" onerror="this.src='/img/placeholder.svg'">
+          </div>
+          <div class="stars">${starsStr}</div>
+          <div class="prod-name">${escHtml(p.name)}</div>
+          <div class="prod-cat">${catName}</div>
+          <div class="prod-price">EGP ${price}${oldPriceHtml}</div>
+          <button class="btn-add-cart" onclick="event.stopPropagation(); homeAddToCart(${p.id}, '${escHtml(p.name)}', ${p.price || 0})" style="margin-top:8px;background:#2C1F14;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;font-size:12px;width:100%">${"{{ __('Add to Cart') }}"}</button>
+        </div>
+      `;
     }).join('');
-
-    grid.querySelectorAll('.prod-card').forEach(function(card) {
-      card.addEventListener('click', function() {
-        location.href = '/product/' + card.dataset.id;
-      });
-    });
   }
 
   window.homeAddToCart = function(id, name, price) {
@@ -160,17 +162,29 @@
 
     // Categories
     try {
-      var res = await API.get('/categories');
-      var categories = res.categories || [];
-      renderCategories(categories);
-    } catch(e) {}
+      const res = await API.get('/categories');
+      renderCategories(res.categories || []);
+    } catch(e) {
+      console.error("Failed to load categories:", e);
+    }
 
     // Featured products
     try {
-      var res2 = await API.get('/products/featured');
-      var products = res2.products || [];
+      let res2 = await API.get('/products/featured');
+      let products = res2.products || [];
+      
+      // Fallback to normal products if no featured products exist (so the home page is never empty)
+      if (products.length === 0) {
+          res2 = await API.get('/products?per_page=8');
+          products = res2.products || [];
+      }
+      
       renderBestSellers(products);
-    } catch(e) {}
+    } catch(e) {
+      console.error("Failed to load products:", e);
+      const grid = document.getElementById('prod-grid');
+      if (grid) grid.innerHTML = '<p style="padding:20px;color:#c0392b;text-align:center;grid-column:1/-1">' + "{{ __('Failed to load products.') }}" + '</p>';
+    }
   })();
 })();
 </script>

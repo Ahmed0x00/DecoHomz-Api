@@ -99,9 +99,12 @@
     const row = document.getElementById('cat-row');
     if (!row) return;
     row.innerHTML = categories.map(function(cat) {
-      return '<a href="/shop?category=' + encodeURIComponent(cat.name) + '" class="cat-item">' +
-        '<div class="cat-box">' + getCategorySvg(cat.name) + '</div>' +
-        '<div class="cat-name">' + cat.name + '</div>' +
+      var catContent = cat.url 
+        ? '<img src="' + cat.url + '" alt="' + escHtml(cat.name) + '" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">' 
+        : getCategorySvg(cat.name);
+      return '<a href="/shop?category=' + encodeURIComponent(cat.slug || cat.name) + '" class="cat-item">' +
+        '<div class="cat-box">' + catContent + '</div>' +
+        '<div class="cat-name">' + escHtml(cat.name) + '</div>' +
         '</a>';
     }).join('');
   }
@@ -109,26 +112,28 @@
   function renderBestSellers(products) {
     const grid = document.getElementById('prod-grid');
     if (!grid) return;
-    if (products.length === 0) {
+    if (!products || products.length === 0) {
       grid.innerHTML = '<p style="padding:20px;color:#888;text-align:center;grid-column:1/-1">' + "{{ __('No products found.') }}" + '</p>';
       return;
     }
     grid.innerHTML = products.map(function(p) {
-      var imgUrl = (p.primary_image && p.primary_image.url) ? p.primary_image.url : '/img/placeholder.svg';
+      var imgUrl = (p.primary_image && p.primary_image.thumbnail_url) ? p.primary_image.thumbnail_url : ((p.primary_image && p.primary_image.url) ? p.primary_image.url : '/img/placeholder.svg');
       var stars = p.stars || 5;
       var starsStr = '★'.repeat(stars) + '☆'.repeat(5 - stars);
       var badgeHtml = p.badge
-        ? '<div class="prod-badge" style="background:' + (p.badge_color || '#B8860B') + '">' + p.badge + '</div>'
+        ? '<div class="prod-badge" style="background:' + (p.badge_color || '#B8860B') + '">' + escHtml(p.badge) + '</div>'
         : '';
+      var price = p.price ? parseFloat(p.price).toLocaleString() : '0';
+      var catName = p.category ? escHtml(p.category.name) : '';
       return '<div class="prod-card" data-id="' + p.id + '" style="cursor:pointer">' +
         '<div class="prod-img">' + badgeHtml +
-        '<img src="' + imgUrl + '" alt="' + p.name + '" onerror="this.src=\'/img/placeholder.svg\'">' +
+        '<img src="' + imgUrl + '" alt="' + escHtml(p.name) + '" onerror="this.src=\'/img/placeholder.svg\'">' +
         '</div>' +
         '<div class="stars">' + starsStr + '</div>' +
-        '<div class="prod-name">' + p.name + '</div>' +
-        '<div class="prod-cat">' + (p.category ? p.category.name : '') + '</div>' +
-        '<div class="prod-price">EGP ' + parseFloat(p.price).toLocaleString() + '</div>' +
-        '<button class="btn-add-cart" onclick="event.stopPropagation(); homeAddToCart(' + p.id + ', \'' + escHtml(p.name) + '\', ' + p.price + ')" style="margin-top:8px;background:#2C1F14;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;font-size:12px;width:100%">' + "{{ __('Add to Cart') }}" + '</button>' +
+        '<div class="prod-name">' + escHtml(p.name) + '</div>' +
+        '<div class="prod-cat">' + catName + '</div>' +
+        '<div class="prod-price">EGP ' + price + '</div>' +
+        '<button class="btn-add-cart" onclick="event.stopPropagation(); homeAddToCart(' + p.id + ', \'' + escHtml(p.name) + '\', ' + (p.price || 0) + ')" style="margin-top:8px;background:#2C1F14;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;font-size:12px;width:100%">' + "{{ __('Add to Cart') }}" + '</button>' +
         '</div>';
     }).join('');
 

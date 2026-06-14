@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\OptimizeUploadedImage;
 use App\Models\Category;
 use App\Models\ActivityLog;
 use Illuminate\Http\JsonResponse;
@@ -31,7 +32,7 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100|unique:categories,name',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'is_active' => 'boolean',
             'sort_order' => 'integer|min:0',
         ]);
@@ -40,6 +41,7 @@ class CategoryController extends Controller
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('categories', 'public');
+            OptimizeUploadedImage::dispatch($validated['image']);
         }
 
         $category = Category::create($validated);
@@ -68,7 +70,7 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => ['sometimes', 'string', 'max:100', Rule::unique('categories')->ignore($category->id)],
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'is_active' => 'boolean',
             'sort_order' => 'integer|min:0',
         ]);
@@ -83,6 +85,7 @@ class CategoryController extends Controller
                 Storage::disk('public')->delete($category->image);
             }
             $validated['image'] = $request->file('image')->store('categories', 'public');
+            OptimizeUploadedImage::dispatch($validated['image']);
         }
 
         $category->update($validated);

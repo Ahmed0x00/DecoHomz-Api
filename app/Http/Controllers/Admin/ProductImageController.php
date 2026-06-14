@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\OptimizeUploadedImage;
 use App\Models\Product;
 use App\Models\ProductImage;
 use Illuminate\Http\JsonResponse;
@@ -16,7 +17,7 @@ class ProductImageController extends Controller
         $product = Product::findOrFail($productId);
 
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'alt_text' => 'nullable|string|max:255',
             'is_primary' => 'boolean',
         ]);
@@ -39,6 +40,9 @@ class ProductImageController extends Controller
             'sort_order' => $product->images()->max('sort_order') + 1,
             'is_primary' => $isPrimary,
         ]);
+
+        // Dispatch async optimization job
+        OptimizeUploadedImage::dispatch($path);
 
         return response()->json([
             'message' => 'Image uploaded successfully',

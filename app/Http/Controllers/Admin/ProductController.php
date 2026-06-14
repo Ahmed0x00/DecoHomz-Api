@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\OptimizeUploadedImage;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ActivityLog;
@@ -79,7 +80,7 @@ class ProductController extends Controller
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'primary_image_index' => 'nullable|integer|min:0',
         ]);
 
@@ -136,6 +137,9 @@ class ProductController extends Controller
                     'sort_order' => $index,
                     'alt_text' => $product->name
                 ]);
+
+                // Dispatch async optimization job
+                OptimizeUploadedImage::dispatch($path);
             }
         }
 
@@ -182,7 +186,7 @@ class ProductController extends Controller
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'remove_images' => 'nullable|array',
             'remove_images.*' => 'integer',
             'primary_image_id' => 'nullable|integer',
@@ -227,6 +231,9 @@ class ProductController extends Controller
                     'sort_order' => $existingCount + $index,
                     'alt_text' => $product->name
                 ]);
+
+                // Dispatch async optimization job
+                OptimizeUploadedImage::dispatch($path);
             }
         }
 

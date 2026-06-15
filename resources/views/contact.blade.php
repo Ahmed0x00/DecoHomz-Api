@@ -3,7 +3,7 @@
 @section('title', 'Contact Us — DecoHomz')
 
 @section('extra_css')
-<link rel="stylesheet" href="/css/contact.css">
+<link rel="stylesheet" href="{{ asset_v('/css/contact.css') }}">
 @endsection
 
 @section('content')

@@ -3,7 +3,7 @@
 @section('title', 'My Account — DecoHomz')
 
 @section('extra_css')
-  <link rel="stylesheet" href="/css/account.css">
+  <link rel="stylesheet" href="{{ asset_v('/css/account.css') }}">
 @endsection
 
 @section('content')

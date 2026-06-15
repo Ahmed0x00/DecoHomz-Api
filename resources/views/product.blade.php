@@ -5,7 +5,7 @@
 @endsection
 
 @section('extra_css')
-<link rel="stylesheet" href="/css/product.css">
+<link rel="stylesheet" href="{{ asset_v('/css/product.css') }}">
 @endsection
 
 @section('content')

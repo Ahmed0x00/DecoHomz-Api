@@ -3,7 +3,7 @@
 @section('title', 'Sign In / Register — DecoHomz')
 
 @section('extra_css')
-<link rel="stylesheet" href="/css/signin.css">
+<link rel="stylesheet" href="{{ asset_v('/css/signin.css') }}">
 @endsection
 
 @section('content')

@@ -3,7 +3,7 @@
 @section('title', 'DecoHomz — Premium Furniture')
 
 @section('extra_css')
-<link rel="stylesheet" href="/css/home.css">
+<link rel="stylesheet" href="{{ asset_v('/css/home.css') }}">
 @endsection
 
 @section('content')

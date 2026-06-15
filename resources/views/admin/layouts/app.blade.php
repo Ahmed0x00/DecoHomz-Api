@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/shared.css">
-  <script src="/js/api.js"></script>
+  <link rel="stylesheet" href="{{ asset_v('/css/shared.css') }}">
+  <script src="{{ asset_v('/js/api.js') }}"></script>
   <script>
     // Block render until auth is verified
     (function () {
@@ -625,7 +625,7 @@
   </main>
 
 
-  <script src="/js/shared.js"></script>
+  <script src="{{ asset_v('/js/shared.js') }}"></script>
   @yield('extra_js')
   @stack('scripts')
 </body>

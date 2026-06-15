@@ -3,7 +3,7 @@
 @section('title', 'Order #' . ($order->order_number ?? $order->id) . ' — DecoHomz')
 
 @section('extra_css')
-<link rel="stylesheet" href="/css/order-confirmation.css">
+<link rel="stylesheet" href="{{ asset_v('/css/order-confirmation.css') }}">
 <style>
 /* ── Extra Styles for Order Details ── */
 .od-back {

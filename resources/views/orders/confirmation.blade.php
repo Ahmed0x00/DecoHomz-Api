@@ -3,7 +3,7 @@
 @section('title', 'Order Confirmed — DecoHomz')
 
 @section('extra_css')
-<link rel="stylesheet" href="/css/order-confirmation.css">
+<link rel="stylesheet" href="{{ asset_v('/css/order-confirmation.css') }}">
 @endsection
 
 @section('content')

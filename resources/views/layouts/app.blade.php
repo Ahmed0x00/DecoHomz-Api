@@ -20,8 +20,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="/css/animations.css">
-  <link rel="stylesheet" href="/css/shared.css">
+  <link rel="stylesheet" href="{{ asset_v('/css/animations.css') }}">
+  <link rel="stylesheet" href="{{ asset_v('/css/shared.css') }}">
   @yield('extra_css')
 </head>
 
@@ -211,8 +211,8 @@
     </svg>
   </button>
 
-  <script src="/js/shared.js"></script>
-  <script src="/js/api.js"></script>
+  <script src="{{ asset_v('/js/shared.js') }}"></script>
+  <script src="{{ asset_v('/js/api.js') }}"></script>
   <script>
   // Sync localStorage to cookies for server-side auth (fixes 403 for existing sessions)
   (function() {

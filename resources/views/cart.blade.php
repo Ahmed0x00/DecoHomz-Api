@@ -3,7 +3,7 @@
 @section('title', 'Shopping Cart — DecoHomz')
 
 @section('extra_css')
-<link rel="stylesheet" href="/css/cart.css">
+<link rel="stylesheet" href="{{ asset_v('/css/cart.css') }}">
 @endsection
 
 @section('content')

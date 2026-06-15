@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>404 — Page Not Found — DecoHomz</title>
-  <link rel="stylesheet" href="/css/shared.css">
+  <link rel="stylesheet" href="{{ asset_v('/css/shared.css') }}">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', system-ui, sans-serif; background: #F5F0E8; color: #2C1F14; min-height: 100vh; display: flex; flex-direction: column; }

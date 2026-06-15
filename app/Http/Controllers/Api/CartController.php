@@ -34,7 +34,7 @@ class CartController extends Controller
             ]);
         }
 
-        $cart->load(['items.product', 'coupon']);
+        $cart->load(['items.product.primaryImage', 'items.product.images', 'coupon']);
         $itemCount = $cart->items->count();
 
         return response()->json([
@@ -118,7 +118,7 @@ class CartController extends Controller
         }
 
         $cart->recalculateDiscount();
-        $cart->load(['items.product', 'coupon']);
+        $cart->load(['items.product.primaryImage', 'items.product.images', 'coupon']);
 
         return response()->json([
             'message' => $message,
@@ -146,7 +146,7 @@ class CartController extends Controller
             $cart->recalculateDiscount();
             return response()->json([
                 'message' => 'Item removed from cart',
-                'cart' => $this->formatCart($cart->fresh(['items.product', 'coupon'])),
+                'cart' => $this->formatCart($cart->fresh(['items.product.primaryImage', 'items.product.images', 'coupon'])),
             ]);
         }
 
@@ -187,7 +187,7 @@ class CartController extends Controller
         ActivityLog::cart($request, 'Update Cart Item', "Updated quantity for '{$cartItem->product->name}' in cart to {$validated['quantity']}", $cartItem->product);
 
         $cart->recalculateDiscount();
-        $cart->load(['items.product', 'coupon']);
+        $cart->load(['items.product.primaryImage', 'items.product.images', 'coupon']);
 
         return response()->json([
             'message' => 'Cart item updated',
@@ -215,7 +215,7 @@ class CartController extends Controller
 
         return response()->json([
             'message' => 'Item removed from cart',
-            'cart' => $this->formatCart($cart->fresh(['items.product', 'coupon'])),
+            'cart' => $this->formatCart($cart->fresh(['items.product.primaryImage', 'items.product.images', 'coupon'])),
         ]);
     }
 
@@ -232,7 +232,7 @@ class CartController extends Controller
 
         return response()->json([
             'message' => 'Cart cleared',
-            'cart' => $this->formatCart($cart->fresh(['items.product', 'coupon'])),
+            'cart' => $this->formatCart($cart->fresh(['items.product.primaryImage', 'items.product.images', 'coupon'])),
         ]);
     }
 
@@ -274,7 +274,7 @@ class CartController extends Controller
 
         ActivityLog::cart($request, 'Apply Coupon', "Applied coupon '{$coupon->code}' to cart. Discount: {$discount} EGP", $coupon);
 
-        $cart->load(['items.product', 'coupon']);
+        $cart->load(['items.product.primaryImage', 'items.product.images', 'coupon']);
 
         return response()->json([
             'message' => 'Coupon applied successfully',
@@ -295,7 +295,7 @@ class CartController extends Controller
 
         ActivityLog::cart($request, 'Remove Coupon', "Removed coupon '{$oldCoupon}' from cart");
 
-        $cart->load(['items.product', 'coupon']);
+        $cart->load(['items.product.primaryImage', 'items.product.images', 'coupon']);
 
         return response()->json([
             'message' => 'Coupon removed',
@@ -311,7 +311,7 @@ class CartController extends Controller
         $user = $request->user() ?? $this->getUserFromToken($request);
 
         if ($user) {
-            return Cart::where('user_id', $user->id)->with(['items.product', 'coupon'])->first();
+            return Cart::where('user_id', $user->id)->with(['items.product.primaryImage', 'items.product.images', 'coupon'])->first();
         }
 
         $sessionId = $request->header('X-Session-ID');
@@ -321,7 +321,7 @@ class CartController extends Controller
 
         return Cart::where('session_id', $sessionId)
             ->whereNull('user_id')
-            ->with(['items.product', 'coupon'])
+            ->with(['items.product.primaryImage', 'items.product.images', 'coupon'])
             ->first();
     }
 
@@ -399,7 +399,7 @@ class CartController extends Controller
                     'id' => $item->product->id,
                     'name' => $item->product->name,
                     'slug' => $item->product->slug,
-                    'image' => $item->product->primaryImage?->image,
+                    'image' => $item->product->primaryImage?->thumbnail_url ?? $item->product->images->first()?->thumbnail_url,
                 ],
             ];
 

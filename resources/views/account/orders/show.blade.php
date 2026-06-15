@@ -386,8 +386,8 @@ $statusBadgeClass = match($status) {
     @foreach($items as $item)
     <div class="order-item">
       <div class="item-thumb">
-        <img src="{{ $item->product?->primaryImage?->url ?? '/img/placeholder.svg' }}"
-             alt="{{ $item->product?->name ?? 'Product' }}"
+        <img src="{{ $item->product?->primaryImage?->thumbnail_url ?? '/img/placeholder.svg' }}"
+             alt="{{ $item->product?->name ?? $item->name ?? 'Product' }}"
              onerror="this.src='/img/placeholder.svg'"
              style="width:100%;height:100%;object-fit:cover;border-radius:6px">
       </div>

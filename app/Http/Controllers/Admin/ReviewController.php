@@ -86,4 +86,37 @@ class ReviewController extends Controller
 
         return response()->json(['message' => 'Review deleted successfully']);
     }
+
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'product_id' => 'required|integer|exists:products,id',
+            'reviewer_name' => 'required|string|max:255',
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string|max:2000',
+            'created_at' => 'nullable|date',
+        ]);
+
+        $createdAt = !empty($validated['created_at']) ? new \DateTime($validated['created_at']) : now();
+
+        $review = Review::create([
+            'user_id' => null,
+            'product_id' => $validated['product_id'],
+            'reviewer_name' => $validated['reviewer_name'],
+            'rating' => $validated['rating'],
+            'comment' => $validated['comment'] ?? null,
+            'is_approved' => true,
+            'is_rejected' => false,
+        ]);
+
+        if (!empty($validated['created_at'])) {
+            $review->created_at = $createdAt;
+            $review->save(['timestamps' => false]);
+        }
+
+        return response()->json([
+            'message' => 'Fake review added successfully',
+            'review' => $review->load('product'),
+        ], 201);
+    }
 }

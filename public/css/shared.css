@@ -512,6 +512,10 @@ nav.scrolled {
   font-weight: 500;
 }
 
+/* ── Semantic Text Colors ─────────────────── */
+.text-error { color: var(--color-error); }
+.text-success { color: var(--color-success); }
+
 /* ── Buttons ───────────────────────────────── */
 .btn-dark {
   background: var(--color-primary);

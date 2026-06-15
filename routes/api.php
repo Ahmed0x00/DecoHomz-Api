@@ -50,6 +50,7 @@ Route::middleware('activity.log')->group(function () {
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/featured', [ProductController::class, 'featured']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
+    Route::get('/products/{id}/viewers', [ProductController::class, 'viewers']);
     Route::get('/products/{id}/related', [ProductController::class, 'related']);
     Route::get('/products/{id}/reviews', [ReviewController::class, 'productReviews']);
 
@@ -168,6 +169,7 @@ Route::middleware('activity.log')->group(function () {
         // Reviews
         Route::get('/reviews', [AdminReviewController::class, 'index']);
         Route::get('/reviews/{id}', [AdminReviewController::class, 'show']);
+        Route::post('/reviews', [AdminReviewController::class, 'store']);
         Route::patch('/reviews/{id}/approve', [AdminReviewController::class, 'approve']);
         Route::patch('/reviews/{id}/reject', [AdminReviewController::class, 'reject']);
         Route::delete('/reviews/{id}', [AdminReviewController::class, 'destroy']);

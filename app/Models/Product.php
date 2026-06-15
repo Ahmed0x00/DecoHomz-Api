@@ -28,6 +28,9 @@ class Product extends Model
         'stock',
         'is_active',
         'is_featured',
+        'fake_sold_count',
+        'min_viewing_count',
+        'max_viewing_count',
     ];
 
     protected $casts = [
@@ -38,6 +41,14 @@ class Product extends Model
         'stock' => 'integer',
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
+        'fake_sold_count' => 'integer',
+        'min_viewing_count' => 'integer',
+        'max_viewing_count' => 'integer',
+    ];
+
+    protected $appends = [
+        'sold_count',
+        'viewing_count',
     ];
 
     protected static function boot()
@@ -141,5 +152,60 @@ class Product extends Model
             return $this->stock;
         }
         return $colors->sum('stock');
+    }
+
+    public function getSoldCountAttribute(): int
+    {
+        if (!is_null($this->fake_sold_count)) {
+            return $this->fake_sold_count;
+        }
+
+        $cacheKey = "product_real_sold_count:{$this->id}";
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 600, function () {
+            return (int) $this->orderItems()
+                ->whereHas('order', function ($q) {
+                    $q->where('status', '!=', Order::STATUS_CANCELLED);
+                })
+                ->sum('quantity');
+        });
+    }
+
+    public function getViewingCountAttribute(): int
+    {
+        $min = $this->min_viewing_count;
+        $max = $this->max_viewing_count;
+
+        if (!is_null($min) || !is_null($max)) {
+            $min = $min ?? 1;
+            $max = $max ?? $min;
+
+            if ($min > $max) {
+                $temp = $min;
+                $min = $max;
+                $max = $temp;
+            }
+
+            $cacheKey = "product_fake_viewers:{$this->id}";
+            return \Illuminate\Support\Facades\Cache::remember($cacheKey, 60, function () use ($min, $max) {
+                return rand($min, $max);
+            });
+        }
+
+        // Default: track real viewers using Cache
+        $cacheKey = "product_real_viewers:{$this->id}";
+        $ip = request()->ip() ?? 'unknown';
+        $userAgent = request()->userAgent() ?? 'unknown';
+        $identifier = md5($ip . $userAgent);
+        $now = time();
+
+        $viewers = \Illuminate\Support\Facades\Cache::get($cacheKey, []);
+        $viewers = array_filter($viewers, function ($timestamp) use ($now) {
+            return ($now - $timestamp) < 300;
+        });
+
+        $viewers[$identifier] = $now;
+        \Illuminate\Support\Facades\Cache::put($cacheKey, $viewers, 300);
+
+        return count($viewers);
     }
 }

@@ -86,6 +86,27 @@
             </div>
           </div>
 
+          <!-- Fake Stats & Widget Customization -->
+          <div class="admin-card" style="margin-bottom:24px;">
+            <div class="admin-card-header"><div class="admin-card-title">Fake Stats & Widget Customization</div></div>
+            <div style="padding:24px;display:flex;flex-direction:column;gap:16px;">
+              <div>
+                <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Fake Sold Quantity</label>
+                <input type="number" name="fake_sold_count" id="field-fake_sold_count" min="0" style="width:100%;padding:10px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;" placeholder="Leave empty for real sold count">
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div>
+                  <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Min Viewing Now</label>
+                  <input type="number" name="min_viewing_count" id="field-min_viewing_count" min="0" style="width:100%;padding:10px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;" placeholder="Min faked views">
+                </div>
+                <div>
+                  <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Max Viewing Now</label>
+                  <input type="number" name="max_viewing_count" id="field-max_viewing_count" min="0" style="width:100%;padding:10px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;" placeholder="Max faked views">
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Image Gallery -->
           <div class="admin-card" style="margin-bottom:24px;">
             <div class="admin-card-header" style="display:flex;justify-content:space-between;align-items:center;">
@@ -247,6 +268,9 @@
     document.getElementById('field-stock').value = p.stock || 0;
     document.getElementById('field-material').value = p.material || '';
     document.getElementById('field-dimensions').value = p.dimensions || '';
+    document.getElementById('field-fake_sold_count').value = p.fake_sold_count !== null ? p.fake_sold_count : '';
+    document.getElementById('field-min_viewing_count').value = p.min_viewing_count !== null ? p.min_viewing_count : '';
+    document.getElementById('field-max_viewing_count').value = p.max_viewing_count !== null ? p.max_viewing_count : '';
     document.getElementById('field-is_featured').checked = !!(p.is_featured == 1 || p.is_featured === true);
     document.getElementById('field-is_active').checked = !!(p.is_active == 1 || p.is_active === true);
 
@@ -347,6 +371,9 @@
     formData.append('price', document.getElementById('field-price').value);
     formData.append('old_price', document.getElementById('field-old_price').value || '');
     formData.append('stock', document.getElementById('field-stock').value);
+    formData.append('fake_sold_count', document.getElementById('field-fake_sold_count').value || '');
+    formData.append('min_viewing_count', document.getElementById('field-min_viewing_count').value || '');
+    formData.append('max_viewing_count', document.getElementById('field-max_viewing_count').value || '');
     formData.append('category_id', document.getElementById('field-category_id').value);
     formData.append('material', document.getElementById('field-material').value);
     formData.append('dimensions', document.getElementById('field-dimensions').value);

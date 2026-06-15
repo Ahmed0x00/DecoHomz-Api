@@ -68,13 +68,19 @@
 
     <h1 class="prod-title">{{ $product['name'] ?? 'Product Name' }}</h1>
 
-    <div class="price-block">
+    <div class="price-block" style="flex-wrap: wrap;">
       <div class="main-price">EGP {{ number_format($product->price ?? 0, 2) }}</div>
       @if(isset($product->old_price) && $product->old_price > $product->price)
         <div class="old-price">EGP {{ number_format($product->old_price, 2) }}</div>
       @endif
       @if(($product->stock ?? 0) <= 0)
         <div class="stock-badge out-of-stock">{{ __('Out of Stock') }}</div>
+      @endif
+      @if(isset($product->sold_count) && $product->sold_count > 0)
+        <div class="stock-badge" style="background: var(--color-bg-warm); color: var(--color-text-secondary); border: 1px solid var(--color-border); display: flex; align-items: center; gap: 4px; font-weight: 600;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="stroke: var(--color-accent);"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span>{{ $product->sold_count }} {{ __('sold') }}</span>
+        </div>
       @endif
     </div>
 
@@ -139,6 +145,14 @@
           <p>{{ __('Return within 14 days if you are not satisfied.') }}</p>
         </div>
       </div>
+    </div>
+
+    {{-- Viewing Count widget --}}
+    <div class="viewing-status animate-fade-in" style="margin-top: 16px; padding: 12px 16px; background: rgba(201, 169, 110, 0.08); border: 1px solid rgba(201, 169, 110, 0.2); border-radius: var(--radius-md); display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--color-text);">
+      <span class="pulse-dot"></span>
+      <span>
+        <strong id="viewing-count-val">{{ $product->viewing_count }}</strong> {{ __('customers are viewing this product now!') }}
+      </span>
     </div>
 
   </div>
@@ -663,6 +677,28 @@ async function submitReview() {
 }
 window.submitReview = submitReview;
 
+function startViewingCountPolling() {
+  setInterval(async function() {
+    try {
+      const res = await API.get('/products/' + PRODUCT.id + '/viewers');
+      const countVal = document.getElementById('viewing-count-val');
+      if (countVal && res.viewing_count !== undefined) {
+        const newCount = res.viewing_count;
+        if (parseInt(countVal.textContent, 10) !== newCount) {
+          countVal.style.transition = 'opacity 0.3s ease';
+          countVal.style.opacity = '0';
+          setTimeout(function() {
+            countVal.textContent = newCount;
+            countVal.style.opacity = '1';
+          }, 300);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to poll viewers count', e);
+    }
+  }, 15000);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   if (typeof Cart !== 'undefined' && Cart.updateBadge) Cart.updateBadge();
 
@@ -676,6 +712,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   loadRelated();
   loadReviews();
+  startViewingCountPolling();
 });
 </script>
 @endsection

@@ -16,6 +16,7 @@ class Review extends Model
         'comment',
         'is_approved',
         'is_rejected',
+        'reviewer_name',
     ];
 
     protected $casts = [
@@ -26,7 +27,10 @@ class Review extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withDefault(function ($user, $review) {
+            $user->id = null;
+            $user->name = $review->reviewer_name ?? 'Anonymous';
+        });
     }
 
     public function product()

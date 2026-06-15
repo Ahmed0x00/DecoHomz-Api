@@ -359,6 +359,18 @@
   grid-column: 1 / -1;
 }
 
+/* ── Main Content Area (Deals / New Arrivals) ── */
+.main {
+  min-width: 0;
+}
+
+.main-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
 /* ── Empty State ───────────────────────────── */
 .shop-empty {
   text-align: center;

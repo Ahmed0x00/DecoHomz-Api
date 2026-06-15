@@ -30,8 +30,8 @@
   {{-- Scroll Progress Bar --}}
   <div class="scroll-progress" id="scroll-progress"></div>
 
-  {{-- Topbar --}}
-  <div class="topbar">{{ __('Free Delivery on Orders Above EGP 2,000 — Shop Now') }}</div>
+  <!-- {{-- Topbar --}}
+  <div class="topbar">{{ __('Free Delivery on Orders Above EGP 2,000 — Shop Now') }}</div> -->
 
   {{-- Navigation --}}
   <nav id="main-nav">

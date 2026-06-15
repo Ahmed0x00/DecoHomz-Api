@@ -71,6 +71,27 @@
           </div>
         </div>
 
+        <!-- Fake Stats & Widget Customization -->
+        <div class="admin-card" style="margin-bottom:24px;">
+          <div class="admin-card-header"><div class="admin-card-title">Fake Stats & Widget Customization</div></div>
+          <div style="padding:24px;display:flex;flex-direction:column;gap:16px;">
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Fake Sold Quantity</label>
+              <input type="number" name="fake_sold_count" id="field-fake_sold_count" min="0" style="width:100%;padding:10px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;" placeholder="Leave empty for real sold count">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+              <div>
+                <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Min Viewing Now</label>
+                <input type="number" name="min_viewing_count" id="field-min_viewing_count" min="0" style="width:100%;padding:10px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;" placeholder="Min faked views">
+              </div>
+              <div>
+                <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Max Viewing Now</label>
+                <input type="number" name="max_viewing_count" id="field-max_viewing_count" min="0" style="width:100%;padding:10px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;" placeholder="Max faked views">
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Details -->
         <div class="admin-card" style="margin-bottom:24px;">
           <div class="admin-card-header"><div class="admin-card-title">Product Details</div></div>

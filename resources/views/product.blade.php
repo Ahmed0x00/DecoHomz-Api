@@ -32,8 +32,9 @@
       @endif
       @php
         $primaryImg = '/img/placeholder.svg';
-        if(isset($product['primary_image'])) {
-            $primaryImg = $product['primary_image']['url'] ?? $product['primary_image']['thumbnail_url'] ?? $primaryImg;
+        $pImg = $product->primaryImage ?? $product->images->where('is_primary', true)->first() ?? $product->images->first();
+        if ($pImg) {
+            $primaryImg = $pImg->url ?? $pImg->thumbnail_url ?? $primaryImg;
         }
       @endphp
       <img src="{{ $primaryImg }}" id="main-image" alt="{{ $product['name'] ?? 'Product Image' }}">
@@ -290,6 +291,9 @@ const PRODUCT = {
   name: "{{ addslashes($product->name ?? 'Product') }}",
   price: {{ $product->price ?? 0 }},
   stock: {{ $product->stock ?? 0 }},
+  min_viewing_count: {{ $product->min_viewing_count ?? 12 }},
+  max_viewing_count: {{ $product->max_viewing_count ?? 45 }},
+  initial_viewers: {{ $product->viewing_count ?? 25 }},
   colors: @json($product->activeColors->map(fn($c) => ['slug' => $c->color_slug, 'name' => $c->name, 'stock' => $c->stock]))
 };
 
@@ -678,25 +682,41 @@ async function submitReview() {
 window.submitReview = submitReview;
 
 function startViewingCountPolling() {
-  setInterval(async function() {
-    try {
-      const res = await API.get('/products/' + PRODUCT.id + '/viewers');
+  let currentCount = PRODUCT.initial_viewers;
+  let min = PRODUCT.min_viewing_count;
+  let max = PRODUCT.max_viewing_count;
+  if (min > max) { let temp = min; min = max; max = temp; }
+
+  function poll() {
+    const nextWait = Math.floor(Math.random() * (12000 - 4000 + 1)) + 4000; // 4s to 12s
+    setTimeout(function() {
+      const range = max - min;
+      const maxChange = Math.max(1, Math.floor(range * 0.15));
+      let change = Math.floor(Math.random() * (maxChange * 2 + 1)) - maxChange;
+      
+      // Bias slightly towards center to avoid getting stuck at boundaries
+      const mid = (min + max) / 2;
+      if (currentCount > mid && change > 0 && Math.random() > 0.5) change = -change;
+      if (currentCount < mid && change < 0 && Math.random() > 0.5) change = -change;
+      
+      let newCount = currentCount + change;
+      newCount = Math.max(min, Math.min(max, newCount));
+
       const countVal = document.getElementById('viewing-count-val');
-      if (countVal && res.viewing_count !== undefined) {
-        const newCount = res.viewing_count;
-        if (parseInt(countVal.textContent, 10) !== newCount) {
-          countVal.style.transition = 'opacity 0.3s ease';
-          countVal.style.opacity = '0';
-          setTimeout(function() {
-            countVal.textContent = newCount;
-            countVal.style.opacity = '1';
-          }, 300);
-        }
+      if (countVal && newCount !== currentCount) {
+        countVal.style.transition = 'opacity 0.3s ease';
+        countVal.style.opacity = '0';
+        setTimeout(function() {
+          countVal.textContent = newCount;
+          countVal.style.opacity = '1';
+        }, 300);
       }
-    } catch (e) {
-      console.warn('Failed to poll viewers count', e);
-    }
-  }, 15000);
+      
+      currentCount = newCount;
+      poll(); // Schedule next poll
+    }, nextWait);
+  }
+  poll();
 }
 
 document.addEventListener('DOMContentLoaded', function() {

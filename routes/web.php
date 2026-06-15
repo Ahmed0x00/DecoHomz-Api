@@ -47,6 +47,7 @@ Route::prefix('admin')->middleware(['admin.token', 'admin'])->group(function () 
     Route::get('/users/{id}', fn($id) => view('admin.users.show', ['id' => $id]));
     Route::get('/users/{id}/edit', fn($id) => view('admin.users.edit', ['id' => $id]));
     Route::get('/reviews', fn() => view('admin.reviews.index'));
+    Route::get('/reviews/create', fn() => view('admin.reviews.create'));
     Route::get('/coupons', fn() => view('admin.coupons.index'));
     Route::get('/delivery-fees', fn() => view('admin.delivery-fees.index'));
     Route::get('/deposit-rules', fn() => view('admin.deposit-rules.index'));

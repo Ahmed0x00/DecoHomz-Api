@@ -172,40 +172,15 @@ class Product extends Model
 
     public function getViewingCountAttribute(): int
     {
-        $min = $this->min_viewing_count;
-        $max = $this->max_viewing_count;
+        $min = $this->min_viewing_count ?? 12;
+        $max = $this->max_viewing_count ?? max($min, 45);
 
-        if (!is_null($min) || !is_null($max)) {
-            $min = $min ?? 1;
-            $max = $max ?? $min;
-
-            if ($min > $max) {
-                $temp = $min;
-                $min = $max;
-                $max = $temp;
-            }
-
-            $cacheKey = "product_fake_viewers:{$this->id}";
-            return \Illuminate\Support\Facades\Cache::remember($cacheKey, 60, function () use ($min, $max) {
-                return rand($min, $max);
-            });
+        if ($min > $max) {
+            $temp = $min;
+            $min = $max;
+            $max = $temp;
         }
 
-        // Default: track real viewers using Cache
-        $cacheKey = "product_real_viewers:{$this->id}";
-        $ip = request()->ip() ?? 'unknown';
-        $userAgent = request()->userAgent() ?? 'unknown';
-        $identifier = md5($ip . $userAgent);
-        $now = time();
-
-        $viewers = \Illuminate\Support\Facades\Cache::get($cacheKey, []);
-        $viewers = array_filter($viewers, function ($timestamp) use ($now) {
-            return ($now - $timestamp) < 300;
-        });
-
-        $viewers[$identifier] = $now;
-        \Illuminate\Support\Facades\Cache::put($cacheKey, $viewers, 300);
-
-        return count($viewers);
+        return rand($min, $max);
     }
 }

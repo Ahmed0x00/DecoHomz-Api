@@ -176,18 +176,5 @@ class ProductController extends Controller
         ]);
     }
 
-    public function viewers(string $id): JsonResponse
-    {
-        $product = Product::where('id', $id)
-            ->orWhere('slug', $id)
-            ->first();
 
-        if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
-        }
-
-        return response()->json([
-            'viewing_count' => $product->viewing_count,
-        ]);
-    }
 }

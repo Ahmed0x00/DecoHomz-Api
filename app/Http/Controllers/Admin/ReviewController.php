@@ -90,33 +90,75 @@ class ReviewController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'product_id' => 'required|integer|exists:products,id',
-            'reviewer_name' => 'required|string|max:255',
-            'rating' => 'required|integer|min:1|max:5',
+            'product_id' => 'sometimes|integer|exists:products,id',
+            'product_ids' => 'sometimes|array',
+            'product_ids.*' => 'integer|exists:products,id',
+            'reviewer_name' => 'nullable|string|max:255',
+            'rating' => 'sometimes|integer|min:1|max:5',
             'comment' => 'nullable|string|max:2000',
+            'reviews' => 'sometimes|array',
+            'reviews.*.reviewer_name' => 'nullable|string|max:255',
+            'reviews.*.rating' => 'required|integer|min:1|max:5',
+            'reviews.*.comment' => 'nullable|string|max:2000',
+            'reviews.*.created_at' => 'nullable|date',
             'created_at' => 'nullable|date',
         ]);
 
-        $createdAt = !empty($validated['created_at']) ? new \DateTime($validated['created_at']) : now();
+        $productIds = [];
+        if (!empty($validated['product_ids'])) {
+            $productIds = $validated['product_ids'];
+        } elseif (!empty($validated['product_id'])) {
+            $productIds = [$validated['product_id']];
+        }
 
-        $review = Review::create([
-            'user_id' => null,
-            'product_id' => $validated['product_id'],
-            'reviewer_name' => $validated['reviewer_name'],
-            'rating' => $validated['rating'],
-            'comment' => $validated['comment'] ?? null,
-            'is_approved' => true,
-            'is_rejected' => false,
-        ]);
+        if (empty($productIds)) {
+            return response()->json(['message' => 'Product is required.'], 422);
+        }
 
-        if (!empty($validated['created_at'])) {
-            $review->created_at = $createdAt;
-            $review->save(['timestamps' => false]);
+        $reviews = [];
+        
+        $reviewDataList = [];
+        if (!empty($validated['reviews'])) {
+            $reviewDataList = $validated['reviews'];
+        } else {
+            $reviewDataList[] = [
+                'reviewer_name' => $validated['reviewer_name'] ?? null,
+                'rating' => $validated['rating'] ?? 5,
+                'comment' => $validated['comment'] ?? null,
+            ];
+        }
+
+        foreach ($productIds as $pId) {
+            foreach ($reviewDataList as $rData) {
+                // Check if specific review has a date, otherwise check root payload, otherwise random
+                $reviewDateStr = !empty($rData['created_at']) ? $rData['created_at'] : (!empty($validated['created_at']) ? $validated['created_at'] : null);
+                
+                $reviewDate = !empty($reviewDateStr) 
+                    ? new \DateTime($reviewDateStr) 
+                    : fake()->dateTimeBetween('-30 days', 'now');
+
+                $review = new Review([
+                    'user_id' => null,
+                    'product_id' => $pId,
+                    'reviewer_name' => !empty($rData['reviewer_name']) ? $rData['reviewer_name'] : fake()->name(),
+                    'rating' => $rData['rating'] ?? 5,
+                    'comment' => $rData['comment'] ?? null,
+                    'is_approved' => true,
+                    'is_rejected' => false,
+                ]);
+
+                $review->timestamps = false;
+                $review->created_at = $reviewDate;
+                $review->updated_at = $reviewDate;
+                $review->save();
+                
+                $reviews[] = $review;
+            }
         }
 
         return response()->json([
-            'message' => 'Fake review added successfully',
-            'review' => $review->load('product'),
+            'message' => count($reviews) > 1 ? 'Fake reviews added successfully' : 'Fake review added successfully',
+            'reviews' => $reviews,
         ], 201);
     }
 }

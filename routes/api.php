@@ -50,7 +50,6 @@ Route::middleware('activity.log')->group(function () {
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/featured', [ProductController::class, 'featured']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
-    Route::get('/products/{id}/viewers', [ProductController::class, 'viewers']);
     Route::get('/products/{id}/related', [ProductController::class, 'related']);
     Route::get('/products/{id}/reviews', [ReviewController::class, 'productReviews']);
 

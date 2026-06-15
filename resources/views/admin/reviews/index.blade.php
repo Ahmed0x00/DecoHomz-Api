@@ -8,7 +8,7 @@
 <!-- Page Header -->
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
   <h1 style="font-size:24px;font-weight:700;color:#1a1a1a;">Reviews</h1>
-  <button onclick="openFakeReviewModal()" style="padding:10px 16px;background:#c9a96e;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px;">+ Add Fake Review</button>
+  <a href="/admin/reviews/create" style="padding:10px 16px;background:#c9a96e;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px;text-decoration:none;">+ Add Fake Review</a>
 </div>
 
 <!-- Stats Cards -->
@@ -77,54 +77,6 @@
 <div id="pagination" style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:24px;">
 </div>
 
-<!-- Fake Review Modal -->
-<div id="fake-review-modal" class="admin-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-  <div class="admin-modal" style="background:#fff; border-radius:12px; width:100%; max-width:500px; padding:24px; box-shadow:0 20px 40px rgba(0,0,0,0.15); position:relative; margin: 20px; text-align: left;">
-    <button onclick="closeFakeReviewModal()" style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:20px; cursor:pointer; color:#999;">&times;</button>
-    <h3 style="font-size:18px; font-weight:700; color:#1a1a1a; margin-bottom:16px; text-align:left;">Add Fake Review</h3>
-    
-    <form id="fake-review-form" onsubmit="submitFakeReview(event)">
-      <div style="margin-bottom:16px;">
-        <label style="display:block; font-size:12px; font-weight:600; color:#555; margin-bottom:6px; text-align:left;">Product *</label>
-        <select id="fake-review-product" required style="width:100%; padding:8px 12px; border:1px solid #ddd; border-radius:6px; font-size:13px;">
-          <option value="">Select a product</option>
-        </select>
-      </div>
-
-      <div style="margin-bottom:16px;">
-        <label style="display:block; font-size:12px; font-weight:600; color:#555; margin-bottom:6px; text-align:left;">Reviewer Name *</label>
-        <input type="text" id="fake-review-name" required placeholder="e.g. John Doe" style="width:100%; padding:8px 12px; border:1px solid #ddd; border-radius:6px; font-size:13px;">
-      </div>
-
-      <div style="margin-bottom:16px;">
-        <label style="display:block; font-size:12px; font-weight:600; color:#555; margin-bottom:6px; text-align:left;">Rating *</label>
-        <select id="fake-review-rating" required style="width:100%; padding:8px 12px; border:1px solid #ddd; border-radius:6px; font-size:13px;">
-          <option value="5">★★★★★ (5)</option>
-          <option value="4">★★★★☆ (4)</option>
-          <option value="3">★★★☆☆ (3)</option>
-          <option value="2">★★☆☆☆ (2)</option>
-          <option value="1">★☆☆☆☆ (1)</option>
-        </select>
-      </div>
-
-      <div style="margin-bottom:16px;">
-        <label style="display:block; font-size:12px; font-weight:600; color:#555; margin-bottom:6px; text-align:left;">Review Comment</label>
-        <textarea id="fake-review-comment" placeholder="Write review content..." rows="3" style="width:100%; padding:8px 12px; border:1px solid #ddd; border-radius:6px; font-size:13px; resize:vertical; font-family:inherit;"></textarea>
-      </div>
-
-      <div style="margin-bottom:20px;">
-        <label style="display:block; font-size:12px; font-weight:600; color:#555; margin-bottom:6px; text-align:left;">Custom Creation Date</label>
-        <input type="datetime-local" id="fake-review-date" style="width:100%; padding:8px 12px; border:1px solid #ddd; border-radius:6px; font-size:13px;">
-        <span style="font-size:11px; color:#888; display:block; text-align:left; margin-top:4px;">Leave empty to use current time.</span>
-      </div>
-
-      <div style="display:flex; justify-content:flex-end; gap:12px;">
-        <button type="button" onclick="closeFakeReviewModal()" style="padding:8px 16px; border:1px solid #ddd; background:#fff; color:#555; border-radius:6px; cursor:pointer; font-size:13px;">Cancel</button>
-        <button type="submit" id="btn-submit-fake-review" style="padding:8px 16px; background:#c9a96e; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600;">Add Review</button>
-      </div>
-    </form>
-  </div>
-</div>
 
 @endsection
 
@@ -138,75 +90,12 @@
   var currentPage = 1;
   var currentFilter = 'all';
   var allReviews = [];
-  var productsLoaded = false;
 
   document.addEventListener('DOMContentLoaded', function() {
     loadReviews();
   });
 
-  async function loadProductsForDropdown() {
-    if (productsLoaded) return;
-    try {
-      var select = document.getElementById('fake-review-product');
-      select.innerHTML = '<option value="">Loading products...</option>';
-      var res = await API.get('/admin/products', { params: { per_page: 500 } });
-      var products = res.products || res.data || res || [];
-      if (!Array.isArray(products) && products.data) products = products.data;
-      
-      select.innerHTML = '<option value="">Select a product</option>';
-      products.forEach(function(p) {
-        var opt = document.createElement('option');
-        opt.value = p.id;
-        opt.textContent = p.name;
-        select.appendChild(opt);
-      });
-      productsLoaded = true;
-    } catch (e) {
-      document.getElementById('fake-review-product').innerHTML = '<option value="">Failed to load products</option>';
-    }
-  }
 
-  window.openFakeReviewModal = function() {
-    document.getElementById('fake-review-modal').style.display = 'flex';
-    document.getElementById('fake-review-form').reset();
-    loadProductsForDropdown();
-  };
-
-  window.closeFakeReviewModal = function() {
-    document.getElementById('fake-review-modal').style.display = 'none';
-  };
-
-  window.submitFakeReview = async function(e) {
-    e.preventDefault();
-    var btn = document.getElementById('btn-submit-fake-review');
-    btn.disabled = true;
-    btn.textContent = 'Adding...';
-
-    var productId = document.getElementById('fake-review-product').value;
-    var reviewerName = document.getElementById('fake-review-name').value.trim();
-    var rating = document.getElementById('fake-review-rating').value;
-    var comment = document.getElementById('fake-review-comment').value.trim();
-    var dateVal = document.getElementById('fake-review-date').value;
-
-    try {
-      await API.post('/admin/reviews', {
-        product_id: productId,
-        reviewer_name: reviewerName,
-        rating: rating,
-        comment: comment,
-        created_at: dateVal || null
-      });
-
-      showToast('Fake review added successfully.', 'success');
-      closeFakeReviewModal();
-      loadReviews();
-    } catch(err) {
-      showToast('Failed to add fake review.', 'error');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Add Review';
-    }
-  };
 
   function setFilter(filter) {
     currentFilter = filter;

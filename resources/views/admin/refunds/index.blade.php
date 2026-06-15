@@ -250,18 +250,7 @@
       : 'Reject this refund request?');
     if (!confirmed) return;
 
-    var formData = new FormData();
-    formData.append('action', action);
-
-    fetch('/api/admin/refunds/' + orderId + '/handle', {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-        'Authorization': 'Bearer ' + (localStorage.getItem('dh_token') || '')
-      },
-      body: formData
-    })
-    .then(function(res) { return res.json(); })
+    API.post('/admin/refunds/' + orderId + '/handle', { action: action })
     .then(function(data) {
       if (data.error) {
         alert(data.error);
@@ -270,7 +259,7 @@
         loadRefunds();
       }
     })
-    .catch(function() { alert('Failed to process refund.'); });
+    .catch(function(e) { alert(e.data?.error || 'Failed to process refund.'); });
   };
 
   window.createGuestRefund = function() {
@@ -292,19 +281,7 @@
     msgEl.textContent = 'Creating...';
     msgEl.style.color = '#888';
 
-    var formData = new FormData();
-    formData.append('order_id', orderId);
-    formData.append('reason', reason);
-
-    fetch('/api/admin/refunds/create-for-guest', {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-        'Authorization': 'Bearer ' + (localStorage.getItem('dh_token') || '')
-      },
-      body: formData
-    })
-    .then(function(res) { return res.json(); })
+    API.post('/admin/refunds/create-for-guest', { order_id: orderId, reason: reason })
     .then(function(data) {
       if (data.error) {
         msgEl.textContent = data.error;
@@ -317,8 +294,8 @@
         loadRefunds();
       }
     })
-    .catch(function() {
-      msgEl.textContent = 'Failed to create refund request.';
+    .catch(function(e) {
+      msgEl.textContent = e.data?.error || 'Failed to create refund request.';
       msgEl.style.color = '#991b1b';
     });
   };

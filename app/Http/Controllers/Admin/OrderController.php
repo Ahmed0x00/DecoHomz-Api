@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\ProductColor;
 use App\Models\ActivityLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -62,6 +63,13 @@ class OrderController extends Controller
         // If cancelling, restore stock
         if ($validated['status'] === 'cancelled' && !in_array($order->status, ['cancelled'])) {
             foreach ($order->items as $item) {
+                if ($item->variant) {
+                    $productColor = ProductColor::where('product_id', $item->product_id)
+                        ->where('color_slug', $item->variant)->first();
+                    if ($productColor) {
+                        $productColor->increment('stock', $item->quantity);
+                    }
+                }
                 $item->product->increment('stock', $item->quantity);
             }
         }

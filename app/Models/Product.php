@@ -116,4 +116,30 @@ class Product extends Model
         if (!$this->hasDiscount()) return 0;
         return (int) round((1 - $this->price / $this->old_price) * 100);
     }
+
+    /**
+     * Check if the product is in stock.
+     * If it has active colors, at least one color must have stock > 0.
+     * If no colors, product-level stock is used.
+     */
+    public function isInStock(): bool
+    {
+        if ($this->stock > 0 && $this->activeColors()->count() === 0) {
+            return true;
+        }
+        return $this->activeColors()->where('stock', '>', 0)->exists() || $this->stock > 0;
+    }
+
+    /**
+     * Get effective total stock across all active color variants.
+     * Falls back to product-level stock if no colors exist.
+     */
+    public function getEffectiveStock(): int
+    {
+        $colors = $this->activeColors;
+        if ($colors->isEmpty()) {
+            return $this->stock;
+        }
+        return $colors->sum('stock');
+    }
 }

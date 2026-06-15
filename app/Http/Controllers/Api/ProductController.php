@@ -52,7 +52,12 @@ class ProductController extends Controller
 
         // Filter by stock availability
         if ($request->boolean('in_stock')) {
-            $query->where('stock', '>', 0);
+            $query->where(function ($q) {
+                $q->where('stock', '>', 0)
+                  ->orWhereHas('colors', function ($cq) {
+                      $cq->where('is_active', true)->where('stock', '>', 0);
+                  });
+            });
         }
 
         // Filter by featured

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\ProductColor;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -95,6 +96,13 @@ class RefundController extends Controller
                 ]);
 
                 foreach ($order->items as $item) {
+                    if ($item->variant) {
+                        $productColor = ProductColor::where('product_id', $item->product_id)
+                            ->where('color_slug', $item->variant)->first();
+                        if ($productColor) {
+                            $productColor->increment('stock', $item->quantity);
+                        }
+                    }
                     $item->product->increment('stock', $item->quantity);
                 }
 

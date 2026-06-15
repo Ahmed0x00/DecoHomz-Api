@@ -98,7 +98,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </div>
           @foreach($colors as $i => $color)
-            <div class="color-swatch" style="background:{{ $color->hex_code ?? '#4A3626' }}" title="{{ $color->name }}" data-color="{{ $color->name ?? 'Standard' }}" data-color-slug="{{ $color->color_slug ?? '' }}" data-price-modifier="{{ $color->price_modifier ?? 0 }}" onclick="selectColor(this)"></div>
+            <div class="color-swatch" style="background:{{ $color->hex_code ?? '#4A3626' }}" title="{{ $color->name }}" data-color="{{ $color->name ?? 'Standard' }}" data-color-slug="{{ $color->color_slug ?? '' }}" data-price-modifier="{{ $color->price_modifier ?? 0 }}" data-stock="{{ $color->stock ?? 0 }}" onclick="selectColor(this)"></div>
           @endforeach
         </div>
         <input type="hidden" id="selected-color" value="">
@@ -275,7 +275,8 @@ const PRODUCT = {
   slug: "{{ addslashes($product->slug ?? '') }}",
   name: "{{ addslashes($product->name ?? 'Product') }}",
   price: {{ $product->price ?? 0 }},
-  stock: {{ $product->stock ?? 0 }}
+  stock: {{ $product->stock ?? 0 }},
+  colors: @json($product->activeColors->map(fn($c) => ['slug' => $c->color_slug, 'name' => $c->name, 'stock' => $c->stock]))
 };
 
 const BASE_PRICE = PRODUCT.price;
@@ -308,6 +309,7 @@ function selectColor(el) {
   const color = el.getAttribute('data-color') || 'Standard';
   const colorSlug = el.getAttribute('data-color-slug') || '';
   const priceModifier = parseFloat(el.getAttribute('data-price-modifier')) || 0;
+  const colorStock = parseInt(el.getAttribute('data-stock'), 10) || 0;
 
   document.querySelectorAll('.color-swatch').forEach(function(sw) { sw.classList.remove('active'); });
   el.classList.add('active');
@@ -321,6 +323,32 @@ function selectColor(el) {
   if (mainPrice) mainPrice.textContent = 'EGP ' + newPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
   const stickyPrice = document.querySelector('.sticky-main-price');
   if (stickyPrice) stickyPrice.textContent = 'EGP ' + newPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+  // Update stock badge and button state based on selected color stock
+  const btn = document.getElementById('add-btn');
+  const priceBlock = document.querySelector('.price-block');
+  const existingBadge = priceBlock ? priceBlock.querySelector('.stock-badge') : null;
+
+  if (colorSlug && colorStock <= 0) {
+    if (btn) { btn.disabled = true; btn.querySelector('span').textContent = "{{ __('Out of Stock') }}"; }
+    if (priceBlock && !existingBadge) {
+      priceBlock.insertAdjacentHTML('beforeend', '<div class="stock-badge out-of-stock">{{ __("Out of Stock") }}</div>');
+    }
+  } else if (colorSlug && colorStock > 0) {
+    if (btn) { btn.disabled = false; btn.querySelector('span').textContent = "{{ __('Add to Cart') }}"; }
+    if (existingBadge) existingBadge.remove();
+  } else {
+    // No color selected — fall back to product-level stock
+    if (PRODUCT.stock <= 0) {
+      if (btn) { btn.disabled = true; btn.querySelector('span').textContent = "{{ __('Out of Stock') }}"; }
+      if (priceBlock && !existingBadge) {
+        priceBlock.insertAdjacentHTML('beforeend', '<div class="stock-badge out-of-stock">{{ __("Out of Stock") }}</div>');
+      }
+    } else {
+      if (btn) { btn.disabled = false; btn.querySelector('span').textContent = "{{ __('Add to Cart') }}"; }
+      if (existingBadge) existingBadge.remove();
+    }
+  }
 }
 window.selectColor = selectColor;
 
@@ -338,13 +366,31 @@ function updateLocalQty(delta) {
 window.updateLocalQty = updateLocalQty;
 
 async function submitAddToCart() {
-  if (PRODUCT.stock <= 0) {
-    showToast("{{ __('This product is out of stock.') }}", 'error');
-    return;
-  }
-
   const qty = parseInt(document.getElementById('selected-qty').value, 10) || 1;
   const colorSlug = document.getElementById('selected-color').value;
+
+  // Check stock: if a color is selected, check color-level stock; otherwise check product-level
+  if (colorSlug) {
+    const colorData = PRODUCT.colors.find(function(c) { return c.slug === colorSlug; });
+    if (colorData && colorData.stock <= 0) {
+      showToast("{{ __('This color is out of stock.') }}", 'error');
+      return;
+    }
+    if (colorData && qty > colorData.stock) {
+      showToast("{{ __('Only') }} " + colorData.stock + " {{ __('in stock for this color.') }}", 'error');
+      return;
+    }
+  } else {
+    if (PRODUCT.stock <= 0) {
+      showToast("{{ __('This product is out of stock.') }}", 'error');
+      return;
+    }
+    if (qty > PRODUCT.stock) {
+      showToast("{{ __('Only') }} " + PRODUCT.stock + " {{ __('in stock.') }}", 'error');
+      return;
+    }
+  }
+
   const btn = document.getElementById('add-btn');
 
   if (!window.Cart || typeof Cart.add !== 'function') return;

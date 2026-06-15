@@ -37,7 +37,15 @@ class ProductController extends Controller
 
         // Filter by stock status
         if ($request->has('low_stock')) {
-            $query->where('stock', '<=', 5);
+            $query->where(function ($q) {
+                $q->where('stock', '<=', 5)
+                  ->orWhere(function ($sub) {
+                      $sub->where('stock', '<=', 0)
+                          ->orWhereHas('colors', function ($cq) {
+                              $cq->where('is_active', true)->where('stock', '<=', 5);
+                          });
+                  });
+            });
         }
 
         // Search

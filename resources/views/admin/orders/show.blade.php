@@ -550,12 +550,30 @@
                     </div>
                     ${order.refund_status === 'pending' ? `
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
-                            <button onclick="handleRefund('approve')" class="premium-btn" style="background:#16a34a;">Approve</button>
-                            <button onclick="handleRefund('reject')" class="premium-btn" style="background:#dc2626;">Reject</button>
+                            <button onclick="handleOrderRefund('${orderId}', 'approve')" class="premium-btn" style="background:#16a34a;">Approve</button>
+                            <button onclick="handleOrderRefund('${orderId}', 'reject')" class="premium-btn" style="background:#dc2626;">Reject</button>
                         </div>
                     ` : ''}
                 </div>
             `;
+        }
+
+        function handleOrderRefund(id, action) {
+            var confirmed = confirm(action === 'approve'
+                ? 'Approve this refund? Stock will be restored and payment marked as refunded.'
+                : 'Reject this refund request?');
+            if (!confirmed) return;
+
+            API.post('/admin/refunds/' + id + '/handle', { action: action })
+            .then(function(data) {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.success);
+                    loadOrder();
+                }
+            })
+            .catch(function(e) { alert(e.data?.error || 'Failed to process refund.'); });
         }
 
         function formatDate(str) {

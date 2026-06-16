@@ -320,10 +320,25 @@ function changeImage(el, url) {
     mainImg.src = url;
     mainImg.style.opacity = '1';
   }, 200);
+
+  // Toggle the current color selected to the color of this image
+  const thumbColorId = el.getAttribute('data-color-id');
+  if (thumbColorId) {
+    const swatch = document.querySelector(`.color-swatch[data-color-id="${thumbColorId}"]`);
+    if (swatch && !swatch.classList.contains('active')) {
+      selectColor(swatch, false, el);
+    }
+  } else {
+    // If it's a general image (no color), toggle color selected to "Standard" (no color swatch)
+    const standardSwatch = document.querySelector('.color-swatch-none');
+    if (standardSwatch && !standardSwatch.classList.contains('active')) {
+      selectColor(standardSwatch, false, el);
+    }
+  }
 }
 window.changeImage = changeImage;
 
-function selectColor(el, updateImage = true) {
+function selectColor(el, updateImage = true, specificThumb = null) {
   const color = el.getAttribute('data-color') || 'Standard';
   const colorId = el.getAttribute('data-color-id') || '';
   const colorSlug = el.getAttribute('data-color-slug') || '';
@@ -373,7 +388,7 @@ function selectColor(el, updateImage = true) {
   });
 
   // Update main image: prefer the first color-specific image if found, else the first general image
-  const targetThumb = firstVisibleColorSpecificThumb || firstVisibleThumb;
+  const targetThumb = specificThumb || firstVisibleColorSpecificThumb || firstVisibleThumb;
   if (targetThumb) {
     targetThumb.classList.add('active');
     if (updateImage) {

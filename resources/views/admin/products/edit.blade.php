@@ -249,7 +249,8 @@
         // Try fallback if URL is /admin/products/edit/{id} or similar
         productId = pathParts[pathParts.length - 1];
     }
-    await Promise.all([loadProduct(), loadCategories()]);
+    await loadCategories();
+    await loadProduct();
   });
 
   async function loadProduct() {
@@ -257,6 +258,7 @@
       var res = await API.get('/admin/products/' + productId);
       productData = res.data || res.product || res;
       if (!productData || !productData.id) throw new Error('Not found');
+      await loadColors();
       populateForm(productData);
       document.getElementById('loading-state').style.display = 'none';
       document.getElementById('edit-form').style.display = 'block';
@@ -302,8 +304,7 @@
     document.getElementById('field-max_viewing_count').value = p.max_viewing_count !== null ? p.max_viewing_count : '';
     document.getElementById('field-is_featured').checked = !!(p.is_featured == 1 || p.is_featured === true);
     document.getElementById('field-is_active').checked = !!(p.is_active == 1 || p.is_active === true);
-
-    // Category is set by loadCategories() after options are populated
+    document.getElementById('field-category_id').value = p.category_id || '';
 
     renderImageGallery(p.images || []);
   }
@@ -354,7 +355,7 @@
         '<img src="' + (img.image_url || img.url || '/img/placeholder.svg') + '" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.src=\'/img/placeholder.svg\'">' +
         '<div id="primary-badge-' + img.id + '" style="position:absolute;top:4px;left:4px;background:#c9a96e;color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;box-shadow:0 1px 2px rgba(0,0,0,0.2);' + (isPrimary ? '' : 'display:none;') + '">★ Primary</div>' +
         '<button type="button" onclick="queueDeleteImage(' + img.id + ')" title="Delete Image" style="position:absolute;top:4px;right:4px;width:20px;height:20px;background:#ef4444;color:#fff;border:none;border-radius:50%;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(0,0,0,0.2);">×</button>' +
-        '<button type="button" onclick="markAsPrimary(' + img.id + ')" id="primary-btn-' + img.id + '" style="position:absolute;bottom:4px;left:4px;right:4px;padding:4px;font-size:10px;background:rgba(255,255,255,0.95);border:1px solid #e5e5e5;border-radius:4px;cursor:pointer;font-weight:600;color:#555;backdrop-filter:blur(2px);' + (isPrimary ? 'display:none;' : '') + '">Set Primary</button>' +
+        (isGeneral ? '<button type="button" onclick="markAsPrimary(' + img.id + ')" id="primary-btn-' + img.id + '" style="position:absolute;bottom:4px;left:4px;right:4px;padding:4px;font-size:10px;background:rgba(255,255,255,0.95);border:1px solid #e5e5e5;border-radius:4px;cursor:pointer;font-weight:600;color:#555;backdrop-filter:blur(2px);' + (isPrimary ? 'display:none;' : '') + '">Set Primary</button>' : '') +
       '</div>';
       
       var temp = document.createElement('div');
@@ -574,7 +575,9 @@
     payload[field] = value;
     API.put('/admin/products/' + productId + '/colors/' + id, payload).then(function() {
       color[field] = value;
-      renderColorList();
+      renderColors();
+      if (productData && productData.images) renderImageGallery(productData.images);
+      renderNewImagePreviews();
       showToast('Color updated.', 'success');
     }).catch(function() {
       showToast('Failed to update color.', 'error');
@@ -585,7 +588,9 @@
     API.patch('/admin/products/' + productId + '/colors/' + id + '/toggle').then(function(res) {
       var color = productColors.find(function(c) { return c.id == id; });
       if (color) color.is_active = res.is_active;
-      renderColorList();
+      renderColors();
+      if (productData && productData.images) renderImageGallery(productData.images);
+      renderNewImagePreviews();
       showToast('Color status updated.', 'success');
     }).catch(function() {
       showToast('Failed to toggle color.', 'error');
@@ -596,10 +601,11 @@
     if (!confirm('Delete this color?')) return;
     API.del('/admin/products/' + productId + '/colors/' + id).then(function() {
       productColors = productColors.filter(function(c) { return c.id != id; });
-      renderColorList();
+      renderColors();
       if (productData && productData.images) {
         renderImageGallery(productData.images);
       }
+      renderNewImagePreviews();
       showToast('Color deleted.', 'success');
     }).catch(function() {
       showToast('Failed to delete color.', 'error');
@@ -627,10 +633,11 @@
       document.getElementById('new-color-preview').value = '#1a365d';
       document.getElementById('new-color-price').value = '';
       document.getElementById('new-color-stock').value = '';
-      renderColorList();
+      renderColors();
       if (productData && productData.images) {
         renderImageGallery(productData.images);
       }
+      renderNewImagePreviews();
       showToast('Color added!', 'success');
     }).catch(function() {
       showToast('Failed to add color.', 'error');
@@ -642,12 +649,7 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  // Load colors after product loads
-  var _origPopulate = populateForm;
-  populateForm = function(p) {
-    _origPopulate(p);
-    loadColors();
-  };
+  // Monkey patch removed as loadColors is now awaited before populateForm
 })();
 </script>
 @endsection

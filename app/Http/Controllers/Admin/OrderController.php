@@ -46,8 +46,13 @@ class OrderController extends Controller
     {
         $order = Order::with(['user', 'items.product', 'shippingAddress', 'coupon'])->findOrFail($id);
 
+        // Append color explicitly to avoid N+1 globally but ensure it is in the API response
+        $order->items->each(function ($item) {
+            $item->append('color');
+        });
+
         return response()->json([
-            'data' => $order->load(['user', 'items.product', 'shippingAddress', 'coupon']),
+            'data' => $order,
         ]);
     }
 

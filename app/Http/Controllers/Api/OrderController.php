@@ -64,6 +64,10 @@ class OrderController extends Controller
             return response()->json(['message' => 'Order not found'], 404);
         }
 
+        $order->items->each(function ($item) {
+            $item->append('color');
+        });
+
         return response()->json(['order' => $order]);
     }
 
@@ -367,7 +371,7 @@ class OrderController extends Controller
 
         // Verify ownership: authenticated user or guest session
         $user = $this->getUserFromToken($request);
-        $sessionId = $request->header('X-Session-ID');
+        $sessionId = $request->header('X-Session-ID') ?? $request->cookie('session_id');
         $isOwner = $user && $order->user_id && (int)$order->user_id === (int)$user->id;
         $isGuest = !$order->user_id && $sessionId && (
             $order->session_id === $sessionId ||

@@ -65,6 +65,7 @@ Route::middleware('activity.log')->group(function () {
     // Orders — public for creation (guests and auth), protected for read/cancel
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders', [OrderController::class, 'index']);
+    Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
 
     // Contact (Public)
     Route::post('/contact', [ContactController::class, 'store']);
@@ -91,7 +92,6 @@ Route::middleware('activity.log')->group(function () {
 
         // User Orders
         Route::get('/orders/{id}', [OrderController::class, 'show']);
-        Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
 
         // Wishlist
         Route::get('/wishlist', [WishlistController::class, 'index']);

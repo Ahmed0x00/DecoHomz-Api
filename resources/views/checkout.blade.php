@@ -39,6 +39,15 @@ let checkoutState = {
   currentStep: 1,
   paymentMethod: 'cod',
   formSnapshot: {
+    shipFirstName: '',
+    shipLastName: '',
+    shipEmail: '',
+    shipAddress: '',
+    shipAddress2: '',
+    shipCity: '',
+    shipGovernorate: '',
+    shipPostal: '',
+    shipPhone: '',
     cardName: '',
     cardNumber: '',
     cardExpiry: '',
@@ -161,25 +170,26 @@ function renderShippingStep() {
   var formDisplay = hasSaved && checkoutState.selectedAddressId ? 'none' : 'block';
   html += '<div id="new-address-form" style="display:' + formDisplay + '">' +
             '<div class="form-grid">' +
-              '<div class="field"><label>' + "{{ __('First Name') }}" + ' *</label><input type="text" id="ship-first-name" required></div>' +
-              '<div class="field"><label>' + "{{ __('Last Name') }}" + ' *</label><input type="text" id="ship-last-name" required></div>' +
-              '<div class="field full"><label>' + "{{ __('Email') }}" + ' *</label><input type="email" id="ship-email" required></div>' +
-              '<div class="field full"><label>' + "{{ __('Street Address') }}" + ' *</label><input type="text" id="ship-address" required></div>' +
-              '<div class="field full"><label>' + "{{ __('Address Line 2') }}" + '</label><input type="text" id="ship-address2"></div>' +
-              '<div class="field"><label>' + "{{ __('City') }}" + ' *</label><input type="text" id="ship-city" required></div>' +
+              '<div class="field"><label>' + "{{ __('First Name') }}" + ' *</label><input type="text" id="ship-first-name" value="' + esc(checkoutState.formSnapshot.shipFirstName) + '" required></div>' +
+              '<div class="field"><label>' + "{{ __('Last Name') }}" + ' *</label><input type="text" id="ship-last-name" value="' + esc(checkoutState.formSnapshot.shipLastName) + '" required></div>' +
+              '<div class="field full"><label>' + "{{ __('Email') }}" + ' *</label><input type="email" id="ship-email" value="' + esc(checkoutState.formSnapshot.shipEmail) + '" required></div>' +
+              '<div class="field full"><label>' + "{{ __('Street Address') }}" + ' *</label><input type="text" id="ship-address" value="' + esc(checkoutState.formSnapshot.shipAddress) + '" required></div>' +
+              '<div class="field full"><label>' + "{{ __('Address Line 2') }}" + '</label><input type="text" id="ship-address2" value="' + esc(checkoutState.formSnapshot.shipAddress2) + '"></div>' +
+              '<div class="field"><label>' + "{{ __('City') }}" + ' *</label><input type="text" id="ship-city" value="' + esc(checkoutState.formSnapshot.shipCity) + '" required></div>' +
               '<div class="field"><label>' + "{{ __('Governorate') }}" + ' *</label>' +
                 '<select id="ship-governorate">' +
                   '<option value="">' + "{{ __('Select Governorate') }}" + '</option>';
 
   checkoutState.governorates.forEach(function(gov) {
-    html += '<option value="' + esc(gov.governorate_name) + '" data-fee="' + (gov.delivery_fee || 0) + '" data-free="' + (gov.min_free_delivery_order || 0) + '">' +
+    var isSelected = (checkoutState.formSnapshot.shipGovernorate === gov.governorate_name) ? ' selected' : '';
+    html += '<option value="' + esc(gov.governorate_name) + '" data-fee="' + (gov.delivery_fee || 0) + '" data-free="' + (gov.min_free_delivery_order || 0) + '"' + isSelected + '>' +
               esc(gov.governorate_name) + ' — EGP ' + (gov.delivery_fee || 0) +
             '</option>';
   });
 
   html +=       '</select></div>' +
-              '<div class="field"><label>' + "{{ __('Postal Code') }}" + ' *</label><input type="text" id="ship-postal" required></div>' +
-              '<div class="field"><label>' + "{{ __('Phone') }}" + ' *</label><input type="tel" id="ship-phone" required></div>' +
+              '<div class="field"><label>' + "{{ __('Postal Code') }}" + ' *</label><input type="text" id="ship-postal" value="' + esc(checkoutState.formSnapshot.shipPostal) + '" required></div>' +
+              '<div class="field"><label>' + "{{ __('Phone') }}" + ' *</label><input type="tel" id="ship-phone" value="' + esc(checkoutState.formSnapshot.shipPhone) + '" required></div>' +
             '</div>' +
           '</div>';
 
@@ -196,11 +206,20 @@ function renderShippingStep() {
 function captureFormState() {
   var s = checkoutState.formSnapshot;
   var el;
+  el = document.getElementById('ship-first-name'); if (el) s.shipFirstName = el.value;
+  el = document.getElementById('ship-last-name');  if (el) s.shipLastName = el.value;
+  el = document.getElementById('ship-email');      if (el) s.shipEmail = el.value;
+  el = document.getElementById('ship-address');    if (el) s.shipAddress = el.value;
+  el = document.getElementById('ship-address2');   if (el) s.shipAddress2 = el.value;
+  el = document.getElementById('ship-city');       if (el) s.shipCity = el.value;
+  el = document.getElementById('ship-governorate');if (el) s.shipGovernorate = el.value;
+  el = document.getElementById('ship-postal');     if (el) s.shipPostal = el.value;
+  el = document.getElementById('ship-phone');      if (el) s.shipPhone = el.value;
   el = document.getElementById('card-name');       if (el) s.cardName = el.value;
   el = document.getElementById('card-number');     if (el) s.cardNumber = el.value;
   el = document.getElementById('card-expiry');     if (el) s.cardExpiry = el.value;
   el = document.getElementById('card-cvv');        if (el) s.cardCvv = el.value;
-  el = document.getElementById('order-notes');    if (el) s.orderNotes = el.value;
+  el = document.getElementById('order-notes');     if (el) s.orderNotes = el.value;
 }
 
 function renderPaymentStep() {

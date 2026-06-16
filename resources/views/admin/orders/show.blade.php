@@ -470,14 +470,22 @@
                 const product = item.product || {};
                 const image = product.image || product.product_image || '';
                 const color = item.color || null;
-                const colorHtml = color
-                    ? `<span style="display:inline-flex;align-items:center;gap:6px;margin-top:4px;font-size:12px;color:var(--text-muted)"><span style="width:12px;height:12px;border-radius:50%;background:${esc(color.hex_code)};border:1px solid var(--border);flex-shrink:0"></span>${esc(color.name)}</span>`
-                    : '';
+                const variantName = item.variant || 'Standard';
+                
+                let colorHtml = '';
+                if (color) {
+                    colorHtml = `<span style="display:inline-flex;align-items:center;gap:6px;margin-top:4px;font-size:12px;color:var(--text-muted)"><span style="width:12px;height:12px;border-radius:50%;background:${esc(color.hex_code)};border:1px solid var(--border);flex-shrink:0"></span>${esc(color.name)}</span>`;
+                } else {
+                    colorHtml = `<span style="display:inline-flex;align-items:center;margin-top:4px;font-size:12px;color:var(--text-muted);font-weight:500;">Color: ${esc(variantName)}</span>`;
+                }
+                
                 return `
                     <div class="item-row">
                         ${image ? `<img src="${image}" class="item-img">` : '<div class="item-img"></div>'}
                         <div class="item-details">
-                            <div class="item-name">${esc(item.name || product.name || 'Unknown Item')}</div>
+                            <div class="item-name">
+                                <a href="/admin/products/${product.id}/edit" target="_blank" style="color:var(--primary);text-decoration:none;" title="View Product Details">${esc(item.name || product.name || 'Unknown Item')}</a>
+                            </div>
                             <div class="item-meta">Quantity: ${item.quantity} × ${parseFloat(item.price).toFixed(2)} EGP</div>
                             ${colorHtml}
                         </div>

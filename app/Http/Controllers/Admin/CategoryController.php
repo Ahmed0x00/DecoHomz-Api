@@ -21,7 +21,7 @@ class CategoryController extends Controller
             ->withCount('products')
             ->get();
 
-        ActivityLog::categories($request, 'List Categories', "Admin viewed categories list");
+        ActivityLog::categories($request, 'List Categories', ActivityLog::userName($request) . " viewed categories list");
 
         return response()->json([
             'data' => $categories,
@@ -47,7 +47,7 @@ class CategoryController extends Controller
 
         $category = Category::create($validated);
 
-        ActivityLog::categories($request, 'Create Category', "Admin created new category: {$category->name}", $category);
+        ActivityLog::categories($request, 'Create Category', ActivityLog::userName($request) . " created new category: {$category->name}", $category);
 
         return response()->json([
             'message' => 'Category created successfully',
@@ -93,7 +93,7 @@ class CategoryController extends Controller
 
         $category->update($validated);
 
-        ActivityLog::categories($request, 'Update Category', "Admin updated category: {$category->name}", $category);
+        ActivityLog::categories($request, 'Update Category', ActivityLog::userName($request) . " updated category: {$category->name}", $category);
 
         return response()->json([
             'message' => 'Category updated successfully',
@@ -106,7 +106,7 @@ class CategoryController extends Controller
         $category = Category::withCount('products')->findOrFail($id);
 
         if ($category->products_count > 0) {
-            ActivityLog::categories($request, 'Delete Category Denied', "Admin tried to delete category '{$category->name}' which has {$category->products_count} products", $category, 'warning');
+            ActivityLog::categories($request, 'Delete Category Denied', ActivityLog::userName($request) . " tried to delete category '{$category->name}' which has {$category->products_count} products", $category, 'warning');
             return response()->json([
                 'message' => 'Cannot delete category with associated products. Please remove or reassign products first.',
             ], 422);
@@ -118,7 +118,7 @@ class CategoryController extends Controller
             (new CloudflareService())->purgeStoragePaths([$category->image]);
         }
 
-        ActivityLog::categories($request, 'Delete Category', "Admin deleted category: {$category->name} (#{$id})", ['type' => 'category', 'id' => $id], 'deletion');
+        ActivityLog::categories($request, 'Delete Category', ActivityLog::userName($request) . " deleted category: {$category->name} (#{$id})", ['type' => 'category', 'id' => $id], 'deletion');
         $category->delete();
 
         return response()->json([
@@ -133,7 +133,7 @@ class CategoryController extends Controller
         $category->update(['is_active' => $newStatus]);
 
         $statusText = $newStatus ? 'Active' : 'Inactive';
-        ActivityLog::categories($request, 'Toggle Category Status', "Changed category '{$category->name}' status to {$statusText}", $category);
+        ActivityLog::categories($request, 'Toggle Category Status', ActivityLog::userName($request) . " changed category '{$category->name}' status to {$statusText}", $category);
 
         return response()->json([
             'message' => 'Category status updated',

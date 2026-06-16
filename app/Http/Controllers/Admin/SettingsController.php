@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Models\ActivityLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -42,6 +43,8 @@ class SettingsController extends Controller
         }
 
         $settings = Setting::pluck('value', 'key');
+
+        ActivityLog::settings($request, 'Update Settings', ActivityLog::userName($request) . " updated " . count($validated['settings']) . " setting(s): " . implode(', ', array_keys($validated['settings'])));
 
         return response()->json([
             'message' => 'Settings updated successfully',

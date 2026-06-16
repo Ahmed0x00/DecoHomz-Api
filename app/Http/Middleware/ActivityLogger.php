@@ -62,7 +62,6 @@ class ActivityLogger
             $path = $request->path();
             if (preg_match('/api\/products\/\d+$/', $path)) return true;
             if (preg_match('/api\/categories\/\d+$/', $path)) return true;
-            if (str_contains($path, 'cart') && !str_contains($path, 'admin')) return true;
         }
 
         return false;
@@ -101,6 +100,7 @@ class ActivityLogger
 
         ActivityLog::create([
             'user_id' => $user ? $user->id : null,
+            'user_identifier' => ActivityLog::userName($request),
             'action' => $action,
             'resource_type' => $resourceType,
             'resource_id' => $resourceId,

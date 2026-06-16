@@ -65,7 +65,13 @@ document.addEventListener('DOMContentLoaded', function() {
     renderCart();
 
     // Badges
-    if (window.Cart && Cart.updateBadge) Cart.updateBadge();
+    if (window.Cart && Cart.updateBadge) {
+        // Skip fetching badge count on cart/checkout pages to avoid duplicate requests,
+        // since those pages load the cart details and update the badge themselves.
+        if (window.location.pathname !== '/cart' && window.location.pathname !== '/checkout') {
+            Cart.updateBadge();
+        }
+    }
 });
 
 

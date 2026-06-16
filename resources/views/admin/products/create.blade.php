@@ -129,9 +129,9 @@
             <div id="image-drop-zone" style="border:2px dashed #e5e7eb;border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:all 0.2s;" onclick="document.getElementById('field-images').click()">
               <svg style="width:32px;height:32px;color:#cbd5e1;margin:0 auto 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
               <p style="font-size:13px;color:#94a3b8;margin:0 0 4px;">Click or drag images here</p>
-              <p style="font-size:11px;color:#cbd5e1;margin:0;">JPEG, PNG, JPG, WEBP — max 2MB each</p>
+              <p style="font-size:11px;color:#cbd5e1;margin:0;">General product images (not specific to a color)</p>
             </div>
-            <input type="file" name="images[]" id="field-images" multiple accept="image/*" style="display:none;" onchange="handleImageSelect(this)">
+            <input type="file" name="images[]" id="field-images" multiple accept="image/*" style="display:none;" onchange="handleImageSelect(this, '')">
             <div id="image-preview" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;"></div>
           </div>
         </div>
@@ -143,10 +143,10 @@
             <span id="colors-count" style="font-size:12px;color:#888;">0 colors</span>
           </div>
           <div style="padding:24px;">
-            <div id="color-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:20px;"></div>
+            <div id="color-list" style="display:flex;flex-direction:column;gap:16px;margin-bottom:20px;"></div>
             <div style="border-top:1px solid #f3f4f6;padding-top:20px;">
               <p style="font-size:12px;font-weight:600;color:#888;margin:0 0 14px;text-transform:uppercase;letter-spacing:0.5px;">Add Color</p>
-              <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end;">
+              <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:12px;align-items:end;">
                 <div>
                   <label style="font-size:11px;color:#64748b;display:block;margin-bottom:4px;">Color Name *</label>
                   <input type="text" id="new-color-name" placeholder="e.g. Navy Blue" style="width:100%;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:6px;font-size:13px;">
@@ -154,8 +154,8 @@
                 <div>
                   <label style="font-size:11px;color:#64748b;display:block;margin-bottom:4px;">Hex Code *</label>
                   <div style="display:flex;gap:6px;align-items:center;">
-                    <input type="color" id="new-color-preview" value="#1a365d" onchange="document.getElementById('new-color-hex').value=this.value" style="width:36px;height:36px;border:none;background:none;cursor:pointer;border-radius:6px;padding:0;">
-                    <input type="text" id="new-color-hex" placeholder="#1a365d" value="#1a365d" style="flex:1;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:6px;font-size:13px;font-family:monospace;">
+                    <input type="color" id="new-color-preview" value="#1a365d" onchange="document.getElementById('new-color-hex').value=this.value" style="width:36px;height:36px;border:none;background:none;cursor:pointer;border-radius:6px;padding:0;flex-shrink:0;">
+                    <input type="text" id="new-color-hex" placeholder="#1a365d" value="#1a365d" style="width:100%;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:6px;font-size:13px;font-family:monospace;">
                   </div>
                 </div>
                 <div>
@@ -166,7 +166,7 @@
                   <label style="font-size:11px;color:#64748b;display:block;margin-bottom:4px;">Stock</label>
                   <input type="number" id="new-color-stock" placeholder="0" min="0" style="width:100%;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:6px;font-size:13px;">
                 </div>
-                <button type="button" onclick="addNewColor()" style="background:#1e293b;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">+ Add</button>
+                <button type="button" onclick="addNewColor()" style="background:#1e293b;color:#fff;border:none;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;height:36px;transition:opacity 0.2s;">+ Add Color</button>
               </div>
             </div>
           </div>
@@ -212,10 +212,17 @@
           </div>
         </div>
 
-        <button type="submit" id="submit-btn" style="width:100%;background:#1e293b;color:#fff;border:none;padding:14px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">
-          + Create Product
-        </button>
-        <a href="/admin/products" style="display:block;text-align:center;margin-top:10px;color:#888;font-size:13px;text-decoration:none;">Cancel</a>
+        <!-- Save Actions -->
+        <div class="admin-card">
+          <div style="padding:24px;display:flex;flex-direction:column;gap:12px;">
+            <button type="submit" id="submit-btn" style="width:100%;padding:14px;background:#1e293b;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:opacity 0.2s;">
+              + Create Product
+            </button>
+            <a href="/admin/products" style="display:block;width:100%;padding:14px;background:#f3f4f6;color:#64748b;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;text-align:center;text-decoration:none;transition:background 0.2s;">
+              Cancel
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </form>
@@ -277,28 +284,61 @@
 
   var selectedImages = [];
 
-  window.handleImageSelect = function(input) {
+  window.handleImageSelect = function(input, colorName) {
     if (!input.files) return;
     for (var i = 0; i < input.files.length; i++) {
-      selectedImages.push(input.files[i]);
+      var file = input.files[i];
+      if (colorName) file.color_name = colorName;
+      selectedImages.push(file);
     }
+    input.value = ''; // Reset input to allow selecting same files again
     renderImagePreviews();
   };
 
   function renderImagePreviews() {
-    var preview = document.getElementById('image-preview');
+    var generalPreview = document.getElementById('image-preview');
     var count = document.getElementById('images-count');
-    preview.innerHTML = '';
+    generalPreview.innerHTML = '';
+    
+    // Keep only the 'add' button in color previews
+    pendingColors.forEach(function(c) {
+      var safeName = c.name.replace(/\s+/g,'-');
+      var container = document.getElementById('color-preview-' + safeName);
+      if (container) {
+        var addBtn = container.querySelector('.add-btn');
+        container.innerHTML = '';
+        if (addBtn) container.appendChild(addBtn);
+      }
+    });
+
     count.textContent = selectedImages.length + ' image' + (selectedImages.length !== 1 ? 's' : '');
+    
     selectedImages.forEach(function(file, index) {
       var reader = new FileReader();
       reader.onload = function(e) {
+        var isGeneral = !file.color_name;
+        var safeName = file.color_name ? file.color_name.replace(/\s+/g,'-') : '';
+        var container = isGeneral ? generalPreview : document.getElementById('color-preview-' + safeName);
+        
+        // Fallback to general if color was deleted
+        if (!isGeneral && !container) {
+          isGeneral = true;
+          file.color_name = null;
+          container = generalPreview;
+        }
+        
         var div = document.createElement('div');
-        div.style.position = 'relative';
-        div.style.width = '90px';
-        div.innerHTML = '<img src="' + e.target.result + '" style="width:90px;height:70px;object-fit:cover;border-radius:6px;border:1px solid #e5e7eb;">' +
-          '<button type="button" onclick="removeImage(' + index + ')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;background:#ef4444;color:#fff;border:none;border-radius:50%;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>';
-        preview.appendChild(div);
+        div.style = 'position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1px solid #e5e5e5;box-shadow:0 1px 2px rgba(0,0,0,0.05);';
+        if (isGeneral) div.style = 'position:relative;width:110px;height:110px;border-radius:8px;overflow:hidden;border:1px solid #e5e5e5;box-shadow:0 1px 2px rgba(0,0,0,0.05);';
+
+        div.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">
+          <button type="button" onclick="removeImage(${index})" title="Remove Selection" style="position:absolute;top:4px;right:4px;width:20px;height:20px;background:#ef4444;color:#fff;border:none;border-radius:50%;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(0,0,0,0.2);">×</button>`;
+
+        if (isGeneral) {
+          container.appendChild(div);
+        } else {
+          container.insertBefore(div, container.lastElementChild);
+        }
       };
       reader.readAsDataURL(file);
     });
@@ -327,12 +367,14 @@
     document.getElementById('new-color-price').value = '';
     document.getElementById('new-color-stock').value = '';
     renderColorList();
+    renderImagePreviews();
     showToast('Color added!', 'success');
   };
 
   window.removeColor = function(index) {
     pendingColors.splice(index, 1);
     renderColorList();
+    renderImagePreviews();
   };
 
   function renderColorList() {
@@ -346,15 +388,27 @@
     countEl.textContent = pendingColors.length + ' color' + (pendingColors.length !== 1 ? 's' : '');
     list.innerHTML = pendingColors.map(function(c, i) {
       var priceText = c.price_modifier > 0 ? '+' + c.price_modifier + ' EGP' : (c.price_modifier < 0 ? c.price_modifier + ' EGP' : 'Base price');
-      return '<div style="padding:10px 12px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;">' +
-        '<div style="display:flex;align-items:center;gap:10px;">' +
+      var safeName = c.name.replace(/\s+/g,'-');
+      var jsSafeName = escHtml(c.name).replace(/'/g,"\\'");
+      return '<div style="padding:16px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;">' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">' +
           '<div style="width:26px;height:26px;border-radius:50%;background:' + escHtml(c.hex_code) + ';border:2px solid #e5e7eb;flex-shrink:0;"></div>' +
           '<div style="flex:1;min-width:0;">' +
             '<div style="font-size:13px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(c.name) + '</div>' +
             '<div style="font-size:11px;color:#64748b;">' + priceText + ' · Stock: ' + c.stock + '</div>' +
           '</div>' +
           '<button type="button" onclick="removeColor(' + i + ')" style="background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">Remove</button>' +
-        '</div></div>';
+        '</div>' +
+        '<div style="border-top:1px dashed #cbd5e1;padding-top:12px;">' +
+          '<div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:8px;">Images for ' + escHtml(c.name) + '</div>' +
+          '<div style="display:flex;flex-wrap:wrap;gap:8px;" id="color-preview-' + escHtml(safeName) + '">' +
+            '<div class="add-btn" onclick="document.getElementById(\'field-images-' + escHtml(safeName) + '\').click()" style="width:60px;height:60px;border:1px dashed #cbd5e1;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;flex-shrink:0;">' +
+              '<svg style="width:20px;height:20px;color:#cbd5e1;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v16m8-8H4"/></svg>' +
+            '</div>' +
+          '</div>' +
+          '<input type="file" id="field-images-' + escHtml(safeName) + '" multiple accept="image/*" style="display:none;" onchange="handleImageSelect(this, \'' + jsSafeName + '\')">' +
+        '</div>' +
+      '</div>';
     }).join('');
   }
 
@@ -377,6 +431,7 @@
     formData.delete('images[]');
     for (var i = 0; i < selectedImages.length; i++) {
       formData.append('images[]', selectedImages[i]);
+      formData.append('image_colors[]', selectedImages[i].color_name || '');
     }
 
     // Attach pending colors as JSON

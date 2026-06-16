@@ -9,6 +9,7 @@ use App\Models\ProductImage;
 use App\Services\CloudflareService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
 
 class ProductImageController extends Controller
@@ -21,6 +22,11 @@ class ProductImageController extends Controller
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'alt_text' => 'nullable|string|max:255',
             'is_primary' => 'boolean',
+            'product_color_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('product_colors', 'id')->where('product_id', $productId)
+            ],
         ]);
 
         $file = $request->file('image');
@@ -36,6 +42,7 @@ class ProductImageController extends Controller
 
         $image = ProductImage::create([
             'product_id' => $product->id,
+            'product_color_id' => $request->input('product_color_id'),
             'image' => $path,
             'alt_text' => $request->input('alt_text', $product->name),
             'sort_order' => $product->images()->max('sort_order') + 1,
@@ -59,6 +66,11 @@ class ProductImageController extends Controller
             'alt_text' => 'nullable|string|max:255',
             'is_primary' => 'boolean',
             'sort_order' => 'nullable|integer|min:0',
+            'product_color_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('product_colors', 'id')->where('product_id', $productId)
+            ],
         ]);
 
         if (isset($validated['is_primary']) && $validated['is_primary']) {

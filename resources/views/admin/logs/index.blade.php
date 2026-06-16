@@ -237,7 +237,7 @@
       });
       var resultClass = 'result-' + (log.result || 'info');
       var sectionClass = 'section-' + (log.section || 'General');
-      var userName = log.user ? esc(log.user.name) : '<span style="color:#cbd5e1;font-style:italic;">System</span>';
+      var userName = log.user ? esc(log.user.name) : (log.user_identifier ? esc(log.user_identifier) : '<span style="color:#cbd5e1;font-style:italic;">System</span>');
       var description = log.description ? esc(log.description) : '';
 
       return '<tr class="log-row" onclick="viewLog(' + log.id + ')">' +
@@ -278,7 +278,7 @@
                         <span style="color:#64748b;">Action:</span> <span style="font-weight:700;color:#1e293b;">${esc(log.action || '')}</span>
                         <span style="color:#64748b;">Section:</span> <span class="${sectionClass}" style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;text-transform:uppercase;">${log.section || 'General'}</span>
                         <span style="color:#64748b;">Resource:</span> <span style="color:#334155;">${log.resource_type || '—'} ${log.resource_id ? '#' + log.resource_id : ''}</span>
-                        <span style="color:#64748b;">User:</span> <span style="color:#334155;">${log.user ? esc(log.user.name) : '<i>System</i>'}</span>
+                        <span style="color:#64748b;">User:</span> <span style="color:#334155;">${log.user ? esc(log.user.name) : (log.user_identifier ? esc(log.user_identifier) : '<i>System</i>')}</span>
                         <span style="color:#64748b;">Time:</span> <span style="color:#64748b;font-size:12px;">${date}</span>
                     </div>
                 </div>

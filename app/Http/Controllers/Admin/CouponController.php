@@ -15,7 +15,7 @@ class CouponController extends Controller
         $query = Coupon::query();
 
         if ($request->has('search')) {
-            ActivityLog::coupons($request, 'Search Coupons', "Admin searched for coupons: {$request->search}");
+            ActivityLog::coupons($request, 'Search Coupons', ActivityLog::userName($request) . " searched for coupons: {$request->search}");
             $query->where('code', 'like', '%' . $request->search . '%');
         }
 
@@ -69,7 +69,7 @@ class CouponController extends Controller
             'used_count' => 0,
         ]);
 
-        ActivityLog::coupons($request, 'Create Coupon', "Admin created new coupon: {$coupon->code} ({$coupon->discount_value} {$coupon->discount_type})", $coupon);
+        ActivityLog::coupons($request, 'Create Coupon', ActivityLog::userName($request) . " created new coupon: {$coupon->code} ({$coupon->discount_value} {$coupon->discount_type})", $coupon);
 
         return response()->json([
             'message' => 'Coupon created successfully',
@@ -115,7 +115,7 @@ class CouponController extends Controller
 
         $coupon->update($validated);
 
-        ActivityLog::coupons($request, 'Update Coupon', "Admin updated coupon: {$coupon->code}", $coupon);
+        ActivityLog::coupons($request, 'Update Coupon', ActivityLog::userName($request) . " updated coupon: {$coupon->code}", $coupon);
 
         return response()->json([
             'message' => 'Coupon updated successfully',
@@ -131,7 +131,7 @@ class CouponController extends Controller
             return response()->json(['message' => 'Coupon not found'], 404);
         }
 
-        ActivityLog::coupons($request, 'Delete Coupon', "Admin deleted coupon: {$coupon->code} (#{$id})", ['type' => 'coupon', 'id' => $id], 'deletion');
+        ActivityLog::coupons($request, 'Delete Coupon', ActivityLog::userName($request) . " deleted coupon: {$coupon->code} (#{$id})", ['type' => 'coupon', 'id' => $id], 'deletion');
         $coupon->delete();
 
         return response()->json(['message' => 'Coupon deleted successfully']);
@@ -149,7 +149,7 @@ class CouponController extends Controller
         $coupon->update(['is_active' => $newStatus]);
         
         $statusText = $newStatus ? 'Activated' : 'Deactivated';
-        ActivityLog::coupons($request, 'Toggle Coupon Status', "Admin {$statusText} coupon: {$coupon->code}", $coupon);
+        ActivityLog::coupons($request, 'Toggle Coupon Status', ActivityLog::userName($request) . " {$statusText} coupon: {$coupon->code}", $coupon);
 
         return response()->json([
             'message' => 'Coupon ' . ($coupon->is_active ? 'activated' : 'deactivated'),

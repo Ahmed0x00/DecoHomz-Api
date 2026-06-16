@@ -74,4 +74,9 @@ class ProductColor extends Model
         }
         return $slug;
     }
+
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class, 'product_color_id')->orderBy('sort_order');
+    }
 }

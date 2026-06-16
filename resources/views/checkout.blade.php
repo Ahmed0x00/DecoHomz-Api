@@ -72,6 +72,9 @@ async function loadCheckout() {
     const cartRes = await API.get('/cart');
     checkoutState.cart = cartRes.cart;
 
+    // Update badge globally
+    if (window.Cart && Cart.updateBadge) Cart.updateBadge(checkoutState.cart?.items_count);
+
     if (!checkoutState.cart || !checkoutState.cart.items || checkoutState.cart.items.length === 0) {
       container.innerHTML =
         '<div class="cart-empty" style="grid-column:1/-1">' +

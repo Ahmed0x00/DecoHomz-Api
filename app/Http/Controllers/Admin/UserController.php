@@ -16,7 +16,7 @@ class UserController extends Controller
         $query = User::query();
 
         if ($request->has('search')) {
-            ActivityLog::users($request, 'Search Users', "Admin searched for users with query: {$request->search}");
+            ActivityLog::users($request, 'Search Users', ActivityLog::userName($request) . " searched for users with query: {$request->search}");
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
                     ->orWhere('email', 'like', '%' . $request->search . '%');
@@ -77,7 +77,7 @@ class UserController extends Controller
         $user->role = $requestedRole;
         $user->save();
 
-        ActivityLog::users($request, 'Create User', "Admin created new user: {$user->name} ({$user->email})", $user);
+        ActivityLog::users($request, 'Create User', ActivityLog::userName($request) . " created new user: {$user->name} ({$user->email})", $user);
 
         return response()->json([
             'message' => 'User created successfully',
@@ -121,7 +121,7 @@ class UserController extends Controller
             $user->save();
         }
 
-        ActivityLog::users($request, 'Update User', "Admin updated user: {$user->name} (#{$id})", $user);
+        ActivityLog::users($request, 'Update User', ActivityLog::userName($request) . " updated user: {$user->name} (#{$id})", $user);
 
         return response()->json([
             'message' => 'User updated successfully',
@@ -138,11 +138,11 @@ class UserController extends Controller
         }
 
         if ($user->role === 'admin') {
-            ActivityLog::users($request, 'Delete User Denied', "Admin tried to delete another admin: {$user->name}", $user, 'warning');
+            ActivityLog::users($request, 'Delete User Denied', ActivityLog::userName($request) . " tried to delete another admin: {$user->name}", $user, 'warning');
             return response()->json(['message' => 'Cannot delete an admin user'], 403);
         }
 
-        ActivityLog::users($request, 'Delete User', "Admin deleted user: {$user->name} (#{$id})", ['type' => 'user', 'id' => $id], 'deletion');
+        ActivityLog::users($request, 'Delete User', ActivityLog::userName($request) . " deleted user: {$user->name} (#{$id})", ['type' => 'user', 'id' => $id], 'deletion');
         $user->delete();
 
         return response()->json(['message' => 'User deleted successfully']);

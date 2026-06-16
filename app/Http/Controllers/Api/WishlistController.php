@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Wishlist;
 use App\Models\Product;
+use App\Models\ActivityLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -45,6 +46,9 @@ class WishlistController extends Controller
             'product_id' => $validated['product_id'],
         ]);
 
+        $product = $wishlist->product;
+        ActivityLog::wishlist($request, 'Add to Wishlist', ActivityLog::userName($request) . " added product '{$product?->name}' to wishlist", $wishlist);
+
         return response()->json([
             'message' => 'Product added to wishlist',
             'wishlist' => $wishlist,
@@ -60,6 +64,8 @@ class WishlistController extends Controller
         if (!$deleted) {
             return response()->json(['message' => 'Wishlist item not found'], 404);
         }
+
+        ActivityLog::wishlist($request, 'Remove from Wishlist', ActivityLog::userName($request) . " removed product #{$productId} from wishlist", null, 'deletion');
 
         return response()->json(['message' => 'Product removed from wishlist']);
     }

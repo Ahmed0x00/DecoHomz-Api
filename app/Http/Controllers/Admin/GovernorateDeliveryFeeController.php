@@ -70,7 +70,7 @@ class GovernorateDeliveryFeeController extends Controller
 
         $fee = GovernorateDeliveryFee::create($validated);
 
-        ActivityLog::deliveryFees($request, 'Create Delivery Fee', "Created delivery fee for {$fee->governorate_name}: {$fee->delivery_fee} EGP", $fee);
+        ActivityLog::deliveryFees($request, 'Create Delivery Fee', ActivityLog::userName($request) . " created delivery fee for {$fee->governorate_name}: {$fee->delivery_fee} EGP", $fee);
 
         return response()->json($fee, 201);
     }
@@ -93,7 +93,7 @@ class GovernorateDeliveryFeeController extends Controller
 
         $fee->update($validated);
 
-        ActivityLog::deliveryFees($request, 'Update Delivery Fee', "Updated delivery fee for {$fee->governorate_name}: {$fee->delivery_fee} EGP", $fee);
+        ActivityLog::deliveryFees($request, 'Update Delivery Fee', ActivityLog::userName($request) . " updated delivery fee for {$fee->governorate_name}: {$fee->delivery_fee} EGP", $fee);
 
         return response()->json($fee);
     }
@@ -107,7 +107,7 @@ class GovernorateDeliveryFeeController extends Controller
         $name = $fee->governorate_name;
         $fee->delete();
 
-        ActivityLog::deliveryFees($request, 'Delete Delivery Fee', "Deleted delivery fee for {$name}", ['type' => 'governorate_delivery_fee', 'id' => $id], 'deletion');
+        ActivityLog::deliveryFees($request, 'Delete Delivery Fee', ActivityLog::userName($request) . " deleted delivery fee for {$name}", ['type' => 'governorate_delivery_fee', 'id' => $id], 'deletion');
 
         return response()->json(['message' => 'Delivery fee deleted']);
     }
@@ -122,7 +122,7 @@ class GovernorateDeliveryFeeController extends Controller
         $fee->save();
 
         $status = $fee->is_active ? 'activated' : 'deactivated';
-        ActivityLog::deliveryFees($request, 'Toggle Delivery Fee', "{$status} delivery fee for {$fee->governorate_name}", $fee);
+        ActivityLog::deliveryFees($request, 'Toggle Delivery Fee', ActivityLog::userName($request) . " {$status} delivery fee for {$fee->governorate_name}", $fee);
 
         return response()->json($fee);
     }
@@ -146,7 +146,7 @@ class GovernorateDeliveryFeeController extends Controller
             ]);
         }
 
-        ActivityLog::deliveryFees($request, 'Bulk Update Delivery Fees', "Bulk updated " . count($validated['fees']) . " delivery fees");
+        ActivityLog::deliveryFees($request, 'Bulk Update Delivery Fees', ActivityLog::userName($request) . " bulk updated " . count($validated['fees']) . " delivery fees");
 
         return response()->json(['message' => 'Fees updated successfully']);
     }

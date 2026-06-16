@@ -84,7 +84,7 @@ class RefundController extends Controller
                     $item->product->increment('stock', $item->quantity);
                 }
 
-                ActivityLog::orders($request, 'Approve Refund', "Admin approved refund for order #{$order->order_number}. Reason: {$order->refund_reason}.", $order);
+                ActivityLog::orders($request, 'Approve Refund', ActivityLog::userName($request) . " approved refund for order #{$order->order_number}. Reason: {$order->refund_reason}.", $order);
                 $msg = 'Refund approved. Payment marked as refunded and stock restored.';
 
             } else {
@@ -93,7 +93,7 @@ class RefundController extends Controller
                     'refund_handled_at' => now(),
                 ]);
 
-                ActivityLog::orders($request, 'Reject Refund', "Admin rejected refund for order #{$order->order_number}. Reason given: {$order->refund_reason}.", $order);
+                ActivityLog::orders($request, 'Reject Refund', ActivityLog::userName($request) . " rejected refund for order #{$order->order_number}. Reason: {$order->refund_reason}.", $order);
                 $msg = 'Refund request rejected.';
             }
 
@@ -129,7 +129,7 @@ class RefundController extends Controller
             'refund_reason' => $validated['reason'] . ' [Created by admin]',
         ]);
 
-        ActivityLog::orders($request, 'Create Refund Request', "Admin created refund request for guest order #{$order->order_number}. Reason: {$validated['reason']}.", $order);
+        ActivityLog::orders($request, 'Create Refund Request', ActivityLog::userName($request) . " created refund request for guest order #{$order->order_number}. Reason: {$validated['reason']}.", $order);
 
         return response()->json([
             'success' => "Refund request created for order #{$order->order_number}."

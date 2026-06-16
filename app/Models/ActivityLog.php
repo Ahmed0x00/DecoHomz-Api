@@ -10,6 +10,7 @@ class ActivityLog extends Model
 {
     protected $fillable = [
         'user_id',
+        'user_identifier',
         'action',
         'resource_type',
         'resource_id',
@@ -141,6 +142,47 @@ class ActivityLog extends Model
     }
 
     // ─────────────────────────────────────────────────────────
+    // User identification helpers
+    // ─────────────────────────────────────────────────────────
+
+    /**
+     * Return a readable user label for log descriptions.
+     * Examples: "Ahmed (ahmed@email.com) [admin]", "Guest (session: abc123)"
+     */
+    public static function userName(Request $request): string
+    {
+        $user = $request->user();
+        if ($user) {
+            $role = $user->role ?? 'user';
+            return "{$user->name} ({$user->email}) [{$role}]";
+        }
+
+        $sessionId = $request->header('X-Session-ID') ?? $request->cookie('session_id');
+        if ($sessionId) {
+            return "Guest (session: {$sessionId})";
+        }
+
+        return 'Unknown';
+    }
+
+    /**
+     * Return the user label for a resolved User model (used after auth).
+     */
+    public static function userLabel($user, ?string $sessionId = null): string
+    {
+        if ($user) {
+            $role = $user->role ?? 'user';
+            return "{$user->name} ({$user->email}) [{$role}]";
+        }
+
+        if ($sessionId) {
+            return "Guest (session: {$sessionId})";
+        }
+
+        return 'Unknown';
+    }
+
+    // ─────────────────────────────────────────────────────────
     // Core log creator
     // ─────────────────────────────────────────────────────────
 
@@ -171,6 +213,7 @@ class ActivityLog extends Model
 
         return self::create([
             'user_id' => $user ? $user->id : null,
+            'user_identifier' => self::buildUserIdentifier($user, $request),
             'action' => $action,
             'resource_type' => $resourceType,
             'resource_id' => $resourceId,
@@ -181,6 +224,26 @@ class ActivityLog extends Model
             'user_agent' => $request?->header('User-Agent'),
             'payload' => $payload,
         ]);
+    }
+
+    /**
+     * Build a human-readable user identifier for display.
+     */
+    private static function buildUserIdentifier($user, ?Request $request = null): string
+    {
+        if ($user) {
+            $role = $user->role ?? 'user';
+            return "{$user->name} ({$user->email}) [{$role}]";
+        }
+
+        if ($request) {
+            $sessionId = $request->header('X-Session-ID') ?? $request->cookie('session_id');
+            if ($sessionId) {
+                return "Guest (session: {$sessionId})";
+            }
+        }
+
+        return 'Unknown';
     }
 
     private static function filterPayload(array $payload): array

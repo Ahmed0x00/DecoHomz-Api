@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Contact;
+use App\Models\ActivityLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -27,6 +28,8 @@ class ContactController extends Controller
             'message' => $validated['message'],
             'status' => 'new',
         ]);
+
+        ActivityLog::contacts($request, 'Submit Contact', ActivityLog::userName($request) . " submitted contact form: '{$validated['subject']}' from {$validated['name']} ({$validated['email']})", $contact);
 
         return response()->json([
             'message' => 'Your message has been sent successfully.',

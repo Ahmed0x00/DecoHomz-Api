@@ -151,13 +151,21 @@ window.Cart = {
   },
 
   // Update the cart badge in the nav
-  updateBadge() {
-    API.get('/cart').then(res => {
-      const count = res.cart?.items_count || 0;
+  updateBadge(count = null) {
+    if (count !== null) {
       const badge = document.querySelector('.badge-cart');
       if (badge) {
         badge.textContent = count;
         badge.style.display = count > 0 ? 'flex' : 'none';
+      }
+      return;
+    }
+    API.get('/cart').then(res => {
+      const badgeCount = res.cart?.items_count || 0;
+      const badge = document.querySelector('.badge-cart');
+      if (badge) {
+        badge.textContent = badgeCount;
+        badge.style.display = badgeCount > 0 ? 'flex' : 'none';
       }
     }).catch(() => {});
   },

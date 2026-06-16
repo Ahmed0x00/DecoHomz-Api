@@ -46,7 +46,7 @@ class DepositRuleController extends Controller
 
         $rule = DepositRule::create($validated);
 
-        ActivityLog::settings($request, 'Create Deposit Rule', "Created deposit rule: {$rule->percentage}% (min EGP {$rule->minimum_amount})");
+        ActivityLog::settings($request, 'Create Deposit Rule', ActivityLog::userName($request) . " created deposit rule: {$rule->percentage}% (min EGP {$rule->minimum_amount})");
 
         return response()->json([
             'message' => 'Deposit rule created',
@@ -71,7 +71,7 @@ class DepositRuleController extends Controller
 
         $rule->update($validated);
 
-        ActivityLog::settings($request, 'Update Deposit Rule', "Updated deposit rule #{$id}: {$rule->percentage}% (min EGP {$rule->minimum_amount})");
+        ActivityLog::settings($request, 'Update Deposit Rule', ActivityLog::userName($request) . " updated deposit rule #{$id}: {$rule->percentage}% (min EGP {$rule->minimum_amount})");
 
         return response()->json([
             'message' => 'Deposit rule updated',
@@ -94,7 +94,7 @@ class DepositRuleController extends Controller
         ActivityLog::settings(
             $request,
             'Toggle Deposit Rule',
-            ($newState ? 'Activated' : 'Deactivated') . " deposit rule #{$id} ({$rule->percentage}%)"
+            ActivityLog::userName($request) . " " . ($newState ? 'activated' : 'deactivated') . " deposit rule #{$id} ({$rule->percentage}%)"
         );
 
         return response()->json([
@@ -108,7 +108,7 @@ class DepositRuleController extends Controller
         $rule = DepositRule::findOrFail($id);
         $rule->delete();
 
-        ActivityLog::settings($request, 'Delete Deposit Rule', "Deleted deposit rule #{$id}");
+        ActivityLog::settings($request, 'Delete Deposit Rule', ActivityLog::userName($request) . " deleted deposit rule #{$id}");
 
         return response()->json(['message' => 'Deposit rule deleted']);
     }

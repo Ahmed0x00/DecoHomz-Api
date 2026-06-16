@@ -16,7 +16,7 @@ class OrderController extends Controller
         $query = Order::with(['user', 'items.product', 'shippingAddress']);
 
         if ($request->has('search')) {
-            ActivityLog::orders($request, 'Search Orders', "Admin searched for orders with query: {$request->search}");
+            ActivityLog::orders($request, 'Search Orders', ActivityLog::userName($request) . " searched for orders with query: {$request->search}");
         }
 
         // Filters
@@ -76,7 +76,7 @@ class OrderController extends Controller
 
         $order->update(['status' => $validated['status']]);
 
-        ActivityLog::orders($request, 'Update Order Status', "Changed order #{$order->order_number} status from {$oldStatus} to {$validated['status']}", $order);
+        ActivityLog::orders($request, 'Update Order Status', ActivityLog::userName($request) . " changed order #{$order->order_number} status from {$oldStatus} to {$validated['status']}", $order);
 
         return response()->json([
             'message' => 'Order status updated',
@@ -94,7 +94,7 @@ class OrderController extends Controller
         $oldPayStatus = $order->payment_status;
         $order->update(['payment_status' => $validated['payment_status']]);
 
-        ActivityLog::orders($request, 'Update Payment Status', "Changed order #{$order->order_number} payment status from {$oldPayStatus} to {$validated['payment_status']}", $order);
+        ActivityLog::orders($request, 'Update Payment Status', ActivityLog::userName($request) . " changed order #{$order->order_number} payment status from {$oldPayStatus} to {$validated['payment_status']}", $order);
 
         return response()->json([
             'message' => 'Payment status updated',
@@ -112,7 +112,7 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
         $order->update($validated);
 
-        ActivityLog::orders($request, 'Update Tracking', "Updated tracking info for order #{$order->order_number} (Tracking #: {$validated['tracking_number']})", $order);
+        ActivityLog::orders($request, 'Update Tracking', ActivityLog::userName($request) . " updated tracking info for order #{$order->order_number} (Tracking #: {$validated['tracking_number']})", $order);
 
         return response()->json([
             'message' => 'Tracking information updated',

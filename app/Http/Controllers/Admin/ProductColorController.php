@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ProductColor;
 use App\Models\Product;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -59,7 +60,7 @@ class ProductColorController extends Controller
             'sort_order' => $validated['sort_order'] ?? 0,
         ]);
 
-        ActivityLog::productColors($request, 'Add Product Color', "Added color '{$color->name}' ({$color->hex_code}) to product '{$product->name}'", $color);
+        ActivityLog::productColors($request, 'Add Product Color', ActivityLog::userName($request) . " added color '{$color->name}' ({$color->hex_code}) to product '{$product->name}'", $color);
 
         return response()->json($color, 201);
     }
@@ -99,7 +100,7 @@ class ProductColorController extends Controller
 
         $color->update($validated);
 
-        ActivityLog::productColors($request, 'Update Product Color', "Updated color '{$color->name}' on product '{$product->name}'", $color);
+        ActivityLog::productColors($request, 'Update Product Color', ActivityLog::userName($request) . " updated color '{$color->name}' on product '{$product->name}'", $color);
 
         return response()->json($color);
     }
@@ -115,7 +116,7 @@ class ProductColorController extends Controller
 
         $color->delete();
 
-        ActivityLog::productColors($request, 'Delete Product Color', "Deleted color '{$colorName}' from product '{$product->name}'", ['type' => 'product_color', 'id' => $colorId], 'deletion');
+        ActivityLog::productColors($request, 'Delete Product Color', ActivityLog::userName($request) . " deleted color '{$colorName}' from product '{$product->name}'", ['type' => 'product_color', 'id' => $colorId], 'deletion');
 
         return response()->json(['message' => 'Color deleted']);
     }
@@ -129,7 +130,7 @@ class ProductColorController extends Controller
         $color->is_active = !$color->is_active;
         $color->save();
 
-        ActivityLog::productColors($request, 'Toggle Product Color', ($color->is_active ? 'Activated' : 'Deactivated') . " color '{$color->name}' on product '{$color->product->name}'", $color);
+        ActivityLog::productColors($request, 'Toggle Product Color', ActivityLog::userName($request) . " " . ($color->is_active ? 'activated' : 'deactivated') . " color '{$color->name}' on product '{$color->product->name}'", $color);
 
         return response()->json($color);
     }
@@ -167,7 +168,7 @@ class ProductColorController extends Controller
             }
         }
 
-        ActivityLog::productColors($request, 'Bulk Update Colors', "Bulk updated " . count($validated['colors']) . " colors for product '{$product->name}'", $product);
+        ActivityLog::productColors($request, 'Bulk Update Colors', ActivityLog::userName($request) . " bulk updated " . count($validated['colors']) . " colors for product '{$product->name}'", $product);
 
         return response()->json(['message' => 'Colors updated']);
     }

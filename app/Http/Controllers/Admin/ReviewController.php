@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Review;
+use App\Models\ActivityLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -52,6 +53,9 @@ class ReviewController extends Controller
 
         $review->update(['is_approved' => true, 'is_rejected' => false]);
 
+        $product = $review->product;
+        ActivityLog::reviews($request, 'Approve Review', ActivityLog::userName($request) . " approved review #{$review->id} for product '{$product?->name}' (rating: {$review->rating})", $review);
+
         return response()->json([
             'message' => 'Review approved',
             'review' => $review->fresh(),
@@ -68,13 +72,16 @@ class ReviewController extends Controller
 
         $review->update(['is_approved' => false, 'is_rejected' => true]);
 
+        $product = $review->product;
+        ActivityLog::reviews($request, 'Reject Review', ActivityLog::userName($request) . " rejected review #{$review->id} for product '{$product?->name}' (rating: {$review->rating})", $review);
+
         return response()->json([
             'message' => 'Review rejected',
             'review' => $review->fresh(),
         ]);
     }
 
-    public function destroy(string $id): JsonResponse
+    public function destroy(Request $request, string $id): JsonResponse
     {
         $review = Review::find($id);
 
@@ -82,6 +89,8 @@ class ReviewController extends Controller
             return response()->json(['message' => 'Review not found'], 404);
         }
 
+        $product = $review->product;
+        ActivityLog::reviews($request, 'Delete Review', ActivityLog::userName($request) . " deleted review #{$review->id} for product '{$product?->name}' (rating: {$review->rating})", $review, 'deletion');
         $review->delete();
 
         return response()->json(['message' => 'Review deleted successfully']);
@@ -155,6 +164,8 @@ class ReviewController extends Controller
                 $reviews[] = $review;
             }
         }
+
+        ActivityLog::reviews($request, 'Create Fake Review', ActivityLog::userName($request) . " created " . count($reviews) . " fake review(s) for " . count($productIds) . " product(s)");
 
         return response()->json([
             'message' => count($reviews) > 1 ? 'Fake reviews added successfully' : 'Fake review added successfully',

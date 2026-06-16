@@ -79,7 +79,7 @@ function renderFullCart() {
     const total = Math.max(0, subtotal - discount);
     
     // Update badge globally
-    if (window.Cart && Cart.updateBadge) Cart.updateBadge();
+    if (window.Cart && Cart.updateBadge) Cart.updateBadge(cart.items_count);
     
     if (items.length === 0) {
       container.innerHTML = 

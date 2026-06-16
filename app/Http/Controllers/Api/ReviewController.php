@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Review;
+use App\Models\ActivityLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -45,6 +46,9 @@ class ReviewController extends Controller
             'is_approved' => false,
         ]);
 
+        $product = $review->product;
+        ActivityLog::reviews($request, 'Submit Review', ActivityLog::userName($request) . " submitted review for product '{$product?->name}' (rating: {$review->rating})", $review);
+
         return response()->json([
             'message' => 'Review submitted successfully. It will be visible after approval.',
             'review' => $review,
@@ -69,6 +73,9 @@ class ReviewController extends Controller
         $review->update($validated);
         $review->update(['is_approved' => false]);
 
+        $product = $review->product;
+        ActivityLog::reviews($request, 'Update Review', ActivityLog::userName($request) . " updated review #{$review->id} for product '{$product?->name}' (rating: {$review->rating})", $review);
+
         return response()->json([
             'message' => 'Review updated successfully',
             'review' => $review->fresh(),
@@ -85,6 +92,8 @@ class ReviewController extends Controller
             return response()->json(['message' => 'Review not found'], 404);
         }
 
+        $product = $review->product;
+        ActivityLog::reviews($request, 'Delete Review', ActivityLog::userName($request) . " deleted review #{$review->id} for product '{$product?->name}'", $review, 'deletion');
         $review->delete();
 
         return response()->json(['message' => 'Review deleted successfully']);

@@ -105,7 +105,8 @@ class CartController extends Controller
 
             $existingItem->update(['quantity' => $newQuantity]);
             $message = 'Cart item quantity updated';
-            ActivityLog::cart($request, 'Update Cart Quantity', "Updated '{$product->name}' quantity to {$newQuantity} in cart", $product);
+            $colorInfo = $colorSlug ? " (color: {$colorSlug})" : '';
+            ActivityLog::cart($request, 'Update Cart Quantity', ActivityLog::userName($request) . " updated '{$product->name}'{$colorInfo} quantity to {$newQuantity} in cart", $product);
         } else {
             CartItem::create([
                 'cart_id' => $cart->id,
@@ -114,7 +115,9 @@ class CartController extends Controller
                 'variant' => $colorSlug,
             ]);
             $message = 'Item added to cart';
-            ActivityLog::cart($request, 'Add to Cart', "Added '{$product->name}' to shopping cart", $product);
+            $colorInfo = $colorSlug ? " (color: {$colorSlug})" : '';
+            $qty = $validated['quantity'] ?? 1;
+            ActivityLog::cart($request, 'Add to Cart', ActivityLog::userName($request) . " added '{$product->name}'{$colorInfo} (qty: {$qty}) to cart", $product);
         }
 
         $cart->recalculateDiscount();
@@ -184,7 +187,8 @@ class CartController extends Controller
             'variant' => $colorSlug,
         ]);
 
-        ActivityLog::cart($request, 'Update Cart Item', "Updated quantity for '{$cartItem->product->name}' in cart to {$validated['quantity']}", $cartItem->product);
+        $colorInfo = $colorSlug ? " (color: {$colorSlug})" : '';
+        ActivityLog::cart($request, 'Update Cart Item', ActivityLog::userName($request) . " updated '{$cartItem->product->name}'{$colorInfo} quantity to {$validated['quantity']} in cart", $cartItem->product);
 
         $cart->recalculateDiscount();
         $cart->load(['items.product.primaryImage', 'items.product.images', 'coupon']);
@@ -209,7 +213,7 @@ class CartController extends Controller
             return response()->json(['message' => 'Cart item not found'], 404);
         }
 
-        ActivityLog::cart($request, 'Remove from Cart', "Removed '{$cartItem->product->name}' from shopping cart", $cartItem->product);
+        ActivityLog::cart($request, 'Remove from Cart', ActivityLog::userName($request) . " removed '{$cartItem->product->name}' from cart", $cartItem->product);
         $cartItem->delete();
         $cart->recalculateDiscount();
 
@@ -272,7 +276,7 @@ class CartController extends Controller
             'discount' => $discount,
         ]);
 
-        ActivityLog::cart($request, 'Apply Coupon', "Applied coupon '{$coupon->code}' to cart. Discount: {$discount} EGP", $coupon);
+        ActivityLog::cart($request, 'Apply Coupon', ActivityLog::userName($request) . " applied coupon '{$coupon->code}' (discount: {$discount} EGP)", $coupon);
 
         $cart->load(['items.product.primaryImage', 'items.product.images', 'coupon']);
 
@@ -293,7 +297,7 @@ class CartController extends Controller
         $oldCoupon = $cart->coupon_code;
         $cart->update(['coupon_code' => null, 'discount' => 0]);
 
-        ActivityLog::cart($request, 'Remove Coupon', "Removed coupon '{$oldCoupon}' from cart");
+        ActivityLog::cart($request, 'Remove Coupon', ActivityLog::userName($request) . " removed coupon '{$oldCoupon}' from cart");
 
         $cart->load(['items.product.primaryImage', 'items.product.images', 'coupon']);
 

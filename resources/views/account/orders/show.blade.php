@@ -428,6 +428,25 @@ $statusBadgeClass = match($status) {
     @endif
   </div>
 
+  @if($order->canCancel() && !in_array($paymentStatus, ['paid_deposit', 'full_paid']))
+  {{-- Cancel Order Section --}}
+  <div class="refund-section" style="border-color: rgba(231, 76, 60, 0.2); background: #fefcfc;">
+    <div class="refund-title" style="color: #E74C3C;">
+      <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="15" y1="9" x2="9" y2="15"></line>
+        <line x1="9" y1="9" x2="15" y2="15"></line>
+      </svg>
+      Cancel Order
+    </div>
+    <div class="refund-text">If you made a mistake or changed your mind, you can cancel this order before it is processed.</div>
+    <button type="button" class="btn-refund" style="background:#E74C3C" onclick="cancelOrder()">
+      Cancel Order
+    </button>
+    <div id="cancelOrderMsg" style="margin-top: 10px; font-size: 13px;"></div>
+  </div>
+  @endif
+
   {{-- Refund Section --}}
   <div class="refund-section">
     @if($canRequestRefund)
@@ -527,6 +546,46 @@ function submitCustomerRefund() {
   })
   .catch(() => {
     msg.textContent = 'Failed to submit refund request. Please try again.';
+    msg.style.color = '#E74C3C';
+  });
+}
+
+function cancelOrder() {
+  var msg = document.getElementById('cancelOrderMsg');
+  if (!confirm('Are you sure you want to cancel this order? This action cannot be undone.')) return;
+
+  msg.textContent = 'Cancelling…';
+  msg.style.color = 'var(--color-text-secondary)';
+
+  fetch('/api/orders/{{ $order->id }}/cancel', {
+    method : 'POST',
+    headers: {
+      'Accept'       : 'application/json',
+      'X-Session-ID' : localStorage.getItem('dh_session_id') ?? '',
+      'Authorization': 'Bearer ' + (localStorage.getItem('dh_token') ?? ''),
+    }
+  })
+  .then(res => {
+    if (res.status === 401 || res.status === 403 || res.status === 404) {
+      msg.textContent = 'Access denied or order not found.';
+      msg.style.color = '#E74C3C';
+      return null;
+    }
+    return res.json().catch(() => ({}));
+  })
+  .then(data => {
+    if (!data) return;
+    if (data.message && data.message !== 'Order cancelled successfully') {
+      msg.textContent = data.message;
+      msg.style.color = '#E74C3C';
+    } else {
+      msg.textContent = 'Order cancelled successfully.';
+      msg.style.color = '#15803D';
+      setTimeout(() => location.reload(), 1000);
+    }
+  })
+  .catch(() => {
+    msg.textContent = 'Failed to cancel order. Please try again.';
     msg.style.color = '#E74C3C';
   });
 }

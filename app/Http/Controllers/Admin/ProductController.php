@@ -93,6 +93,8 @@ class ProductController extends Controller
             'max_viewing_count' => 'nullable|integer|min:0',
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:10240',
+            'image_colors' => 'nullable|array',
+            'image_colors.*' => 'nullable|string|max:100',
             'primary_image_index' => 'nullable|integer|min:0',
         ]);
 
@@ -133,17 +135,30 @@ class ProductController extends Controller
             }
         }
 
-        ActivityLog::products($request, 'Create Product', "Created new product: {$product->name} (Price: {$product->price} EGP)", $product);
+        ActivityLog::products($request, 'Create Product', ActivityLog::userName($request) . " created new product: {$product->name} (Price: {$product->price} EGP)", $product);
 
         // Handle images
         if ($request->hasFile('images')) {
             $images = $request->file('images');
             $primaryIndex = $request->input('primary_image_index', 0);
+            $imageColors = $request->input('image_colors', []);
 
             foreach ($images as $index => $file) {
                 $path = $file->store('products', 'public');
+
+                // Find color_id by matching name
+                $colorId = null;
+                if (!empty($imageColors[$index])) {
+                    $colorName = $imageColors[$index];
+                    $colorModel = $product->colors()->where('name', $colorName)->first();
+                    if ($colorModel) {
+                        $colorId = $colorModel->id;
+                    }
+                }
+
                 ProductImage::create([
                     'product_id' => $product->id,
+                    'product_color_id' => $colorId,
                     'image' => $path,
                     'is_primary' => $index == $primaryIndex,
                     'sort_order' => $index,
@@ -221,7 +236,7 @@ class ProductController extends Controller
 
         $product->update($validated);
 
-        ActivityLog::products($request, 'Update Product', "Updated product: {$product->name}", $product);
+        ActivityLog::products($request, 'Update Product', ActivityLog::userName($request) . " updated product: {$product->name}", $product);
 
         // Handle image removals
         if ($request->has('remove_images')) {
@@ -254,10 +269,23 @@ class ProductController extends Controller
         // Handle new images
         if ($request->hasFile('images')) {
             $existingCount = $product->images()->count();
+            $imageColors = $request->input('image_colors', []);
+            
             foreach ($request->file('images') as $index => $file) {
                 $path = $file->store('products', 'public');
+                
+                $colorId = null;
+                if (!empty($imageColors[$index])) {
+                    $colorName = $imageColors[$index];
+                    $colorModel = $product->colors()->where('name', $colorName)->first();
+                    if ($colorModel) {
+                        $colorId = $colorModel->id;
+                    }
+                }
+                
                 ProductImage::create([
                     'product_id' => $product->id,
+                    'product_color_id' => $colorId,
                     'image' => $path,
                     'is_primary' => false,
                     'sort_order' => $existingCount + $index,
@@ -293,7 +321,7 @@ class ProductController extends Controller
         if ($product->orderItems()->exists()) {
             // Soft delete approach - just mark as inactive
             $product->update(['is_active' => false]);
-            ActivityLog::products($request, 'Deactivate Product', "Product #{$id} ({$product->name}) has orders; marked as inactive instead of deleting.", $product, 'warning');
+            ActivityLog::products($request, 'Deactivate Product', ActivityLog::userName($request) . " deactivated product #{$id} ({$product->name}) — has orders; marked as inactive instead of deleting.", $product, 'warning');
             return response()->json([
                 'message' => 'Product has existing orders. Marked as inactive instead of deletion.',
             ]);
@@ -322,7 +350,7 @@ class ProductController extends Controller
             (new CloudflareService())->purgeStoragePaths($pathsToPurge);
         }
 
-        ActivityLog::products($request, 'Delete Product', "Permanently deleted product: {$product->name} (#{$id})", ['type' => 'product', 'id' => $id], 'deletion');
+        ActivityLog::products($request, 'Delete Product', ActivityLog::userName($request) . " permanently deleted product: {$product->name} (#{$id})", ['type' => 'product', 'id' => $id], 'deletion');
         $product->delete();
 
         return response()->json([
@@ -337,7 +365,7 @@ class ProductController extends Controller
         $product->update(['is_active' => $newStatus]);
 
         $statusText = $newStatus ? 'Active' : 'Inactive';
-        ActivityLog::products($request, 'Toggle Product Status', "Changed product '{$product->name}' status to {$statusText}", $product);
+        ActivityLog::products($request, 'Toggle Product Status', ActivityLog::userName($request) . " changed product '{$product->name}' status to {$statusText}", $product);
 
         return response()->json([
             'message' => 'Product status updated',
@@ -352,7 +380,7 @@ class ProductController extends Controller
         $product->update(['is_featured' => $newFeatured]);
 
         $featText = $newFeatured ? 'Featured' : 'Regular';
-        ActivityLog::products($request, 'Toggle Product Featured', "Changed product '{$product->name}' to {$featText}", $product);
+        ActivityLog::products($request, 'Toggle Product Featured', ActivityLog::userName($request) . " changed product '{$product->name}' to {$featText}", $product);
 
         return response()->json([
             'message' => 'Product featured status updated',

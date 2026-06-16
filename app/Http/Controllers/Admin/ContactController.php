@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Contact;
+use App\Models\ActivityLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -60,6 +61,8 @@ class ContactController extends Controller
 
         $contact->update($validated);
 
+        ActivityLog::contacts($request, 'Update Contact', ActivityLog::userName($request) . " updated contact #{$contact->id} from '{$contact->name}' (status: {$contact->status})", $contact);
+
         return response()->json([
             'message' => 'Contact updated successfully',
             'contact' => $contact->fresh(),
@@ -76,6 +79,8 @@ class ContactController extends Controller
 
         $contact->delete();
 
+        ActivityLog::contacts($request, 'Delete Contact', ActivityLog::userName($request) . " deleted contact #{$id} from '{$contact->name}'", null, 'deletion');
+
         return response()->json(['message' => 'Contact deleted successfully']);
     }
 
@@ -88,6 +93,8 @@ class ContactController extends Controller
         }
 
         $contact->update(['status' => 'replied']);
+
+        ActivityLog::contacts($request, 'Mark Contact Replied', ActivityLog::userName($request) . " marked contact #{$contact->id} from '{$contact->name}' as replied", $contact);
 
         return response()->json([
             'message' => 'Contact marked as replied',

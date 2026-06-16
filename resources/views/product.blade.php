@@ -47,7 +47,7 @@
           $thumbUrl = $img['thumbnail_url'] ?? $img['url'] ?? '/img/placeholder.svg';
           $fullUrl = $img['url'] ?? $thumbUrl;
         @endphp
-        <div class="thumb {{ $index === 0 ? 'active' : '' }}" onclick="changeImage(this, '{{ $fullUrl }}')">
+        <div class="thumb {{ $index === 0 ? 'active' : '' }}" data-color-id="{{ $img->product_color_id ?? '' }}" onclick="changeImage(this, '{{ $fullUrl }}')">
           <img src="{{ $thumbUrl }}" alt="Thumbnail {{ $index + 1 }}">
         </div>
       @endforeach
@@ -101,11 +101,11 @@
           <span class="opt-val" id="color-val">{{ $colors->first()->name ?? 'Standard' }}</span>
         </div>
         <div class="color-row">
-          <div class="color-swatch color-swatch-none active" style="background:var(--color-surface);border:2px dashed var(--color-border)" title="{{ __('No color') }}" data-color="{{ __('Standard') }}" data-color-slug="" data-price-modifier="0" onclick="selectColor(this)">
+          <div class="color-swatch color-swatch-none active" style="background:var(--color-surface);border:2px dashed var(--color-border)" title="{{ __('No color') }}" data-color="{{ __('Standard') }}" data-color-id="" data-color-slug="" data-price-modifier="0" onclick="selectColor(this)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </div>
           @foreach($colors as $i => $color)
-            <div class="color-swatch" style="background:{{ $color->hex_code ?? '#4A3626' }}" title="{{ $color->name }}" data-color="{{ $color->name ?? 'Standard' }}" data-color-slug="{{ $color->color_slug ?? '' }}" data-price-modifier="{{ $color->price_modifier ?? 0 }}" data-stock="{{ $color->stock ?? 0 }}" onclick="selectColor(this)"></div>
+            <div class="color-swatch" style="background:{{ $color->hex_code ?? '#4A3626' }}" title="{{ $color->name }}" data-color="{{ $color->name ?? 'Standard' }}" data-color-id="{{ $color->id }}" data-color-slug="{{ $color->color_slug ?? '' }}" data-price-modifier="{{ $color->price_modifier ?? 0 }}" data-stock="{{ $color->stock ?? 0 }}" onclick="selectColor(this)"></div>
           @endforeach
         </div>
         <input type="hidden" id="selected-color" value="">
@@ -294,7 +294,7 @@ const PRODUCT = {
   min_viewing_count: {{ $product->min_viewing_count ?? 12 }},
   max_viewing_count: {{ $product->max_viewing_count ?? 45 }},
   initial_viewers: {{ $product->viewing_count ?? 25 }},
-  colors: @json($product->activeColors->map(fn($c) => ['slug' => $c->color_slug, 'name' => $c->name, 'stock' => $c->stock]))
+  colors: {!! json_encode($product->activeColors->map(fn($c) => ['id' => $c->id, 'slug' => $c->color_slug, 'name' => $c->name, 'stock' => $c->stock])) !!}
 };
 
 const BASE_PRICE = PRODUCT.price;
@@ -323,8 +323,9 @@ function changeImage(el, url) {
 }
 window.changeImage = changeImage;
 
-function selectColor(el) {
+function selectColor(el, updateImage = true) {
   const color = el.getAttribute('data-color') || 'Standard';
+  const colorId = el.getAttribute('data-color-id') || '';
   const colorSlug = el.getAttribute('data-color-slug') || '';
   const priceModifier = parseFloat(el.getAttribute('data-price-modifier')) || 0;
   const colorStock = parseInt(el.getAttribute('data-stock'), 10) || 0;
@@ -341,6 +342,50 @@ function selectColor(el) {
   if (mainPrice) mainPrice.textContent = 'EGP ' + newPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
   const stickyPrice = document.querySelector('.sticky-main-price');
   if (stickyPrice) stickyPrice.textContent = 'EGP ' + newPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+  // Filter thumbnails:
+  // - Show thumbnails with data-color-id matching colorId OR data-color-id being empty/null.
+  // - If no colorId is selected (empty/Standard), show only general images (empty data-color-id).
+  // - Hide all other thumbnails.
+  let hasColorSpecificThumbs = false;
+  const thumbs = document.querySelectorAll('.thumb');
+  
+  if (colorId) {
+    thumbs.forEach(function(t) {
+      if (t.getAttribute('data-color-id') === colorId) {
+        hasColorSpecificThumbs = true;
+      }
+    });
+  }
+
+  let firstVisibleThumb = null;
+  let firstVisibleColorSpecificThumb = null;
+
+  thumbs.forEach(function(t) {
+    const thumbColorId = t.getAttribute('data-color-id');
+    t.classList.remove('active');
+    t.style.display = ''; // Keep all thumbnails visible
+    
+    if (colorId && thumbColorId === colorId) {
+      if (!firstVisibleColorSpecificThumb) firstVisibleColorSpecificThumb = t;
+    }
+    if (!firstVisibleThumb) firstVisibleThumb = t;
+  });
+
+  // Update main image: prefer the first color-specific image if found, else the first general image
+  const targetThumb = firstVisibleColorSpecificThumb || firstVisibleThumb;
+  if (targetThumb) {
+    targetThumb.classList.add('active');
+    if (updateImage) {
+      const onclickAttr = targetThumb.getAttribute('onclick');
+      if (onclickAttr) {
+        const match = onclickAttr.match(/'([^']+)'/);
+        if (match && match[1]) {
+          changeImage(targetThumb, match[1]);
+        }
+      }
+    }
+  }
 
   // Update stock badge and button state based on selected color stock
   const btn = document.getElementById('add-btn');
@@ -729,6 +774,12 @@ document.addEventListener('DOMContentLoaded', function() {
   window.addEventListener('resize', function() {
     updateTabIndicator(document.querySelector('.tab.active'));
   });
+
+  // Filter thumbnails initially based on the default active swatch (Standard / No Color) without triggering image reload
+  const activeSwatch = document.querySelector('.color-swatch.active');
+  if (activeSwatch) {
+    selectColor(activeSwatch, false);
+  }
 
   loadRelated();
   loadReviews();

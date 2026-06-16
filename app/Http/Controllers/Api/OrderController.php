@@ -48,7 +48,7 @@ class OrderController extends Controller
 
         $orders = $query->paginate(10);
 
-        ActivityLog::orders($request, 'List My Orders', "User viewed their order history");
+        ActivityLog::orders($request, 'List My Orders', ActivityLog::userName($request) . " viewed their order history");
 
         return response()->json($orders);
     }
@@ -337,8 +337,9 @@ class OrderController extends Controller
             $cart->items()->delete();
             $cart->update(['coupon_code' => null, 'discount' => 0]);
 
-            $logUser = $user ? "User {$user->id}" : "Guest (session: {$sessionId})";
-            ActivityLog::orders($request, 'Place Order', "{$logUser} placed order: #{$orderNumber} (Total: {$total} EGP)", $order);
+            $logUser = ActivityLog::userLabel($user, $sessionId);
+            $itemCount = $order->items()->count();
+            ActivityLog::orders($request, 'Place Order', "{$logUser} placed order: #{$orderNumber} (Total: {$total} EGP, items: {$itemCount}, payment: {$validated['payment_method']})", $order);
 
             DB::commit();
 
@@ -358,17 +359,34 @@ class OrderController extends Controller
 
     public function cancel(Request $request, string $id): JsonResponse
     {
-        $order = Order::where('id', $id)
-            ->where('user_id', $request->user()->id)
-            ->first();
+        $order = Order::with(['items.product', 'shippingAddress', 'coupon'])->find($id);
 
         if (!$order) {
             return response()->json(['message' => 'Order not found'], 404);
         }
 
-        if (!in_array($order->status, ['pending', 'confirmed'])) {
+        // Verify ownership: authenticated user or guest session
+        $user = $this->getUserFromToken($request);
+        $sessionId = $request->header('X-Session-ID');
+        $isOwner = $user && $order->user_id && (int)$order->user_id === (int)$user->id;
+        $isGuest = !$order->user_id && $sessionId && (
+            $order->session_id === $sessionId ||
+            ($order->shippingAddress && $order->shippingAddress->session_id === $sessionId)
+        );
+
+        if (!$isOwner && !$isGuest) {
+            return response()->json(['message' => 'Order not found or access denied'], 404);
+        }
+
+        if (!$order->canCancel()) {
             return response()->json([
                 'message' => 'Cannot cancel order with status: ' . $order->status,
+            ], 422);
+        }
+
+        if (in_array($order->payment_status, [Order::PAYMENT_PAID_DEPOSIT, Order::PAYMENT_FULL_PAID])) {
+            return response()->json([
+                'message' => 'Payment has already been processed for this order. Please use the \'Request Refund\' option instead.',
             ], 422);
         }
 
@@ -384,12 +402,23 @@ class OrderController extends Controller
                         $productColor->increment('stock', $item->quantity);
                     }
                 }
-                $item->product->increment('stock', $item->quantity);
+                if ($item->product) {
+                    $item->product->increment('stock', $item->quantity);
+                }
             }
 
-            $order->update(['status' => 'cancelled']);
+            // Restore coupon usage
+            if ($order->coupon_id && $order->coupon) {
+                // Ensure used_count doesn't go below zero
+                if ($order->coupon->used_count > 0) {
+                    $order->coupon->decrement('used_count');
+                }
+            }
 
-            ActivityLog::orders($request, 'Cancel Order', "User cancelled their order: #{$order->order_number}", $order);
+            $order->update(['status' => Order::STATUS_CANCELLED]);
+
+            $logUser = ActivityLog::userLabel($user, $sessionId);
+            ActivityLog::orders($request, 'Cancel Order', "{$logUser} cancelled order: #{$order->order_number}", $order);
 
             DB::commit();
 
@@ -400,6 +429,7 @@ class OrderController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Order cancellation failed: ' . $e->getMessage(), ['trace' => substr($e->getTraceAsString(), 0, 500)]);
             return response()->json(['message' => 'Failed to cancel order'], 500);
         }
     }

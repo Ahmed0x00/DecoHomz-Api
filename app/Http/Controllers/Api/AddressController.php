@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ShippingAddress;
+use App\Models\ActivityLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -48,6 +49,8 @@ class AddressController extends Controller
         $validated['governorate'] = $validated['state']; // Required field (old schema)
         $address = ShippingAddress::create($validated);
 
+        ActivityLog::addresses($request, 'Create Address', ActivityLog::userName($request) . " created address: {$address->first_name} {$address->last_name}, {$address->city}, {$address->state}", $address);
+
         return response()->json([
             'message' => 'Address created successfully',
             'address' => $address,
@@ -90,6 +93,8 @@ class AddressController extends Controller
 
         $address->update($validated);
 
+        ActivityLog::addresses($request, 'Update Address', ActivityLog::userName($request) . " updated address #{$address->id}: {$address->first_name} {$address->last_name}, {$address->city}", $address);
+
         return response()->json([
             'message' => 'Address updated successfully',
             'address' => $address->fresh(),
@@ -108,6 +113,8 @@ class AddressController extends Controller
 
         $address->delete();
 
+        ActivityLog::addresses($request, 'Delete Address', ActivityLog::userName($request) . " deleted address #{$id}: {$address->first_name} {$address->last_name}, {$address->city}", null, 'deletion');
+
         return response()->json(['message' => 'Address deleted successfully']);
     }
 
@@ -123,6 +130,8 @@ class AddressController extends Controller
 
         ShippingAddress::where('user_id', $request->user()->id)->update(['is_default' => false]);
         $address->update(['is_default' => true]);
+
+        ActivityLog::addresses($request, 'Set Default Address', ActivityLog::userName($request) . " set address #{$address->id} ({$address->first_name} {$address->last_name}, {$address->city}) as default", $address);
 
         return response()->json([
             'message' => 'Default address updated',

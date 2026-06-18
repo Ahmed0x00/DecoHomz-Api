@@ -21,8 +21,8 @@ class ProductController extends Controller
         $query = Product::with(['category', 'primaryImage']);
 
         // Filter by category
-        if ($request->has('category')) {
-            $query->where('category_id', $request->input('category'));
+        if ($request->has('category_id') || $request->has('category')) {
+            $query->where('category_id', $request->input('category_id') ?? $request->input('category'));
         }
 
         // Filter by active status
@@ -48,6 +48,28 @@ class ProductController extends Controller
             });
         }
 
+        if ($request->has('stock')) {
+            $stockVal = $request->input('stock');
+            if ($stockVal === '0' || $stockVal === 0) {
+                $query->where('stock', '<=', 0)
+                      ->whereDoesntHave('colors', function ($cq) {
+                          $cq->where('is_active', true)->where('stock', '>', 0);
+                      });
+            } else {
+                $query->where('stock', $stockVal);
+            }
+        }
+
+        if ($request->has('stock_min')) {
+            $stockMin = (int) $request->input('stock_min');
+            $query->where(function ($q) use ($stockMin) {
+                $q->where('stock', '>=', $stockMin)
+                  ->orWhereHas('colors', function ($cq) use ($stockMin) {
+                      $cq->where('is_active', true)->where('stock', '>=', $stockMin);
+                  });
+            });
+        }
+
         // Search
         if ($request->has('search')) {
             $search = $request->input('search');
@@ -57,6 +79,16 @@ class ProductController extends Controller
         $perPage = $request->input('per_page', 15);
         $products = $query->latest()->paginate($perPage);
 
+        // Calculate database-wide stats (not affected by request filters)
+        $totalProducts = Product::count();
+        $activeProducts = Product::where('is_active', true)->count();
+        $featuredProducts = Product::where('is_featured', true)->count();
+        $outOfStockProducts = Product::where('stock', '<=', 0)
+            ->whereDoesntHave('colors', function ($cq) {
+                $cq->where('is_active', true)->where('stock', '>', 0);
+            })
+            ->count();
+
         return response()->json([
             'products' => $products->items(),
             'pagination' => [
@@ -64,6 +96,12 @@ class ProductController extends Controller
                 'last_page' => $products->lastPage(),
                 'per_page' => $products->perPage(),
                 'total' => $products->total(),
+            ],
+            'stats' => [
+                'total' => $totalProducts,
+                'active' => $activeProducts,
+                'featured' => $featuredProducts,
+                'out_of_stock' => $outOfStockProducts,
             ],
         ]);
     }

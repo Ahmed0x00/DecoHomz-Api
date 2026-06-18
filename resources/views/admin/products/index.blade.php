@@ -99,6 +99,12 @@
   var currentPage = 1;
   var lastParams = {};
 
+  function esc(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str || ''));
+    return div.innerHTML;
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
     loadCategories();
     loadStats();
@@ -120,36 +126,19 @@
 
   async function loadStats() {
     try {
-      var res = await API.get('/admin/products', { params: { paginate: 1, per_page: 1 } });
-      var all = res.data || res.products || [];
-      var total = Array.isArray(all) ? all.length : (res.total || 0);
-
-      // Count from full data if available
-      var fullRes = await API.get('/admin/products', { params: { per_page: 200 } });
-      var products;
-      if (fullRes.data && fullRes.data.data) {
-        // Laravel paginator: { data: [...], current_page: 1 }
-        products = fullRes.data.data;
-      } else if (Array.isArray(fullRes.data)) {
-        products = fullRes.data;
-      } else if (Array.isArray(fullRes.products)) {
-        // Plain object: { products: [...], pagination: {...} }
-        products = fullRes.products;
+      var res = await API.get('/admin/products', { params: { per_page: 1 } });
+      if (res.stats) {
+        document.getElementById('stat-total').textContent = res.stats.total;
+        document.getElementById('stat-active').textContent = res.stats.active;
+        document.getElementById('stat-featured').textContent = res.stats.featured;
+        document.getElementById('stat-out').textContent = res.stats.out_of_stock;
       } else {
-        products = fullRes.data || fullRes || [];
+        var products = res.products || [];
+        document.getElementById('stat-total').textContent = res.pagination ? (res.pagination.total || 0) : products.length;
+        document.getElementById('stat-active').textContent = '—';
+        document.getElementById('stat-featured').textContent = '—';
+        document.getElementById('stat-out').textContent = '—';
       }
-
-      var active = 0, featured = 0, outStock = 0;
-      products.forEach(function(p) {
-        if (p.is_active == 1 || p.is_active === true) active++;
-        if (p.is_featured == 1 || p.is_featured === true) featured++;
-        if (p.stock == 0 || p.stock === '0') outStock++;
-      });
-
-      document.getElementById('stat-total').textContent = products.length;
-      document.getElementById('stat-active').textContent = active;
-      document.getElementById('stat-featured').textContent = featured;
-      document.getElementById('stat-out').textContent = outStock;
     } catch(e) {
       document.getElementById('stat-total').textContent = '—';
       document.getElementById('stat-active').textContent = '—';
@@ -237,9 +226,10 @@
 
   function renderPagination(res) {
     var container = document.getElementById('pagination');
-    var total = res.total || 0;
-    var perPage = res.per_page || 15;
-    var current = res.current_page || 1;
+    var pagination = res.pagination || {};
+    var total = pagination.total || 0;
+    var perPage = pagination.per_page || 15;
+    var current = pagination.current_page || 1;
     var last = Math.ceil(total / perPage);
     if (last <= 1) { container.innerHTML = ''; return; }
 

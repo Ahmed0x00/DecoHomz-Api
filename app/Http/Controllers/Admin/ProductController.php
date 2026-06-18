@@ -82,6 +82,8 @@ class ProductController extends Controller
             'weight' => 'nullable|string|max:30',
             'color' => 'nullable|string|max:255',  // legacy single-color field
             'colors_json' => 'nullable|string',     // new structured colors (JSON array)
+            'specifications' => 'nullable|array',
+            'specifications_json' => 'nullable|string',
             'stars' => 'nullable|integer|min:1|max:5',
             'badge' => 'nullable|string|max:50',
             'badge_color' => 'nullable|string|max:20',
@@ -112,6 +114,10 @@ class ProductController extends Controller
         $validated['stock'] = $validated['stock'] ?? 0;
         $validated['is_active'] = $validated['is_active'] ?? true;
         $validated['is_featured'] = $validated['is_featured'] ?? false;
+
+        if ($request->filled('specifications_json')) {
+            $validated['specifications'] = json_decode($request->input('specifications_json'), true);
+        }
 
         $product = Product::create($validated);
 
@@ -206,6 +212,8 @@ class ProductController extends Controller
             'weight' => 'nullable|string|max:30',
             'colors' => 'nullable|array',
             'colors.*' => 'string',
+            'specifications' => 'nullable|array',
+            'specifications_json' => 'nullable|string',
             'stars' => 'nullable|integer|min:1|max:5',
             'badge' => 'nullable|string|max:50',
             'badge_color' => 'nullable|string|max:20',
@@ -232,6 +240,10 @@ class ProductController extends Controller
                 $counter++;
             }
             $validated['slug'] = $slug;
+        }
+
+        if ($request->filled('specifications_json')) {
+            $validated['specifications'] = json_decode($request->input('specifications_json'), true);
         }
 
         $product->update($validated);

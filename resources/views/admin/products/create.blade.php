@@ -92,30 +92,33 @@
           </div>
         </div>
 
-        <!-- Details -->
+        <!-- Product Specifications -->
         <div class="admin-card" style="margin-bottom:24px;">
-          <div class="admin-card-header"><div class="admin-card-title">Product Details</div></div>
-          <div style="padding:24px;display:flex;flex-direction:column;gap:16px;">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-              <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Material</label>
-                <input type="text" name="material" id="field-material" style="width:100%;padding:10px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;">
+          <div class="admin-card-header"><div class="admin-card-title">Product Specifications</div></div>
+          <div style="padding:24px;display:flex;flex-direction:column;gap:20px;">
+            
+            <!-- Dimensions Group -->
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1.5px solid #f1f5f9;padding-bottom:6px;">
+                <span style="font-size:13px;font-weight:700;color:#1e293b;">Dimensions Specs</span>
+                <button type="button" onclick="addSpec('dimensions')" style="background:#1e293b;color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">+ Add Dimension</button>
               </div>
-              <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Upholstery</label>
-                <input type="text" name="upholstery" id="field-upholstery" style="width:100%;padding:10px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;">
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-              <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Dimensions</label>
-                <input type="text" name="dimensions" id="field-dimensions" style="width:100%;padding:10px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;" placeholder="e.g. 200x90x85 cm">
-              </div>
-              <div>
-                <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Weight</label>
-                <input type="text" name="weight" id="field-weight" style="width:100%;padding:10px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;" placeholder="e.g. 45 kg">
+              <div id="dimensions-specs-container">
+                <!-- Dynamic Rows -->
               </div>
             </div>
+
+            <!-- Materials Group -->
+            <div style="margin-top:10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1.5px solid #f1f5f9;padding-bottom:6px;">
+                <span style="font-size:13px;font-weight:700;color:#1e293b;">Materials Specs</span>
+                <button type="button" onclick="addSpec('materials')" style="background:#1e293b;color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">+ Add Material</button>
+              </div>
+              <div id="materials-specs-container">
+                <!-- Dynamic Rows -->
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -235,11 +238,80 @@
 (function() {
   var categories = [];
   var pendingColors = [];
+  var dimensionsList = [];
+  var materialsList = [];
 
   document.addEventListener('DOMContentLoaded', function() {
     loadCategories();
     setupDropZone();
+    renderSpecsUI();
   });
+
+  function renderSpecsUI() {
+    var dimContainer = document.getElementById('dimensions-specs-container');
+    var matContainer = document.getElementById('materials-specs-container');
+    if (!dimContainer || !matContainer) return;
+
+    dimContainer.innerHTML = dimensionsList.map((item, idx) => `
+      <div style="display:flex;gap:12px;margin-bottom:8px;align-items:center;">
+        <input type="text" value="${escHtml(item.key)}" oninput="updateSpec('dimensions', ${idx}, 'key', this.value)" placeholder="Spec Key (e.g. Seat Height)" style="flex:1;padding:8px 10px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;">
+        <input type="text" value="${escHtml(item.value)}" oninput="updateSpec('dimensions', ${idx}, 'value', this.value)" placeholder="Spec Value (e.g. 45 cm)" style="flex:1;padding:8px 10px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;">
+        <button type="button" onclick="deleteSpec('dimensions', ${idx})" style="background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;padding:8px 12px;border-radius:6px;font-size:13px;cursor:pointer;line-height:1;">&times;</button>
+      </div>
+    `).join('');
+
+    matContainer.innerHTML = materialsList.map((item, idx) => `
+      <div style="display:flex;gap:12px;margin-bottom:8px;align-items:center;">
+        <input type="text" value="${escHtml(item.key)}" oninput="updateSpec('materials', ${idx}, 'key', this.value)" placeholder="Spec Key (e.g. Frame)" style="flex:1;padding:8px 10px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;">
+        <input type="text" value="${escHtml(item.value)}" oninput="updateSpec('materials', ${idx}, 'value', this.value)" placeholder="Spec Value (e.g. Solid Oak)" style="flex:1;padding:8px 10px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;">
+        <button type="button" onclick="deleteSpec('materials', ${idx})" style="background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;padding:8px 12px;border-radius:6px;font-size:13px;cursor:pointer;line-height:1;">&times;</button>
+      </div>
+    `).join('');
+  }
+
+  window.updateSpec = function(type, idx, field, value) {
+    if (type === 'dimensions') {
+      dimensionsList[idx][field] = value;
+    } else {
+      materialsList[idx][field] = value;
+    }
+  };
+
+  window.addSpec = function(type) {
+    if (type === 'dimensions') {
+      dimensionsList.push({key: '', value: ''});
+    } else {
+      materialsList.push({key: '', value: ''});
+    }
+    renderSpecsUI();
+  };
+
+  window.deleteSpec = function(type, idx) {
+    if (type === 'dimensions') {
+      dimensionsList.splice(idx, 1);
+    } else {
+      materialsList.splice(idx, 1);
+    }
+    renderSpecsUI();
+  };
+
+  function getSpecsJson() {
+    var specs = {
+      "Dimensions": {},
+      "Materials": {}
+    };
+    dimensionsList.forEach(function(item) {
+      if (item.key.trim()) {
+        specs["Dimensions"][item.key.trim()] = item.value.trim();
+      }
+    });
+    materialsList.forEach(function(item) {
+      if (item.key.trim()) {
+        specs["Materials"][item.key.trim()] = item.value.trim();
+      }
+    });
+    return JSON.stringify(specs);
+  }
 
   async function loadCategories() {
     try {
@@ -436,6 +508,7 @@
 
     // Attach pending colors as JSON
     formData.set('colors_json', JSON.stringify(pendingColors));
+    formData.set('specifications_json', getSpecsJson());
 
     API.post('/admin/products', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }

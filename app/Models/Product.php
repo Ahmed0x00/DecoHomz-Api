@@ -21,6 +21,7 @@ class Product extends Model
         'upholstery',
         'dimensions',
         'weight',
+        'specifications',
         'colors',
         'stars',
         'badge',
@@ -36,6 +37,7 @@ class Product extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'old_price' => 'decimal:2',
+        'specifications' => 'array',
         'colors' => 'array',
         'stars' => 'integer',
         'stock' => 'integer',

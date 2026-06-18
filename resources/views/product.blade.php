@@ -173,21 +173,32 @@
     <div class="tab-pane active" id="pane-desc">
       <div class="prod-details">
         <p>{{ $product['description'] ?? 'No description available.' }}</p>
-        <p>{{ __('Crafted with precision and designed for ultimate comfort, this piece brings a touch of modern elegance to any room. The high-quality materials ensure durability, while the sleek finish complements various decor styles seamlessly.') }}</p>
       </div>
     </div>
 
     {{-- Specs --}}
     <div class="tab-pane" id="pane-specs">
       <div class="spec-grid">
-        <div class="spec-row"><div class="k">{{ __('Material') }}</div><div class="v">{{ $product->material ?: __('N/A') }}</div></div>
-        @if($product->upholstery)
-        <div class="spec-row"><div class="k">{{ __('Upholstery') }}</div><div class="v">{{ $product->upholstery }}</div></div>
+        @if(!empty($product->specifications) && (is_array($product->specifications) || is_object($product->specifications)))
+          @foreach($product->specifications as $tabName => $fields)
+            @if(is_array($fields) || is_object($fields))
+              <div class="spec-section-header" style="grid-column: 1 / -1; font-weight: 700; font-size: 14px; color: var(--color-accent); margin: 15px 0 8px 0; border-bottom: 1px solid var(--color-border); padding-bottom: 4px;">{{ __($tabName) }}</div>
+              @foreach($fields as $k => $v)
+                <div class="spec-row">
+                  <div class="k">{{ __($k) }}</div>
+                  <div class="v">{{ $v }}</div>
+                </div>
+              @endforeach
+            @endif
+          @endforeach
+        @else
+          <div class="spec-row"><div class="k">{{ __('Material') }}</div><div class="v">{{ $product->material ?: __('N/A') }}</div></div>
+          @if($product->upholstery)
+          <div class="spec-row"><div class="k">{{ __('Upholstery') }}</div><div class="v">{{ $product->upholstery }}</div></div>
+          @endif
+          <div class="spec-row"><div class="k">{{ __('Dimensions') }}</div><div class="v">{{ $product->dimensions ?: __('N/A') }}</div></div>
+          <div class="spec-row"><div class="k">{{ __('Weight') }}</div><div class="v">{{ $product->weight ? $product->weight : __('N/A') }}</div></div>
         @endif
-        <div class="spec-row"><div class="k">{{ __('Dimensions') }}</div><div class="v">{{ $product->dimensions ?: __('N/A') }}</div></div>
-        <div class="spec-row"><div class="k">{{ __('Weight') }}</div><div class="v">{{ $product->weight ? $product->weight : __('N/A') }}</div></div>
-        <div class="spec-row"><div class="k">{{ __('Stock') }}</div><div class="v">{{ ($product->stock ?? 0) > 0 ? $product->stock . ' ' . __('available') : __('Out of stock') }}</div></div>
-        <div class="spec-row"><div class="k">{{ __('SKU') }}</div><div class="v">#{{ $product->id }}</div></div>
       </div>
     </div>
 

@@ -155,6 +155,7 @@ class OrderController extends Controller
             'shipping_address.address_line_2' => 'nullable|string|max:255',
             'shipping_address.city' => 'required_with:shipping_address|string|max:100',
             'shipping_address.state' => 'required_with:shipping_address|string|max:100',
+            'shipping_address.governorate' => 'required_with:shipping_address|string|max:100',
             'shipping_address.postal_code' => 'required_with:shipping_address|string|max:20',
             'shipping_address.country' => 'required_with:shipping_address|string|max:100',
             'shipping_address.is_default' => 'nullable|boolean',

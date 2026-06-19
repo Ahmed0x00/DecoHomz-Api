@@ -127,13 +127,16 @@
 
   {{-- Search Overlay --}}
   <div class="search-overlay" id="search-overlay">
-    <div class="search-box">
-      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" style="width:24px;height:24px;margin-inline-start:12px;color:var(--color-text-faint);flex-shrink:0;">
-        <circle cx="11" cy="11" r="8" />
-        <path d="m21 21-4.35-4.35" />
-      </svg>
-      <input type="text" id="search-input" placeholder="{{ __('Search for furniture, decor, and more...') }}" autocomplete="off">
-      <button class="search-close-btn" id="search-close-btn">&times;</button>
+    <div class="search-box-wrap">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.5" style="width:24px;height:24px;margin-inline-start:12px;color:var(--color-text-faint);flex-shrink:0;">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+        <input type="text" id="search-input" placeholder="{{ __('Search for furniture, decor, and more...') }}" autocomplete="off">
+        <button class="search-close-btn" id="search-close-btn">&times;</button>
+      </div>
+      <div class="search-results" id="search-results"></div>
     </div>
   </div>
 
@@ -211,8 +214,20 @@
     </svg>
   </button>
 
-  <script src="{{ asset_v('/js/shared.js') }}"></script>
+  <script>
+  window.__cartTranslations = {
+    title: "{{ __('Your Shopping Cart') }}",
+    empty: "{{ __('Your cart is empty') }}",
+    viewCart: "{{ __('View Cart') }}",
+    checkout: "{{ __('Checkout') }}",
+    continueShopping: "{{ __('Continue Shopping') }}",
+    subtotal: "{{ __('Subtotal') }}",
+    standard: "{{ __('Standard') }}",
+    startShopping: "{{ __('Start Shopping') }}"
+  };
+  </script>
   <script src="{{ asset_v('/js/api.js') }}"></script>
+  <script src="{{ asset_v('/js/shared.js') }}"></script>
   <script>
   // Sync localStorage to cookies for server-side auth (fixes 403 for existing sessions)
   (function() {

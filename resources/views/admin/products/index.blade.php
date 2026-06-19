@@ -46,21 +46,20 @@
 <!-- Filter Bar -->
 <div class="admin-card" style="margin-bottom:24px;">
   <div style="padding:16px 24px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
-    <input type="text" id="filter-search" placeholder="Search products..." style="flex:1;min-width:200px;padding:8px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;" onkeyup="if(event.key==='Enter')loadProducts()">
-    <select id="filter-category" style="padding:8px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;min-width:150px;">
+    <input type="text" id="filter-search" placeholder="Search products..." style="flex:1;min-width:200px;padding:8px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;" oninput="debounceLoadProducts()">
+    <select id="filter-category" style="padding:8px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;min-width:150px;" onchange="loadProducts()">
       <option value="">All Categories</option>
     </select>
-    <select id="filter-featured" style="padding:8px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;min-width:130px;">
+    <select id="filter-featured" style="padding:8px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;min-width:130px;" onchange="loadProducts()">
       <option value="">Featured</option>
       <option value="1">Featured</option>
       <option value="0">Not Featured</option>
     </select>
-    <select id="filter-stock" style="padding:8px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;min-width:130px;">
+    <select id="filter-stock" style="padding:8px 12px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;min-width:130px;" onchange="loadProducts()">
       <option value="">Stock</option>
       <option value="in">In Stock</option>
       <option value="out">Out of Stock</option>
     </select>
-    <button onclick="loadProducts()" style="background:#1a1a1a;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;">Filter</button>
     <button onclick="clearFilters()" style="background:#f3f4f6;color:#666;border:1px solid #e5e5e5;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;">Clear</button>
   </div>
 </div>
@@ -98,6 +97,12 @@
 (function() {
   var currentPage = 1;
   var lastParams = {};
+  var _searchTimer;
+
+  window.debounceLoadProducts = function() {
+    clearTimeout(_searchTimer);
+    _searchTimer = setTimeout(loadProducts, 350);
+  };
 
   function esc(str) {
     var div = document.createElement('div');

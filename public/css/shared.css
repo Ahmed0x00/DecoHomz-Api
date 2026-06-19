@@ -98,6 +98,9 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
 }
 
 body {
@@ -107,6 +110,8 @@ body {
   font-size: 15px;
   line-height: 1.6;
   overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
 }
 
 body.menu-open {
@@ -136,6 +141,8 @@ button {
 
 input, select, textarea {
   font-family: inherit;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* ── Brand Logo ────────────────────────────── */
@@ -424,6 +431,7 @@ nav.scrolled {
   top: 0;
   inset-inline-start: 0;
   width: 300px;
+  max-width: 90vw;
   height: 100%;
   background: var(--color-surface);
   z-index: 999;

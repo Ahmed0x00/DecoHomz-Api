@@ -78,7 +78,7 @@
         <th>Stock</th>
         <th>Featured</th>
         <th>Active</th>
-        <th style="width:100px;">Actions</th>
+        <th style="width:160px;text-align:center;">Actions</th>
       </tr>
     </thead>
     <tbody id="products-tbody">
@@ -205,9 +205,9 @@
         '<td>' + stockBadge + '</td>' +
         '<td>' + featBtn + '</td>' +
         '<td>' + actBtn + '</td>' +
-        '<td>' + 
-          '<a href="/admin/products/' + p.id + '/edit" style="color:#c9a96e;font-size:13px;font-weight:600;text-decoration:none;margin-right:8px;">Edit</a>' +
-          '<button onclick="deleteProduct(' + p.id + ')" style="background:none;border:none;color:#ef4444;font-size:13px;font-weight:600;cursor:pointer;padding:0;">Delete</button>' +
+        '<td style="white-space:nowrap;text-align:center;">' + 
+          '<a href="/admin/products/' + p.id + '/edit" style="display:inline-block;padding:6px 12px;border:1px solid #c9a96e;background:#c9a96e;color:#fff;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;margin-right:8px;box-shadow:0 1px 2px rgba(0,0,0,0.05);transition:all 0.15s ease;">Edit</a>' +
+          '<button onclick="deleteProduct(' + p.id + ')" style="display:inline-block;padding:6px 12px;border:1px solid #fee2e2;background:#fee2e2;color:#991b1b;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,0.05);transition:all 0.15s ease;">Delete</button>' +
         '</td>' +
         '</tr>';
     }).join('');

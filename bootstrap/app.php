@@ -20,8 +20,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'dh_token',
             'session_id',
             'dh_session_id',
+            'locale',
+            'lang',
         ]);
         $middleware->web(append: [
+            \App\Http\Middleware\SetLocale::class,
+        ]);
+        $middleware->api(append: [
             \App\Http\Middleware\SetLocale::class,
         ]);
         $middleware->alias([

@@ -177,6 +177,7 @@
           <li><a href="/shop?category=Bedroom">{{ __('Bedroom') }}</a></li>
           <li><a href="/shop?category=Dining">{{ __('Dining') }}</a></li>
           <li><a href="/shop?category=Outdoor">{{ __('Outdoor') }}</a></li>
+          <li><a href="/deals">{{ __('Deals') }}</a></li>
           <li><a href="/new-arrivals">{{ __('New Arrivals') }}</a></li>
         </ul>
       </div>
@@ -184,8 +185,8 @@
         <div class="f-head">{{ __('Help') }}</div>
         <ul class="f-links">
           <li><a href="/faq">{{ __('FAQ') }}</a></li>
-          <li><a href="/contact">{{ __('Shipping & Delivery') }}</a></li>
-          <li><a href="/contact">{{ __('Returns & Exchanges') }}</a></li>
+          <li><a href="/faq#shipping">{{ __('Shipping & Delivery') }}</a></li>
+          <li><a href="/faq#returns">{{ __('Returns & Exchanges') }}</a></li>
           <li><a href="/contact">{{ __('Contact Us') }}</a></li>
         </ul>
       </div>
@@ -193,14 +194,13 @@
         <div class="f-head">{{ __('Company') }}</div>
         <ul class="f-links">
           <li><a href="/about">{{ __('About Us') }}</a></li>
-          <li><a href="/faq">{{ __('Help Center') }}</a></li>
           <li><a href="/account">{{ __('My Account') }}</a></li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
       <span>© {{ date('Y') }} DecoHomz. {{ __('All rights reserved.') }}</span>
-      <span><a href="#">{{ __('Privacy') }}</a> · <a href="#">{{ __('Terms') }}</a></span>
+      <span><a href="/privacy">{{ __('Privacy') }}</a> · <a href="/terms">{{ __('Terms') }}</a></span>
     </div>
   </footer>
 

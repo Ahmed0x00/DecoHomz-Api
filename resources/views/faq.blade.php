@@ -28,7 +28,7 @@
 </div>
 
 <div class="faq-layout">
-  <div class="faq-cat-title">Orders & Shipping</div>
+  <div class="faq-cat-title" id="shipping">Orders & Shipping</div>
 
   <div class="faq-item">
     <div class="faq-q">How long does shipping take? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
@@ -45,7 +45,7 @@
     <div class="faq-a">Yes! We offer free standard delivery on all orders above EGP 2,000. Orders below that amount incur a flat delivery fee of EGP 149.</div>
   </div>
 
-  <div class="faq-cat-title">Returns & Warranty</div>
+  <div class="faq-cat-title" id="returns">Returns & Warranty</div>
 
   <div class="faq-item">
     <div class="faq-q">What is your return policy? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div>

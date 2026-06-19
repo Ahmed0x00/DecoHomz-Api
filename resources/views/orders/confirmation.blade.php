@@ -64,9 +64,9 @@ $couponDiscount = $coupon ? ($coupon->discount_amount ?? $coupon->discount ?? 0)
         <polyline points="20 6 9 17 4 12" />
       </svg>
     </div>
-    <div class="confirm-title">Order Placed Successfully!</div>
-    <div class="confirm-sub">Thank you! We've received your order and will start processing it shortly.</div>
-    <div class="order-num">Order ID: <span>#{{ $orderNumber }}</span></div>
+    <div class="confirm-title">{{ __('Order Placed Successfully!') }}</div>
+    <div class="confirm-sub">{{ __('Thank you! We\'ve received your order and will start processing it shortly.') }}</div>
+    <div class="order-num">{{ __('Order ID:') }} <span>#{{ $orderNumber }}</span></div>
   </div>
 
   {{-- Info Cards --}}
@@ -78,18 +78,18 @@ $couponDiscount = $coupon ? ($coupon->discount_amount ?? $coupon->discount ?? 0)
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
           <circle cx="12" cy="10" r="3" />
         </svg>
-        Delivery Address
+        {{ __('Delivery Address') }}
       </div>
       @if($addr)
-      <div class="info-row"><span class="key">Name</span><span class="val">{{ $addr->first_name }} {{ $addr->last_name }}</span></div>
-      <div class="info-row"><span class="key">Phone</span><span class="val">{{ $addr->phone }}</span></div>
-      <div class="info-row"><span class="key">Address</span><span class="val">{{ $addr->address_line_1 }}{{ $addr->address_line_2 ? ', ' . $addr->address_line_2 : '' }}</span></div>
-      <div class="info-row"><span class="key">City</span><span class="val">{{ $addr->city }}{{ $addr->state ? ', ' . $addr->state : '' }}, {{ $addr->country }}</span></div>
+      <div class="info-row"><span class="key">{{ __('Name') }}</span><span class="val">{{ $addr->first_name }} {{ $addr->last_name }}</span></div>
+      <div class="info-row"><span class="key">{{ __('Phone') }}</span><span class="val">{{ $addr->phone }}</span></div>
+      <div class="info-row"><span class="key">{{ __('Address') }}</span><span class="val">{{ $addr->address_line_1 }}{{ $addr->address_line_2 ? ', ' . $addr->address_line_2 : '' }}</span></div>
+      <div class="info-row"><span class="key">{{ __('City') }}</span><span class="val">{{ $addr->city }}{{ $addr->state ? ', ' . $addr->state : '' }}, {{ $addr->country }}</span></div>
       @if($addr->postal_code)
-      <div class="info-row"><span class="key">Postal Code</span><span class="val">{{ $addr->postal_code }}</span></div>
+      <div class="info-row"><span class="key">{{ __('Postal Code') }}</span><span class="val">{{ $addr->postal_code }}</span></div>
       @endif
       @else
-      <div class="info-row"><span class="val" style="color:#888">No address on file</span></div>
+      <div class="info-row"><span class="val" style="color:#888">{{ __('No address on file') }}</span></div>
       @endif
     </div>
 
@@ -100,10 +100,10 @@ $couponDiscount = $coupon ? ($coupon->discount_amount ?? $coupon->discount ?? 0)
           <rect x="1" y="4" width="22" height="16" rx="2" />
           <line x1="1" y1="10" x2="23" y2="10" />
         </svg>
-        Payment Details
+        {{ __('Payment Details') }}
       </div>
-      <div class="info-row"><span class="key">Method</span><span class="val">{{ $paymentDisplay }}</span></div>
-      <div class="info-row"><span class="key">Subtotal</span><span class="val">EGP {{ number_format($subtotal) }}</span></div>
+      <div class="info-row"><span class="key">{{ __('Method') }}</span><span class="val">{{ $paymentDisplay }}</span></div>
+      <div class="info-row"><span class="key">{{ __('Subtotal') }}</span><span class="val">EGP {{ number_format($subtotal) }}</span></div>
       @if($couponDiscount > 0)
       <div class="info-row">
         <span class="key">Coupon ({{ $coupon->code ?? 'DISCOUNT' }})</span>
@@ -111,20 +111,20 @@ $couponDiscount = $coupon ? ($coupon->discount_amount ?? $coupon->discount ?? 0)
       </div>
       @elseif($discount > 0)
       <div class="info-row">
-        <span class="key">Discount</span>
+        <span class="key">{{ __('Discount') }}</span>
         <span class="val" style="color:#c0392b">− EGP {{ number_format($discount) }}</span>
       </div>
       @endif
-      <div class="info-row"><span class="key">Delivery</span><span class="val" style="color:#4A7C3F">{{ $deliveryDisplay }}</span></div>
+      <div class="info-row"><span class="key">{{ __('Delivery') }}</span><span class="val" style="color:#4A7C3F">{{ $deliveryDisplay }}</span></div>
       @if($vatAmount > 0)
-      <div class="info-row"><span class="key">VAT (14%)</span><span class="val">EGP {{ number_format($vatAmount) }}</span></div>
+      <div class="info-row"><span class="key">{{ __('VAT (14%)') }}</span><span class="val">EGP {{ number_format($vatAmount) }}</span></div>
       @endif
       @if($depositAmount > 0)
-      <div class="info-row"><span class="key">Deposit Required</span><span class="val" style="color:#92400e">EGP {{ number_format($depositAmount) }}</span></div>
-      <div class="info-row"><span class="key">Balance Due</span><span class="val" style="color:#c0392b">EGP {{ number_format($balanceDue) }}</span></div>
+      <div class="info-row"><span class="key">{{ __('Deposit Required') }}</span><span class="val" style="color:#92400e">EGP {{ number_format($depositAmount) }}</span></div>
+      <div class="info-row"><span class="key">{{ __('Balance Due') }}</span><span class="val" style="color:#c0392b">EGP {{ number_format($balanceDue) }}</span></div>
       @endif
       <div class="info-row" style="padding-top:8px;border-top:1px solid #F5F0E8;margin-top:4px">
-        <span class="key" style="font-weight:700;color:#2C1F14">Total</span>
+        <span class="key" style="font-weight:700;color:#2C1F14">{{ __('Total') }}</span>
         <span class="val" style="font-size:15px">EGP {{ number_format($total) }}</span>
       </div>
     </div>
@@ -140,7 +140,7 @@ $couponDiscount = $coupon ? ($coupon->discount_amount ?? $coupon->discount ?? 0)
         <line x1="16" y1="17" x2="8" y2="17" />
         <polyline points="10 9 9 9 8 9" />
       </svg>
-      Order Notes
+      {{ __('Order Notes') }}
     </div>
     <div style="font-size: 14px; color: var(--color-text); line-height: 1.6; white-space: pre-line;">{{ $order->notes }}</div>
   </div>
@@ -155,7 +155,7 @@ $couponDiscount = $coupon ? ($coupon->discount_amount ?? $coupon->discount ?? 0)
         <circle cx="5.5" cy="18.5" r="2.5" />
         <circle cx="18.5" cy="18.5" r="2.5" />
       </svg>
-      Delivery Status
+      {{ __('Delivery Status') }}
     </div>
     <div class="tl-steps">
       @foreach($steps as $i => $step)
@@ -206,7 +206,7 @@ $couponDiscount = $coupon ? ($coupon->discount_amount ?? $coupon->discount ?? 0)
         <line x1="3" y1="6" x2="21" y2="6" />
         <path d="M16 10a4 4 0 0 1-8 0" />
       </svg>
-      Order Items ({{ $itemCount }})
+      {{ __('Order Items') }} ({{ $itemCount }})
     </div>
     @foreach($items as $item)
     <div class="order-item">
@@ -221,7 +221,7 @@ $couponDiscount = $coupon ? ($coupon->discount_amount ?? $coupon->discount ?? 0)
         @if($item->variant && $item->variant !== 'Standard')
         <div class="item-meta">{{ $item->variant }}</div>
         @endif
-        <div class="item-meta">Qty: {{ $item->quantity }}</div>
+        <div class="item-meta">{{ __('Qty:') }} {{ $item->quantity }}</div>
       </div>
       <div class="item-price">EGP {{ number_format($item->total ?? ($item->price * $item->quantity)) }}</div>
     </div>
@@ -231,23 +231,23 @@ $couponDiscount = $coupon ? ($coupon->discount_amount ?? $coupon->discount ?? 0)
   {{-- Summary Bar --}}
   <div class="summary-bar">
     <div class="sum-item">
-      <div class="sum-label">Order Total</div>
+      <div class="sum-label">{{ __('Order Total') }}</div>
       <div class="sum-val gold">EGP {{ number_format($total) }}</div>
     </div>
     <div class="sum-divider"></div>
     <div class="sum-item">
-      <div class="sum-label">Est. Delivery</div>
+      <div class="sum-label">{{ __('Est. Delivery') }}</div>
       <div class="sum-val">{{ $estDelivery }}</div>
     </div>
     <div class="sum-divider"></div>
     <div class="sum-item">
-      <div class="sum-label">Items</div>
+      <div class="sum-label">{{ __('Items') }}</div>
       <div class="sum-val">{{ $itemCount }} piece{{ $itemCount !== 1 ? 's' : '' }}</div>
     </div>
     @if(($couponDiscount ?? $discount) > 0)
     <div class="sum-divider"></div>
     <div class="sum-item">
-      <div class="sum-label">You Saved</div>
+      <div class="sum-label">{{ __('You Saved') }}</div>
       <div class="sum-val" style="color:#7BC67E">EGP {{ number_format($couponDiscount ?: $discount) }}</div>
     </div>
     @endif
@@ -255,9 +255,9 @@ $couponDiscount = $coupon ? ($coupon->discount_amount ?? $coupon->discount ?? 0)
 
   {{-- CTA Buttons --}}
   <div class="cta-row">
-    <button class="btn-outline" onclick="location.href='/account/orders/{{ $order->id }}'">Track Order</button>
-    <button class="btn-dark" onclick="location.href='/account'">My Orders</button>
-    <button class="btn-gold" onclick="location.href='/shop'">Continue Shopping</button>
+    <button class="btn-outline" onclick="location.href='/account/orders/{{ $order->id }}'">{{ __('Track Order') }}</button>
+    <button class="btn-dark" onclick="location.href='/account'">{{ __('My Orders') }}</button>
+    <button class="btn-gold" onclick="location.href='/shop'">{{ __('Continue Shopping') }}</button>
   </div>
 
 </div>

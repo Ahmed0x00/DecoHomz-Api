@@ -23,6 +23,7 @@
 }
 
 .main-img {
+  width: 100%;
   background: var(--color-bg-warm);
   border-radius: var(--radius-xl);
   aspect-ratio: 1;

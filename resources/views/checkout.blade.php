@@ -347,8 +347,10 @@ function renderCheckout() {
   cart.items.forEach(function(item) {
     var imgSrc = item.product?.image || '/img/placeholder.svg';
     html += '<div class="sum-item">' +
-              '<div class="sum-item-img">' +
-                '<img src="' + imgSrc + '" alt="' + esc(item.name) + '" onerror="this.src=\'/img/placeholder.svg\'">' +
+              '<div style="position: relative; flex-shrink: 0;">' +
+                '<div class="sum-item-img">' +
+                  '<img src="' + imgSrc + '" alt="' + esc(item.name) + '" onerror="this.src=\'/img/placeholder.svg\'">' +
+                '</div>' +
                 '<div class="sum-item-qty">' + item.quantity + '</div>' +
               '</div>' +
               '<div class="sum-item-info">' +

@@ -417,3 +417,12 @@
     position: static;
   }
 }
+
+@media (max-width: 480px) {
+  .promo-box {
+    flex-direction: column;
+  }
+  .promo-box button {
+    width: 100%;
+  }
+}

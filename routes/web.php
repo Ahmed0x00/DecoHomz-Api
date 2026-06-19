@@ -24,6 +24,8 @@ Route::get('/faq', fn() => view('faq'));
 Route::get('/categories', fn() => view('categories'));
 Route::get('/deals', fn() => view('deals'));
 Route::get('/new-arrivals', fn() => view('new-arrivals'));
+Route::get('/privacy', fn() => view('privacy'));
+Route::get('/terms', fn() => view('terms'));
 
 // Admin routes (auth handled client-side via JS guard)
 Route::prefix('admin')->middleware(['admin.token', 'admin'])->group(function () {

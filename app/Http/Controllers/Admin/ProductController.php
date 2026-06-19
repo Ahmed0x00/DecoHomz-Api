@@ -367,15 +367,8 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
 
-        // Check for related orders
-        if ($product->orderItems()->exists()) {
-            // Soft delete approach - just mark as inactive
-            $product->update(['is_active' => false]);
-            ActivityLog::products($request, 'Deactivate Product', ActivityLog::userName($request) . " deactivated product #{$id} ({$product->name}) — has orders; marked as inactive instead of deleting.", $product, 'warning');
-            return response()->json([
-                'message' => 'Product has existing orders. Marked as inactive instead of deletion.',
-            ]);
-        }
+        // Delete related order items first to satisfy foreign key constraints and allow permanent deletion
+        $product->orderItems()->delete();
 
         // Clean up image files from disk before deleting the product
         $images = $product->images()->get();

@@ -629,12 +629,40 @@ function selectColor(el, updateImage = true, specificThumb = null) {
   thumbs.forEach(function(t) {
     const thumbColorId = t.getAttribute('data-color-id');
     t.classList.remove('active');
-    t.style.display = ''; // Keep all thumbnails visible
     
-    if (colorId && thumbColorId === colorId) {
-      if (!firstVisibleColorSpecificThumb) firstVisibleColorSpecificThumb = t;
+    if (colorId) {
+      if (hasColorSpecificThumbs) {
+        if (thumbColorId === colorId || !thumbColorId) {
+          t.style.display = '';
+          if (thumbColorId === colorId && !firstVisibleColorSpecificThumb) {
+            firstVisibleColorSpecificThumb = t;
+          }
+        } else {
+          t.style.display = 'none';
+        }
+      } else {
+        if (!thumbColorId) {
+          t.style.display = '';
+        } else {
+          t.style.display = 'none';
+        }
+      }
+    } else {
+      const hasGeneralThumbs = Array.from(thumbs).some(function(thumb) { return !thumb.getAttribute('data-color-id'); });
+      if (hasGeneralThumbs) {
+        if (!thumbColorId) {
+          t.style.display = '';
+        } else {
+          t.style.display = 'none';
+        }
+      } else {
+        t.style.display = '';
+      }
     }
-    if (!firstVisibleThumb) firstVisibleThumb = t;
+    
+    if (t.style.display !== 'none' && !firstVisibleThumb) {
+      firstVisibleThumb = t;
+    }
   });
 
   // Update main image: prefer the first color-specific image if found, else the first general image

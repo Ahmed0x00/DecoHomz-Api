@@ -57,6 +57,24 @@ class OptimizeUploadedImage implements ShouldQueue
         $fullPath = $disk->path($this->storagePath);
         $fileSize = filesize($fullPath);
 
+        // Bypass local optimization if GD and Imagick are missing
+        if (!extension_loaded('gd') && !extension_loaded('imagick')) {
+            Log::info("[ImageOptimizer] Bypassing local optimization because GD/Imagick is not installed.");
+            $newStoragePath = preg_replace('/\.[^.]+$/', '.webp', $this->storagePath);
+            if ($newStoragePath !== $this->storagePath) {
+                if ($disk->exists($this->storagePath)) {
+                    $disk->copy($this->storagePath, $newStoragePath);
+                    $disk->delete($this->storagePath);
+                }
+                \App\Models\ProductImage::where('image', $this->storagePath)->update([
+                    'image' => $newStoragePath,
+                    'thumbnail' => $newStoragePath,
+                ]);
+                \App\Models\Category::where('image', $this->storagePath)->update(['image' => $newStoragePath]);
+            }
+            return;
+        }
+
         // Skip files under 300KB — not worth optimizing
         if ($fileSize <= 307200) {
             Log::info("[ImageOptimizer] Skipping (under 300KB): {$this->storagePath} ({$fileSize} bytes)");

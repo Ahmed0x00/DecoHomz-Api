@@ -162,16 +162,24 @@
     </div>
 
     @if(isset($product['images']) && count($product['images']) > 1)
-    <div class="thumb-row">
-      @foreach($product['images'] as $index => $img)
-        @php
-          $thumbUrl = $img['thumbnail_url'] ?? $img['url'] ?? '/img/placeholder.svg';
-          $fullUrl = $img['url'] ?? $thumbUrl;
-        @endphp
-        <div class="thumb {{ $index === 0 ? 'active' : '' }}" data-color-id="{{ $img->product_color_id ?? '' }}" onclick="changeImage(this, '{{ $fullUrl }}')">
-          <img src="{{ $thumbUrl }}" alt="Thumbnail {{ $index + 1 }}">
-        </div>
-      @endforeach
+    <div class="thumb-wrapper">
+      <button class="thumb-nav-btn prev-btn" onclick="event.stopPropagation(); scrollThumbnails(-1);" aria-label="{{ __('Previous image') }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="thumb-row">
+        @foreach($product['images'] as $index => $img)
+          @php
+            $thumbUrl = $img['thumbnail_url'] ?? $img['url'] ?? '/img/placeholder.svg';
+            $fullUrl = $img['url'] ?? $thumbUrl;
+          @endphp
+          <div class="thumb {{ $index === 0 ? 'active' : '' }}" data-color-id="{{ $img->product_color_id ?? '' }}" onclick="changeImage(this, '{{ $fullUrl }}')">
+            <img src="{{ $thumbUrl }}" alt="Thumbnail {{ $index + 1 }}">
+          </div>
+        @endforeach
+      </div>
+      <button class="thumb-nav-btn next-btn" onclick="event.stopPropagation(); scrollThumbnails(1);" aria-label="{{ __('Next image') }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
     </div>
     @endif
   </div>
@@ -608,59 +616,20 @@ function selectColor(el, updateImage = true, specificThumb = null) {
   const stickyPrice = document.querySelector('.sticky-main-price');
   if (stickyPrice) stickyPrice.textContent = 'EGP ' + newPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-  // Filter thumbnails:
-  // - Show thumbnails with data-color-id matching colorId OR data-color-id being empty/null.
-  // - If no colorId is selected (empty/Standard), show only general images (empty data-color-id).
-  // - Hide all other thumbnails.
-  let hasColorSpecificThumbs = false;
+  // Keep all thumbnails visible, but find the first color-specific image if color is selected
   const thumbs = document.querySelectorAll('.thumb');
-  
-  if (colorId) {
-    thumbs.forEach(function(t) {
-      if (t.getAttribute('data-color-id') === colorId) {
-        hasColorSpecificThumbs = true;
-      }
-    });
-  }
-
   let firstVisibleThumb = null;
   let firstVisibleColorSpecificThumb = null;
 
   thumbs.forEach(function(t) {
     const thumbColorId = t.getAttribute('data-color-id');
     t.classList.remove('active');
+    t.style.display = ''; // Show all thumbnails
     
-    if (colorId) {
-      if (hasColorSpecificThumbs) {
-        if (thumbColorId === colorId || !thumbColorId) {
-          t.style.display = '';
-          if (thumbColorId === colorId && !firstVisibleColorSpecificThumb) {
-            firstVisibleColorSpecificThumb = t;
-          }
-        } else {
-          t.style.display = 'none';
-        }
-      } else {
-        if (!thumbColorId) {
-          t.style.display = '';
-        } else {
-          t.style.display = 'none';
-        }
-      }
-    } else {
-      const hasGeneralThumbs = Array.from(thumbs).some(function(thumb) { return !thumb.getAttribute('data-color-id'); });
-      if (hasGeneralThumbs) {
-        if (!thumbColorId) {
-          t.style.display = '';
-        } else {
-          t.style.display = 'none';
-        }
-      } else {
-        t.style.display = '';
-      }
+    if (colorId && thumbColorId === colorId && !firstVisibleColorSpecificThumb) {
+      firstVisibleColorSpecificThumb = t;
     }
-    
-    if (t.style.display !== 'none' && !firstVisibleThumb) {
+    if (!firstVisibleThumb) {
       firstVisibleThumb = t;
     }
   });
@@ -675,6 +644,8 @@ function selectColor(el, updateImage = true, specificThumb = null) {
         const match = onclickAttr.match(/'([^']+)'/);
         if (match && match[1]) {
           changeImage(targetThumb, match[1]);
+          // Scroll the thumbnail into view smoothly
+          targetThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
         }
       }
     }
@@ -707,6 +678,29 @@ function selectColor(el, updateImage = true, specificThumb = null) {
   }
 }
 window.selectColor = selectColor;
+
+function scrollThumbnails(direction) {
+  const row = document.querySelector('.thumb-row');
+  if (!row) return;
+  const scrollAmount = 240;
+  row.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+}
+window.scrollThumbnails = scrollThumbnails;
+
+function updateScrollButtons() {
+  const row = document.querySelector('.thumb-row');
+  const prev = document.querySelector('.thumb-nav-btn.prev-btn');
+  const next = document.querySelector('.thumb-nav-btn.next-btn');
+  if (!row) return;
+
+  const canScrollLeft = row.scrollLeft > 5;
+  const canScrollRight = (row.scrollWidth - row.clientWidth - row.scrollLeft) > 5;
+
+  if (prev) prev.style.display = canScrollLeft ? 'flex' : 'none';
+  if (next) next.style.display = canScrollRight ? 'flex' : 'none';
+}
+window.updateScrollButtons = updateScrollButtons;
+
 
 function updateLocalQty(delta) {
   const input = document.getElementById('selected-qty');
@@ -1085,6 +1079,13 @@ document.addEventListener('DOMContentLoaded', function() {
   if (activeSwatch) {
     selectColor(activeSwatch, false);
   }
+  const thumbRow = document.querySelector('.thumb-row');
+  if (thumbRow) {
+    thumbRow.addEventListener('scroll', updateScrollButtons);
+  }
+  window.addEventListener('resize', updateScrollButtons);
+
+  setTimeout(updateScrollButtons, 150);
 
   loadRelated();
   loadReviews();

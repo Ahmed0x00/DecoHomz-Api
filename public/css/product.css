@@ -53,6 +53,8 @@
   height: 60%;
 }
 
+
+
 .gallery-badges {
   position: absolute;
   top: 20px;
@@ -75,16 +77,61 @@
 }
 
 /* Thumbnails */
+.thumb-wrapper {
+  position: relative;
+  width: 100%;
+}
+
 .thumb-row {
   display: flex;
   gap: 12px;
   overflow-x: auto;
-  padding-bottom: 8px;
+  padding: 0 40px 8px 40px;
   scrollbar-width: none;
 }
 
 .thumb-row::-webkit-scrollbar {
   display: none;
+}
+
+/* Thumbnail navigation buttons */
+.thumb-nav-btn {
+  position: absolute;
+  top: calc(50% - 4px);
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  z-index: 5;
+}
+
+.thumb-nav-btn:hover {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+}
+
+.thumb-nav-btn.prev-btn {
+  left: 4px;
+}
+
+.thumb-nav-btn.next-btn {
+  right: 4px;
+}
+
+.thumb-nav-btn svg {
+  width: 16px !important;
+  height: 16px !important;
 }
 
 .thumb {

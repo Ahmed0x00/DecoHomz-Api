@@ -20,11 +20,13 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\GovernorateDeliveryFeeController;
 use App\Http\Controllers\Admin\RefundController as AdminRefundController;
 use App\Http\Controllers\Admin\DepositRuleController;
+use App\Http\Controllers\Admin\PreOrderController as AdminPreOrderController;
 use App\Http\Controllers\Admin\ProductColorController;
 use App\Http\Controllers\Api\WhatsAppWebhookController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\WishlistController;
+use App\Http\Controllers\Api\PreOrderController;
 
 // Public Delivery Fees
 Route::get('/shipping/governorate-fees/active', [GovernorateDeliveryFeeController::class, 'active']);
@@ -69,6 +71,10 @@ Route::middleware('activity.log')->group(function () {
 
     // Contact (Public)
     Route::post('/contact', [ContactController::class, 'store']);
+
+    // Pre-Order (Public)
+    Route::post('/pre-orders', [PreOrderController::class, 'store']);
+    Route::get('/pre-orders', [PreOrderController::class, 'index']);
 
     // Public Settings
     Route::get('/settings', [SettingsController::class, 'publicSettings']);
@@ -130,6 +136,13 @@ Route::middleware('activity.log')->group(function () {
         Route::put('/contacts/{id}', [AdminContactController::class, 'update']);
         Route::delete('/contacts/{id}', [AdminContactController::class, 'destroy']);
         Route::patch('/contacts/{id}/replied', [AdminContactController::class, 'markReplied']);
+
+        // Pre-Orders
+        Route::get('/pre-orders', [AdminPreOrderController::class, 'index']);
+        Route::get('/pre-orders/{id}', [AdminPreOrderController::class, 'show']);
+        Route::patch('/pre-orders/{id}/status', [AdminPreOrderController::class, 'updateStatus']);
+        Route::patch('/pre-orders/{id}/notes', [AdminPreOrderController::class, 'updateNotes']);
+        Route::delete('/pre-orders/{id}', [AdminPreOrderController::class, 'destroy']);
     });
 
     // Admin-only routes (support.access middleware blocks support users from these paths)

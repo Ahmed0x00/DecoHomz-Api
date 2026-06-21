@@ -371,6 +371,7 @@
 
 .status-pending,
 .status-confirmed { background: var(--color-warning-bg); color: #856404; }
+.status-contacted { background: rgba(59,130,246,.12); color: #1D4ED8; }
 .status-cancelled { background: var(--color-error-bg); color: var(--color-error); }
 .status-completed { background: var(--color-success-bg); color: var(--color-success); }
 

@@ -270,11 +270,10 @@
     }).join('');
   }
 
-  window.homeAddToCart = function(id, name, price) {
+  window.homeAddToCart = async function(id, name, price) {
     if (window.Cart && typeof Cart.add === 'function') {
-      Cart.add({ id: id, name: name, price: price, quantity: 1, variant: 'Standard' });
-      Cart.updateBadge();
-      showToast("{{ __('Added to cart!') }}", 'success');
+      await Cart.add({ id: id, name: name, price: price, quantity: 1, variant: 'Standard' });
+      if (typeof openCart === 'function') openCart();
     }
   };
 

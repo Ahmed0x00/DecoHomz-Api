@@ -57,6 +57,14 @@
             </svg>
             {{ __('Addresses') }}
           </a></li>
+        <li><a href="#" data-tab="preorders" onclick="showTab('preorders', this); return false;">
+            <svg viewBox="0 0 24 24" stroke-width="1.5">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+              <path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"/>
+            </svg>
+            {{ __('My Pre-Orders') }}
+          </a></li>
         <li class="logout">
           <a href="#" id="btn-logout">
             <svg viewBox="0 0 24 24" stroke-width="1.5">
@@ -237,6 +245,15 @@
         </div>
       </div>
 
+      <!-- PRE-ORDERS TAB -->
+      <div id="tab-preorders" style="display:none">
+        <div class="section-head">
+          <div class="section-title">{{ __('My Pre-Orders') }}</div>
+          <a href="/pre-order" class="btn-edit" style="text-decoration:none;">+ {{ __('New Request') }}</a>
+        </div>
+        <div id="preorders-list" class="orders-list"></div>
+      </div>
+
     </div>
   </div>
   </div>
@@ -247,6 +264,15 @@
   <script>
     (function () {
       Cart.updateBadge();
+
+      // Handle hash-based tab navigation (e.g. /account#preorders)
+      var hash = window.location.hash.replace('#', '');
+      if (hash && document.getElementById('tab-' + hash)) {
+        setTimeout(function() {
+          var tabLink = document.querySelector('[data-tab="' + hash + '"]');
+          showTab(hash, tabLink);
+        }, 100);
+      }
 
       var isGuest = !Auth.token();
 
@@ -435,6 +461,7 @@
         // Lazy-load tab content
         if (tabId === 'orders') loadOrdersTab();
         if (tabId === 'addresses') loadAddressesTab();
+        if (tabId === 'preorders') loadPreordersTab();
       };
 
       async function loadOrdersTab() {
@@ -458,6 +485,55 @@
         } catch (e) {
           renderAddresses([]);
         }
+      }
+
+      async function loadPreordersTab() {
+        const container = document.getElementById('preorders-list');
+        if (!container) return;
+        container.innerHTML = '<p style="color:#aaa;font-size:13px">{{ __("Loading...") }}</p>';
+        try {
+          const res = await API.get('/pre-orders');
+          const preOrders = res.pre_orders || res.data || [];
+          if (!preOrders.length) {
+            container.innerHTML = '<p style="color:#aaa;font-size:13px">{{ __("No pre-order requests yet.") }}</p>';
+            return;
+          }
+          container.innerHTML = preOrders.map(function(po) {
+            var status = (po.status || 'pending');
+            var statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+            var dateStr = po.created_at ? new Date(po.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+            var imageCount = (po.images && po.images.length) || 0;
+            var notes = (po.notes || '').substring(0, 80);
+            if ((po.notes || '').length > 80) notes += '...';
+
+            return '<div class="order-card">' +
+              '<div>' +
+                '<div class="order-top">' +
+                  '<span class="order-id">#' + po.id + '</span>' +
+                  '<span class="order-status status-' + status + '">' + statusLabel + '</span>' +
+                  '<span class="order-date">' + dateStr + '</span>' +
+                '</div>' +
+                (notes ? '<div style="font-size:13px;color:#666;line-height:1.5;margin-top:6px;">' + escHtml(notes) + '</div>' : '') +
+                '<div style="display:flex;align-items:center;gap:12px;font-size:12px;color:#999;margin-top:8px;">' +
+                  '<span style="background:#f5f0e8;padding:3px 8px;border-radius:4px;font-weight:600;color:#8B6A48;">' + imageCount + ' {{ __("images") }}</span>' +
+                  (po.governorate ? '<span>{{ __("Governate") }}: ' + escHtml(po.governorate) + '</span>' : '') +
+                '</div>' +
+              '</div>' +
+              '<div class="order-meta">' +
+                '<a class="order-action" href="/account/pre-orders/' + po.id + '">{{ __("Details →") }}</a>' +
+              '</div>' +
+            '</div>';
+          }).join('');
+        } catch (e) {
+          container.innerHTML = '<p style="color:#aaa;font-size:13px">{{ __("Failed to load pre-orders.") }}</p>';
+        }
+      }
+
+      function escHtml(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
       }
 
       function renderAddresses(addresses) {

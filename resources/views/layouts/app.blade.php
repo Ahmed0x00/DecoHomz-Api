@@ -56,6 +56,7 @@
         <li><a href="/deals" class="{{ request()->is('deals') ? 'active' : '' }}">{{ __('Deals') }}</a></li>
         <li><a href="/about" class="{{ request()->is('about') ? 'active' : '' }}">{{ __('About Us') }}</a></li>
         <li><a href="/contact" class="{{ request()->is('contact') ? 'active' : '' }}">{{ __('Contact Us') }}</a></li>
+        <li><a href="/pre-order" class="{{ request()->is('pre-order') ? 'active' : '' }}">{{ __('Pre-Order') }}</a></li>
       </ul>
 
       {{-- Right Actions --}}
@@ -115,6 +116,7 @@
       <a href="/deals" class="{{ request()->is('deals') ? 'active' : '' }}">{{ __('Deals') }}</a>
       <a href="/about" class="{{ request()->is('about') ? 'active' : '' }}">{{ __('About Us') }}</a>
       <a href="/contact" class="{{ request()->is('contact') ? 'active' : '' }}">{{ __('Contact Us') }}</a>
+      <a href="/pre-order" class="{{ request()->is('pre-order') ? 'active' : '' }}">{{ __('Pre-Order') }}</a>
     </div>
     <div class="mobile-nav-bottom">
       @if(app()->getLocale() === 'ar')
@@ -191,6 +193,7 @@
           <li><a href="/faq#shipping">{{ __('Shipping & Delivery') }}</a></li>
           <li><a href="/faq#returns">{{ __('Returns & Exchanges') }}</a></li>
           <li><a href="/contact">{{ __('Contact Us') }}</a></li>
+          <li><a href="/pre-order">{{ __('Pre-Order') }}</a></li>
         </ul>
       </div>
       <div>

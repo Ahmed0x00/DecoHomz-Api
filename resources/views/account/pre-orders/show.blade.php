@@ -52,136 +52,103 @@
   margin-top: 12px;
 }
 
-/* 10-Slot Inspiration Images Grid */
-.pod-images-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 16px;
-  margin-top: 16px;
-}
-
-.pod-img-thumb {
+/* Inspiration Images Slider */
+.pod-slider-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
   position: relative;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  aspect-ratio: 1;
-  background: var(--color-bg-warm);
-  cursor: default;
-  transition: transform 0.3s var(--ease-spring), box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
-/* Active Uploaded Image Slot */
-.pod-img-thumb.active-slot {
-  border: 1px solid var(--color-border);
-  cursor: pointer;
+.pod-slider {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative;
 }
-.pod-img-thumb.active-slot:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: var(--shadow-lg);
+
+.slider-main {
+  flex: 1;
+  position: relative;
+  aspect-ratio: 4/3;
+  max-height: 450px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-warm);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.slider-main:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
   border-color: var(--color-accent);
 }
-.pod-img-thumb.active-slot img {
+
+.slider-main img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
+  transition: opacity 0.15s ease-in-out;
+  pointer-events: none;
 }
 
-/* Empty Slot Placeholder */
-.pod-img-thumb.empty-slot {
-  border: 2px dashed var(--color-border);
+.slider-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(var(--color-bg-warm-rgb), 0.3);
-}
-.empty-slot-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  color: var(--color-text-faint);
-  text-align: center;
-  padding: 12px;
-}
-.empty-slot-content svg {
-  width: 24px;
-  height: 24px;
-  stroke: var(--color-text-faint);
-  fill: none;
-}
-.empty-slot-content span {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  z-index: 10;
 }
 
-/* Slot Index Badge */
-.slot-badge {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  background: rgba(0, 0, 0, 0.5);
+.slider-btn:hover {
+  background: var(--color-primary);
   color: #fff;
-  font-size: 10px;
-  font-weight: 700;
+  border-color: var(--color-primary);
+  transform: scale(1.08);
+}
+
+.slider-btn svg {
   width: 20px;
   height: 20px;
+}
+
+.slider-counter {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
   border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   backdrop-filter: blur(4px);
   z-index: 2;
-}
-
-/* Zoom Overlay */
-.zoom-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 1;
-}
-.pod-img-thumb.active-slot:hover .zoom-overlay {
-  opacity: 1;
-}
-.zoom-overlay svg {
-  width: 24px;
-  height: 24px;
-  stroke: #fff;
-  fill: none;
-  transform: scale(0.8);
-  transition: transform 0.3s var(--ease-spring);
-}
-.pod-img-thumb.active-slot:hover .zoom-overlay svg {
-  transform: scale(1);
-}
-
-/* Notes Section Styling */
-.pod-notes {
-  font-size: 14px;
-  color: var(--color-text);
-  line-height: 1.7;
-  white-space: pre-line;
-  background: var(--color-bg-warm);
-  padding: 20px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
+  letter-spacing: 0.05em;
+  pointer-events: none;
 }
 
 /* Lightbox Styles */
 .pod-lightbox {
   position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: rgba(0, 0, 0, 0.85);
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+  background: rgba(0, 0, 0, 0.88);
   backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
@@ -211,7 +178,7 @@
 .pod-lightbox-close {
   position: absolute;
   top: 24px;
-  right: 28px;
+  inset-inline-end: 28px;
   width: 44px;
   height: 44px;
   border-radius: var(--radius-full);
@@ -231,11 +198,75 @@
   transform: scale(1.05);
 }
 
-@media (max-width: 992px) {
-  .pod-images-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.zoom-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+  pointer-events: none;
 }
+
+.slider-main:hover .zoom-overlay {
+  opacity: 1;
+}
+
+.zoom-overlay svg {
+  width: 28px;
+  height: 28px;
+  stroke: #fff;
+  fill: none;
+  transform: scale(0.8);
+  transition: transform 0.3s var(--ease-spring);
+}
+
+.slider-main:hover .zoom-overlay svg {
+  transform: scale(1);
+}
+
+.slider-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.slider-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-border);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.slider-dot:hover {
+  background: var(--color-text-secondary);
+}
+
+.slider-dot.active {
+  background: var(--color-accent);
+  width: 24px;
+  border-radius: 4px;
+}
+
 @media (max-width: 576px) {
-  .pod-images-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .pod-slider {
+    gap: 8px;
+  }
+  .slider-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .slider-btn svg {
+    width: 16px;
+    height: 16px;
+  }
 }
 </style>
 @endsection
@@ -314,14 +345,19 @@ $statusBadgeClass = match($status) {
         <circle cx="8.5" cy="8.5" r="1.5"/>
         <polyline points="21 15 16 10 5 21"/>
       </svg>
-      {{ __('Inspiration Images') }} ({{ $images->count() }} / 10)
+      {{ __('Inspiration Images') }}
     </div>
-    <div class="pod-images-grid">
-      @for($i = 0; $i < 10; $i++)
-        @if(isset($images[$i]))
-          <div class="pod-img-thumb active-slot" onclick="openLightbox('{{ asset('storage/' . $images[$i]->image) }}')" title="{{ __('Click to zoom') }}">
-            <img src="{{ asset('storage/' . $images[$i]->image) }}" alt="Inspiration {{ $i + 1 }}" loading="lazy">
-            <div class="slot-badge">{{ $i + 1 }}</div>
+    @if($images->count())
+      <div class="pod-slider-wrapper">
+        <div class="pod-slider">
+          @if($images->count() > 1)
+            <button class="slider-btn prev-btn" onclick="slidePrev()" aria-label="{{ __('Previous image') }}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+          @endif
+
+          <div class="slider-main" onclick="zoomCurrentImage()" title="{{ __('Click to zoom') }}">
+            <img id="slider-img" src="{{ asset('storage/' . $images[0]->image) }}" data-index="0" alt="{{ __('Inspiration Image') }}">
             <div class="zoom-overlay">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <circle cx="11" cy="11" r="8"></circle>
@@ -330,22 +366,29 @@ $statusBadgeClass = match($status) {
                 <line x1="8" y1="11" x2="14" y2="11"></line>
               </svg>
             </div>
+            @if($images->count() > 1)
+              <div class="slider-counter" id="slider-counter">1 / {{ $images->count() }}</div>
+            @endif
           </div>
-        @else
-          <div class="pod-img-thumb empty-slot">
-            <div class="slot-badge">{{ $i + 1 }}</div>
-            <div class="empty-slot-content">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                <polyline points="21 15 16 10 5 21"></polyline>
-              </svg>
-              <span>{{ __('Empty Slot') }}</span>
-            </div>
+
+          @if($images->count() > 1)
+            <button class="slider-btn next-btn" onclick="slideNext()" aria-label="{{ __('Next image') }}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          @endif
+        </div>
+
+        @if($images->count() > 1)
+          <div class="slider-dots">
+            @foreach($images as $i => $img)
+              <span class="slider-dot {{ $i === 0 ? 'active' : '' }}" onclick="goToSlide({{ $i }})"></span>
+            @endforeach
           </div>
         @endif
-      @endfor
-    </div>
+      </div>
+    @else
+      <p style="color:var(--color-text-faint);font-size:14px;margin:0;">{{ __('No images uploaded.') }}</p>
+    @endif
   </div>
 
   {{-- Description / Notes --}}
@@ -377,15 +420,120 @@ $statusBadgeClass = match($status) {
 <script>
 (function() { if (typeof Cart !== 'undefined' && Cart.updateBadge) Cart.updateBadge(); })();
 
-window.openLightbox = function(src) {
-  document.getElementById('pod-lightbox-img').src = src;
-  document.getElementById('pod-lightbox').classList.add('open');
-  document.body.style.overflow = 'hidden';
-};
-window.closeLightbox = function() {
-  document.getElementById('pod-lightbox').classList.remove('open');
-  document.body.style.overflow = '';
-};
+const sliderImages = [
+  @foreach($images as $img)
+    "{{ asset('storage/' . $img->image) }}",
+  @endforeach
+];
+let currentSlideIndex = 0;
+
+// Preload slider images on page load
+(function() {
+  sliderImages.forEach(function(src) {
+    const img = new Image();
+    img.src = src;
+  });
+})();
+
+function slidePrev() {
+  if (sliderImages.length <= 1) return;
+  currentSlideIndex = (currentSlideIndex - 1 + sliderImages.length) % sliderImages.length;
+  updateSlider();
+}
+
+function slideNext() {
+  if (sliderImages.length <= 1) return;
+  currentSlideIndex = (currentSlideIndex + 1) % sliderImages.length;
+  updateSlider();
+}
+
+function goToSlide(index) {
+  if (index < 0 || index >= sliderImages.length) return;
+  currentSlideIndex = index;
+  updateSlider();
+}
+
+function zoomCurrentImage() {
+  if (sliderImages.length === 0) return;
+  openLightbox(sliderImages[currentSlideIndex]);
+}
+
+function updateSlider() {
+  const imgEl = document.getElementById('slider-img');
+  const counterEl = document.getElementById('slider-counter');
+  
+  if (imgEl) {
+    imgEl.style.opacity = '0';
+
+    const onImageLoad = function() {
+      imgEl.style.opacity = '1';
+      imgEl.removeEventListener('load', onImageLoad);
+      imgEl.removeEventListener('error', onImageError);
+    };
+
+    const onImageError = function() {
+      imgEl.style.opacity = '1';
+      imgEl.removeEventListener('load', onImageLoad);
+      imgEl.removeEventListener('error', onImageError);
+    };
+
+    imgEl.addEventListener('load', onImageLoad);
+    imgEl.addEventListener('error', onImageError);
+    
+    setTimeout(() => {
+      imgEl.src = sliderImages[currentSlideIndex];
+      imgEl.dataset.index = currentSlideIndex;
+    }, 150);
+  }
+  
+  if (counterEl) {
+    counterEl.textContent = `${currentSlideIndex + 1} / ${sliderImages.length}`;
+  }
+
+  const dots = document.querySelectorAll('.slider-dot');
+  dots.forEach((dot, idx) => {
+    if (idx === currentSlideIndex) {
+      dot.classList.add('active');
+    } else {
+      dot.classList.remove('active');
+    }
+  });
+}
+
+function openLightbox(src) {
+  const lightbox = document.getElementById('pod-lightbox');
+  const img = document.getElementById('pod-lightbox-img');
+  if (lightbox && img) {
+    img.src = src;
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeLightbox() {
+  const lightbox = document.getElementById('pod-lightbox');
+  if (lightbox) {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+
+// Bind variables and functions to window for global inline HTML execution
+window.slidePrev = slidePrev;
+window.slideNext = slideNext;
+window.goToSlide = goToSlide;
+window.zoomCurrentImage = zoomCurrentImage;
+window.openLightbox = openLightbox;
+window.closeLightbox = closeLightbox;
+
+// Relocate lightbox modal to end of <body> on script load to prevent ancestor transform/overflow issues
+(function() {
+  const lightbox = document.getElementById('pod-lightbox');
+  if (lightbox) {
+    document.body.appendChild(lightbox);
+  }
+})();
+
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeLightbox();
 });

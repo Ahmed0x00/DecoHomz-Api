@@ -18,6 +18,7 @@ Route::get('/auth', fn() => view('auth'))->name('login');
 Route::get('/account', fn() => view('account'));
 Route::get('/account/orders/{id}', [App\Http\Controllers\Api\OrderController::class, 'customerDetail']);
 Route::post('/account/orders/{id}/refund', [App\Http\Controllers\RefundController::class, 'request']);
+Route::get('/account/pre-orders/{id}', [App\Http\Controllers\Api\PreOrderController::class, 'customerDetail']);
 Route::get('/contact', fn() => view('contact'));
 Route::get('/about', fn() => view('about'));
 Route::get('/faq', fn() => view('faq'));
@@ -26,6 +27,8 @@ Route::get('/deals', fn() => view('deals'));
 Route::get('/new-arrivals', fn() => view('new-arrivals'));
 Route::get('/privacy', fn() => view('privacy'));
 Route::get('/terms', fn() => view('terms'));
+Route::get('/pre-order', fn() => view('pre-order'));
+Route::get('/pre-order/confirmed', fn() => view('pre-order-confirmation'));
 
 // Admin routes (auth handled client-side via JS guard)
 Route::prefix('admin')->middleware(['admin.token', 'admin'])->group(function () {
@@ -36,6 +39,8 @@ Route::prefix('admin')->middleware(['admin.token', 'admin'])->group(function () 
         Route::post('/orders/{id}/refund', [App\Http\Controllers\RefundController::class, 'handle']);
         Route::view('/refunds', 'admin.refunds.index');
         Route::get('/contacts', fn() => view('admin.contacts.index'));
+        Route::get('/pre-orders', fn() => view('admin.pre-orders.index'));
+        Route::get('/pre-orders/{id}', fn($id) => view('admin.pre-orders.show', ['id' => $id]));
     });
 
     // Admin-only views

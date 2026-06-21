@@ -387,40 +387,45 @@ class CartController extends Controller
 
     protected function formatCart(Cart $cart): array
     {
-        $items = $cart->items->map(function ($item) {
-            $productColor = $item->color;
-            $price = $item->price;
+        $items = $cart->items
+            ->sortByDesc(fn($item) => $item->updated_at ?? $item->created_at)
+            ->values()
+            ->map(function ($item) {
+                $productColor = $item->color;
+                $price = $item->price;
 
-            $result = [
-                'id' => $item->id,
-                'product_id' => $item->product_id,
-                'name' => $item->product->name,
-                'price' => $price,
-                'quantity' => $item->quantity,
-                'variant' => $item->variant,
-                'subtotal' => $item->getTotalAttribute(),
-                'product' => [
-                    'id' => $item->product->id,
+                $result = [
+                    'id' => $item->id,
+                    'product_id' => $item->product_id,
                     'name' => $item->product->name,
-                    'slug' => $item->product->slug,
-                    'image' => $item->product->primaryImage?->thumbnail_url ?? $item->product->images->first()?->thumbnail_url,
-                ],
-            ];
-
-            if ($productColor) {
-                $result['color'] = [
-                    'id' => $productColor->id,
-                    'name' => $productColor->name,
-                    'hex_code' => $productColor->hex_code,
-                    'color_slug' => $productColor->color_slug,
-                    'price_modifier' => (float) $productColor->price_modifier,
+                    'price' => $price,
+                    'quantity' => $item->quantity,
+                    'variant' => $item->variant,
+                    'subtotal' => $item->getTotalAttribute(),
+                    'created_at' => optional($item->created_at)->toISOString(),
+                    'updated_at' => optional($item->updated_at)->toISOString(),
+                    'product' => [
+                        'id' => $item->product->id,
+                        'name' => $item->product->name,
+                        'slug' => $item->product->slug,
+                        'image' => $item->product->primaryImage?->thumbnail_url ?? $item->product->images->first()?->thumbnail_url,
+                    ],
                 ];
-            } else {
-                $result['color'] = null;
-            }
 
-            return $result;
-        });
+                if ($productColor) {
+                    $result['color'] = [
+                        'id' => $productColor->id,
+                        'name' => $productColor->name,
+                        'hex_code' => $productColor->hex_code,
+                        'color_slug' => $productColor->color_slug,
+                        'price_modifier' => (float) $productColor->price_modifier,
+                    ];
+                } else {
+                    $result['color'] = null;
+                }
+
+                return $result;
+            });
 
         $subtotal = $cart->getSubtotalAttribute();
         $discount = (float) $cart->discount;

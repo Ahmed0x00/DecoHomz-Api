@@ -6,6 +6,119 @@
 
 @section('extra_css')
 <link rel="stylesheet" href="{{ asset_v('/css/product.css') }}">
+<style>
+.main-img:hover .zoom-overlay {
+  opacity: 1 !important;
+}
+.main-img:hover .zoom-overlay svg {
+  transform: scale(1) !important;
+}
+
+/* Lightbox Styles for Product Page */
+.pod-lightbox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.pod-lightbox.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.pod-lightbox img {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  transform: scale(0.95);
+  transition: transform 0.3s var(--ease-spring);
+}
+.pod-lightbox.open img {
+  transform: scale(1);
+}
+.pod-lightbox-close {
+  position: absolute;
+  top: 24px;
+  inset-inline-end: 28px;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+.pod-lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+/* Navigation buttons inside Lightbox */
+.lightbox-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  transition: all 0.2s ease;
+  z-index: 20;
+}
+.lightbox-btn:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+  transform: translateY(-50%) scale(1.08);
+}
+.lightbox-btn.prev-btn {
+  left: 32px;
+}
+.lightbox-btn.next-btn {
+  right: 32px;
+}
+.lightbox-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+@media (max-width: 768px) {
+  .lightbox-btn {
+    width: 44px;
+    height: 44px;
+  }
+  .lightbox-btn.prev-btn { left: 16px; }
+  .lightbox-btn.next-btn { right: 16px; }
+  .lightbox-btn svg { width: 18px; height: 18px; }
+}
+</style>
 @endsection
 
 @section('content')
@@ -24,7 +137,7 @@
   
   {{-- ═══ LEFT: GALLERY ═══ --}}
   <div class="product-gallery animate-fade-right">
-    <div class="main-img" id="main-image-container">
+    <div class="main-img" id="main-image-container" onclick="openProductZoom()" title="{{ __('Click to zoom') }}">
       @if(isset($product['badge']))
         <div class="gallery-badges">
           <div class="tag-sale" style="background:{{ $product['badge_color'] ?? 'var(--color-accent)' }}">{{ $product['badge'] }}</div>
@@ -38,6 +151,14 @@
         }
       @endphp
       <img src="{{ $primaryImg }}" id="main-image" alt="{{ $product['name'] ?? 'Product Image' }}">
+      <div class="zoom-overlay" style="position:absolute; inset:0; background:rgba(0,0,0,0.3); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.3s ease; pointer-events:none; z-index: 1;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" style="width:28px; height:28px; transform:scale(0.8); transition:transform 0.3s var(--ease-spring);">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          <line x1="11" y1="8" x2="11" y2="14"></line>
+          <line x1="8" y1="11" x2="14" y2="11"></line>
+        </svg>
+      </div>
     </div>
 
     @if(isset($product['images']) && count($product['images']) > 1)
@@ -292,6 +413,25 @@
   </div>
 </div>
 
+{{-- Product Lightbox with Navigation --}}
+<div class="pod-lightbox" id="pod-lightbox" onclick="closeProductZoom()">
+  <button class="pod-lightbox-close" onclick="closeProductZoom()">&times;</button>
+  
+  @if(isset($product['images']) && count($product['images']) > 1)
+    <button class="lightbox-btn prev-btn" onclick="event.stopPropagation(); slideProductZoomPrev();" aria-label="{{ __('Previous image') }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+  @endif
+
+  <img id="pod-lightbox-img" src="" alt="Full size" onclick="event.stopPropagation();">
+
+  @if(isset($product['images']) && count($product['images']) > 1)
+    <button class="lightbox-btn next-btn" onclick="event.stopPropagation(); slideProductZoomNext();" aria-label="{{ __('Next image') }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  @endif
+</div>
+
 @endsection
 
 @section('extra_js')
@@ -310,6 +450,13 @@ const PRODUCT = {
 
 const BASE_PRICE = PRODUCT.price;
 
+const productImages = [
+  @foreach($product['images'] as $img)
+    "{{ $img['url'] ?? $img['thumbnail_url'] ?? '/img/placeholder.svg' }}",
+  @endforeach
+];
+let currentZoomIndex = 0;
+
 function esc(str) {
   if (!str) return '';
   return str.toString()
@@ -327,10 +474,31 @@ function changeImage(el, url) {
   const mainImg = document.getElementById('main-image');
   if (!mainImg) return;
   mainImg.style.opacity = '0';
+
+  const onImageLoad = function() {
+    mainImg.style.opacity = '1';
+    mainImg.removeEventListener('load', onImageLoad);
+    mainImg.removeEventListener('error', onImageError);
+  };
+
+  const onImageError = function() {
+    mainImg.style.opacity = '1';
+    mainImg.removeEventListener('load', onImageLoad);
+    mainImg.removeEventListener('error', onImageError);
+  };
+
+  mainImg.addEventListener('load', onImageLoad);
+  mainImg.addEventListener('error', onImageError);
+
   setTimeout(function() {
     mainImg.src = url;
-    mainImg.style.opacity = '1';
-  }, 200);
+  }, 150);
+
+  // Sync zoom index
+  const imgUrlIndex = productImages.indexOf(url);
+  if (imgUrlIndex !== -1) {
+    currentZoomIndex = imgUrlIndex;
+  }
 
   // Toggle the current color selected to the color of this image
   const thumbColorId = el.getAttribute('data-color-id');
@@ -348,6 +516,77 @@ function changeImage(el, url) {
   }
 }
 window.changeImage = changeImage;
+
+function openProductZoom() {
+  const lightbox = document.getElementById('pod-lightbox');
+  const img = document.getElementById('pod-lightbox-img');
+  if (lightbox && img && productImages.length > 0) {
+    img.src = productImages[currentZoomIndex];
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeProductZoom() {
+  const lightbox = document.getElementById('pod-lightbox');
+  if (lightbox) {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+
+function slideProductZoomPrev() {
+  if (productImages.length <= 1) return;
+  currentZoomIndex = (currentZoomIndex - 1 + productImages.length) % productImages.length;
+  updateZoomImage();
+}
+
+function slideProductZoomNext() {
+  if (productImages.length <= 1) return;
+  currentZoomIndex = (currentZoomIndex + 1) % productImages.length;
+  updateZoomImage();
+}
+
+function updateZoomImage() {
+  const img = document.getElementById('pod-lightbox-img');
+  if (img) {
+    img.style.opacity = '0';
+    const onZoomLoad = function() {
+      img.style.opacity = '1';
+      img.removeEventListener('load', onZoomLoad);
+    };
+    img.addEventListener('load', onZoomLoad);
+    img.src = productImages[currentZoomIndex];
+    
+    // Sync product page main image and thumbnail under the hood
+    const thumbs = document.querySelectorAll('.thumb');
+    if (thumbs[currentZoomIndex]) {
+      const thumb = thumbs[currentZoomIndex];
+      document.querySelectorAll('.thumb').forEach(function(t) { t.classList.remove('active'); });
+      thumb.classList.add('active');
+      const mainImg = document.getElementById('main-image');
+      if (mainImg) mainImg.src = productImages[currentZoomIndex];
+    }
+  }
+}
+
+// Bind to window for inline HTML onclick handlers
+window.openProductZoom = openProductZoom;
+window.closeProductZoom = closeProductZoom;
+window.slideProductZoomPrev = slideProductZoomPrev;
+window.slideProductZoomNext = slideProductZoomNext;
+
+// Relocate lightbox modal to end of <body> on script load to prevent ancestor transform issues
+(function() {
+  const lightbox = document.getElementById('pod-lightbox');
+  if (lightbox) {
+    document.body.appendChild(lightbox);
+  }
+})();
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeProductZoom();
+});
 
 function selectColor(el, updateImage = true, specificThumb = null) {
   const color = el.getAttribute('data-color') || 'Standard';
@@ -791,6 +1030,18 @@ function startViewingCountPolling() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Preload product gallery images in background
+  document.querySelectorAll('.thumb').forEach(function(t) {
+    const onclickAttr = t.getAttribute('onclick');
+    if (onclickAttr) {
+      const match = onclickAttr.match(/'([^']+)'/);
+      if (match && match[1]) {
+        const img = new Image();
+        img.src = match[1];
+      }
+    }
+  });
+
   if (typeof Cart !== 'undefined' && Cart.updateBadge) Cart.updateBadge();
 
   setTimeout(function() {

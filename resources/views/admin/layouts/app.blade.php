@@ -25,7 +25,7 @@
       
       // Redirect support user from non-allowed paths
       if (user.role === 'support') {
-        var allowedPaths = ['/admin/orders', '/admin/refunds', '/admin/contacts'];
+        var allowedPaths = ['/admin/orders', '/admin/refunds', '/admin/contacts', '/admin/pre-orders'];
         var isAllowed = false;
         for (var i = 0; i < allowedPaths.length; i++) {
           if (location.pathname === allowedPaths[i] || location.pathname.startsWith(allowedPaths[i] + '/')) {
@@ -571,6 +571,14 @@
           <polyline points="22,6 12,13 2,6" />
         </svg>
         Contacts
+      </a>
+      <a href="/admin/pre-orders" class="{{ request()->is('admin/pre-orders*') ? 'active' : '' }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+          <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+          <path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"/>
+        </svg>
+        Pre-Orders
       </a>
       <a href="/admin/logs" class="{{ request()->is('admin/logs*') ? 'active' : '' }} nav-admin-only">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">

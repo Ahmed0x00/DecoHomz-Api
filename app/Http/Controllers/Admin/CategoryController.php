@@ -139,9 +139,7 @@ class CategoryController extends Controller
         $newStatus = !$category->is_active;
         $category->update(['is_active' => $newStatus]);
 
-        if (!$newStatus) {
-            $category->products()->update(['is_active' => false]);
-        }
+        $category->products()->update(['is_active' => $newStatus]);
 
         $statusText = $newStatus ? 'Active' : 'Inactive';
         ActivityLog::categories($request, 'Toggle Category Status', ActivityLog::userName($request) . " changed category '{$category->name}' status to {$statusText}", $category);

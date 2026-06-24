@@ -105,12 +105,19 @@ class CategoryController extends Controller
     {
         $category = Category::withCount('products')->findOrFail($id);
 
-        if ($category->products_count > 0) {
-            ActivityLog::categories($request, 'Delete Category Denied', ActivityLog::userName($request) . " tried to delete category '{$category->name}' which has {$category->products_count} products", $category, 'warning');
-            return response()->json([
-                'message' => 'Cannot delete category with associated products. Please remove or reassign products first.',
-            ], 422);
+        $productIds = $category->products()->pluck('ids')->toArray();
+
+        // Clean up product images before deleting products
+        $productImages = \App\Models\ProductImage::whereIn('product_id', $productIds)->get();
+        foreach ($productImages as $image) {
+            if ($image->image) {
+                Storage::disk('public')->delete($image->image);
+                (new CloudflareService())->purgeStoragePaths([$image->image]);
+            }
         }
+
+        // Delete related products
+        $category->products()->delete();
 
         // Clean up category image from disk and Cloudflare
         if ($category->image) {
@@ -118,7 +125,7 @@ class CategoryController extends Controller
             (new CloudflareService())->purgeStoragePaths([$category->image]);
         }
 
-        ActivityLog::categories($request, 'Delete Category', ActivityLog::userName($request) . " deleted category: {$category->name} (#{$id})", ['type' => 'category', 'id' => $id], 'deletion');
+        ActivityLog::categories($request, 'Delete Category', ActivityLog::userName($request) . " deleted category: {$category->name} (#{$id}) with {$category->products_count} products", ['type' => 'category', 'id' => $id], 'deletion');
         $category->delete();
 
         return response()->json([
@@ -131,6 +138,10 @@ class CategoryController extends Controller
         $category = Category::findOrFail($id);
         $newStatus = !$category->is_active;
         $category->update(['is_active' => $newStatus]);
+
+        if (!$newStatus) {
+            $category->products()->update(['is_active' => false]);
+        }
 
         $statusText = $newStatus ? 'Active' : 'Inactive';
         ActivityLog::categories($request, 'Toggle Category Status', ActivityLog::userName($request) . " changed category '{$category->name}' status to {$statusText}", $category);

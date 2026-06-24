@@ -11,7 +11,11 @@ class ProductController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Product::active()->with(['category', 'primaryImage', 'approvedReviews', 'colors']);
+        $query = Product::active()
+            ->whereHas('category', function ($q) {
+                $q->where('is_active', true);
+            })
+            ->with(['category', 'primaryImage', 'approvedReviews', 'colors']);
 
         // Filter by category (supports ID or slug)
         if ($request->has('category')) {
@@ -126,7 +130,7 @@ class ProductController extends Controller
             ->with(['category', 'primaryImage', 'images', 'colors', 'approvedReviews'])
             ->first();
 
-        if (!$product) {
+        if (!$product || !$product->category || !$product->category->is_active) {
             return response()->json(['message' => 'Product not found'], 404);
         }
 
@@ -154,6 +158,9 @@ class ProductController extends Controller
         $related = Product::active()
             ->where('id', '!=', $id)
             ->where('category_id', $product->category_id)
+            ->whereHas('category', function ($q) {
+                $q->where('is_active', true);
+            })
             ->with(['category', 'primaryImage', 'colors'])
             ->limit(4)
             ->get();
@@ -167,6 +174,9 @@ class ProductController extends Controller
     {
         $products = Product::active()
             ->featured()
+            ->whereHas('category', function ($q) {
+                $q->where('is_active', true);
+            })
             ->with(['category', 'primaryImage', 'colors'])
             ->limit(8)
             ->get();

@@ -309,13 +309,21 @@
     <div class="tab-pane" id="pane-specs">
       <div class="spec-grid">
         @if(!empty($product->specifications) && (is_array($product->specifications) || is_object($product->specifications)))
-          @foreach($product->specifications as $tabName => $fields)
-            @if(is_array($fields) || is_object($fields))
-              <div class="spec-section-header" style="grid-column: 1 / -1; font-weight: 700; font-size: 14px; color: var(--color-accent); margin: 15px 0 8px 0; border-bottom: 1px solid var(--color-border); padding-bottom: 4px;">{{ __($tabName) }}</div>
-              @foreach($fields as $k => $v)
+          @foreach($product->specifications as $specGroup)
+            @if(is_object($specGroup) && isset($specGroup->group) && isset($specGroup->items))
+              <div class="spec-section-header" style="grid-column: 1 / -1; font-weight: 700; font-size: 14px; color: var(--color-accent); margin: 15px 0 8px 0; border-bottom: 1px solid var(--color-border); padding-bottom: 4px;">{{ __($specGroup->group) }}</div>
+              @foreach($specGroup->items as $item)
                 <div class="spec-row">
-                  <div class="k">{{ __($k) }}</div>
-                  <div class="v">{{ $v }}</div>
+                  <div class="k">{{ __($item->name ?? $item['name'] ?? '') }}</div>
+                  <div class="v">{{ $item->value ?? $item['value'] ?? '' }}</div>
+                </div>
+              @endforeach
+            @elseif(is_array($specGroup) && isset($specGroup['group']) && isset($specGroup['items']))
+              <div class="spec-section-header" style="grid-column: 1 / -1; font-weight: 700; font-size: 14px; color: var(--color-accent); margin: 15px 0 8px 0; border-bottom: 1px solid var(--color-border); padding-bottom: 4px;">{{ __($specGroup['group']) }}</div>
+              @foreach($specGroup['items'] as $item)
+                <div class="spec-row">
+                  <div class="k">{{ __($item['name'] ?? $item->name ?? '') }}</div>
+                  <div class="v">{{ $item['value'] ?? $item->value ?? '' }}</div>
                 </div>
               @endforeach
             @endif

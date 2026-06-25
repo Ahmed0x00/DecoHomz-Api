@@ -308,26 +308,45 @@
     {{-- Specs --}}
     <div class="tab-pane" id="pane-specs">
       <div class="spec-grid">
-        @if(!empty($product->specifications) && (is_array($product->specifications) || is_object($product->specifications)))
-          @foreach($product->specifications as $specGroup)
-            @if(is_object($specGroup) && isset($specGroup->group) && isset($specGroup->items))
-              <div class="spec-section-header" style="grid-column: 1 / -1; font-weight: 700; font-size: 14px; color: var(--color-accent); margin: 15px 0 8px 0; border-bottom: 1px solid var(--color-border); padding-bottom: 4px;">{{ __($specGroup->group) }}</div>
-              @foreach($specGroup->items as $item)
-                <div class="spec-row">
-                  <div class="k">{{ __($item->name ?? $item['name'] ?? '') }}</div>
-                  <div class="v">{{ $item->value ?? $item['value'] ?? '' }}</div>
-                </div>
-              @endforeach
-            @elseif(is_array($specGroup) && isset($specGroup['group']) && isset($specGroup['items']))
-              <div class="spec-section-header" style="grid-column: 1 / -1; font-weight: 700; font-size: 14px; color: var(--color-accent); margin: 15px 0 8px 0; border-bottom: 1px solid var(--color-border); padding-bottom: 4px;">{{ __($specGroup['group']) }}</div>
-              @foreach($specGroup['items'] as $item)
-                <div class="spec-row">
-                  <div class="k">{{ __($item['name'] ?? $item->name ?? '') }}</div>
-                  <div class="v">{{ $item['value'] ?? $item->value ?? '' }}</div>
-                </div>
-              @endforeach
-            @endif
-          @endforeach
+        @php $specs = $product->specifications; @endphp
+        @if(!empty($specs) && (is_array($specs) || is_object($specs)))
+          {{-- Detect format: [{"group":"X","items":[{name,value}]}] vs {"X":{"Key":"Val"}} --}}
+          @php $firstKey = array_key_first((array)$specs); @endphp
+          @if($firstKey !== null && isset($specs[$firstKey]) && is_array($specs[$firstKey]) && !isset($specs[$firstKey]['group']) && !isset($specs[$firstKey]['items']))
+            {{-- Flat object format: {"Dimensions":{"Seat Height":"50 cm"}, ...} --}}
+            @foreach($specs as $groupName => $items)
+              @if(is_array($items))
+                <div class="spec-section-header" style="grid-column: 1 / -1; font-weight: 700; font-size: 14px; color: var(--color-accent); margin: 15px 0 8px 0; border-bottom: 1px solid var(--color-border); padding-bottom: 4px;">{{ __($groupName) }}</div>
+                @foreach($items as $k => $v)
+                  <div class="spec-row">
+                    <div class="k">{{ __($k) }}</div>
+                    <div class="v">{{ $v }}</div>
+                  </div>
+                @endforeach
+              @endif
+            @endforeach
+          @else
+            {{-- Array-of-objects format: [{"group":"X","items":[{name,value}]}] --}}
+            @foreach($specs as $specGroup)
+              @if(is_object($specGroup) && isset($specGroup->group) && isset($specGroup->items))
+                <div class="spec-section-header" style="grid-column: 1 / -1; font-weight: 700; font-size: 14px; color: var(--color-accent); margin: 15px 0 8px 0; border-bottom: 1px solid var(--color-border); padding-bottom: 4px;">{{ __($specGroup->group) }}</div>
+                @foreach($specGroup->items as $item)
+                  <div class="spec-row">
+                    <div class="k">{{ __($item->name ?? $item['name'] ?? '') }}</div>
+                    <div class="v">{{ $item->value ?? $item['value'] ?? '' }}</div>
+                  </div>
+                @endforeach
+              @elseif(is_array($specGroup) && isset($specGroup['group']) && isset($specGroup['items']))
+                <div class="spec-section-header" style="grid-column: 1 / -1; font-weight: 700; font-size: 14px; color: var(--color-accent); margin: 15px 0 8px 0; border-bottom: 1px solid var(--color-border); padding-bottom: 4px;">{{ __($specGroup['group']) }}</div>
+                @foreach($specGroup['items'] as $item)
+                  <div class="spec-row">
+                    <div class="k">{{ __($item['name'] ?? $item->name ?? '') }}</div>
+                    <div class="v">{{ $item['value'] ?? $item->value ?? '' }}</div>
+                  </div>
+                @endforeach
+              @endif
+            @endforeach
+          @endif
         @else
           <div class="spec-row"><div class="k">{{ __('Material') }}</div><div class="v">{{ $product->material ?: __('N/A') }}</div></div>
           @if($product->upholstery)

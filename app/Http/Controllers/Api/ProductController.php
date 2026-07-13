@@ -125,8 +125,9 @@ class ProductController extends Controller
 
     public function show(string $id): JsonResponse
     {
-        $product = Product::where('id', $id)
-            ->orWhere('slug', $id)
+        $product = Product::active()->where(function($q) use ($id) {
+                $q->where('id', $id)->orWhere('slug', $id);
+            })
             ->with(['category', 'primaryImage', 'images', 'colors', 'approvedReviews'])
             ->first();
 

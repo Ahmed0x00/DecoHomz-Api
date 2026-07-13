@@ -117,6 +117,16 @@ class ActivityLog extends Model
         return self::log($request, $action, $description, 'ProductColors', $result, $resource);
     }
 
+    public static function vendors(Request $request, string $action, string $description, $resource = null, string $result = 'success'): self
+    {
+        return self::log($request, $action, $description, 'Vendors', $result, $resource);
+    }
+
+    public static function warehouse(Request $request, string $action, string $description, $resource = null, string $result = 'success'): self
+    {
+        return self::log($request, $action, $description, 'Warehouse', $result, $resource);
+    }
+
     // ─────────────────────────────────────────────────────────
     // Backward-compat severity aliases — log with General section
     // ─────────────────────────────────────────────────────────

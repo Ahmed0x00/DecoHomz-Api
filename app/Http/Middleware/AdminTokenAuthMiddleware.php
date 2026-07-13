@@ -32,7 +32,11 @@ class AdminTokenAuthMiddleware
             $request->is('admin/orders*') ||
             $request->is('admin/refunds*') ||
             $request->is('admin/contacts*') ||
-            $request->is('admin/pre-orders*')
+            $request->is('admin/pre-orders*') ||
+            $request->is('admin/vendors*') ||
+            $request->is('admin/vendor-products*') ||
+            $request->is('admin/warehouse*') ||
+            $request->is('admin/vendor-finances*')
         ) {
             // For GET requests, just pass through — JS guard in Blade template will handle auth
             if ($request->isMethod('GET')) {

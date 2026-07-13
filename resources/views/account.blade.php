@@ -83,6 +83,19 @@
 
       <!-- OVERVIEW TAB -->
       <div id="tab-overview">
+        <div id="vendor-status-alert" style="display:none; margin-bottom:24px; padding:16px; border-radius:8px; border:1px solid #e0e0e0; background:#fafafa;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap: 16px;">
+            <div>
+              <div style="font-weight:700; font-size:15px; color:#1a1a1a;">Vendor Application Status</div>
+              <div id="vendor-status-text" style="font-size:13px; color:#666; margin-top:4px; line-height:1.4;"></div>
+            </div>
+            <div id="vendor-status-badge"></div>
+          </div>
+          <div id="vendor-portal-link" style="margin-top:12px; display:none;">
+            <a href="/vendor/portal" style="display:inline-block; background:#8B6A48; color:#fff; text-decoration:none; padding:8px 16px; border-radius:4px; font-size:12px; font-weight:600;">Go to Vendor Portal</a>
+          </div>
+        </div>
+
         <div class="section-head">
           <div class="section-title">{{ __('Account Overview') }}</div>
         </div>
@@ -339,6 +352,9 @@
           try {
             const res = await API.get('/auth/user');
             const user = res.data || res;
+            if (user) {
+              localStorage.setItem('dh_user', JSON.stringify(user));
+            }
             renderUserInfo(user);
           } catch (e) {
             location.href = '/auth';
@@ -359,6 +375,43 @@
         if (emailEl) emailEl.textContent = user.email || '—';
         if (sinceEl && user.created_at) {
           sinceEl.textContent = "{{ __('Since') }}" + " " + new Date(user.created_at).getFullYear();
+        }
+
+        // Show vendor application status if it exists
+        if (user.vendor) {
+          const alertEl = document.getElementById('vendor-status-alert');
+          const textEl = document.getElementById('vendor-status-text');
+          const badgeEl = document.getElementById('vendor-status-badge');
+          const portalLinkEl = document.getElementById('vendor-portal-link');
+
+          if (alertEl) {
+            alertEl.style.display = 'block';
+            let status = user.vendor.status;
+            let statusText = 'Your vendor application is ' + status + '.';
+            let badgeHtml = '';
+            
+            if (status === 'pending') {
+              badgeHtml = '<span style="background:#fef3c7; color:#d97706; padding:4px 10px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap;">Pending Review</span>';
+              statusText = 'We are currently reviewing your shop details. We will notify you once approved.';
+            } else if (status === 'active') {
+              badgeHtml = '<span style="background:#d1fae5; color:#059669; padding:4px 10px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap;">Approved</span>';
+              statusText = 'Your vendor account is active. You can now access your vendor portal to add products, check finances, and more.';
+              if (portalLinkEl) portalLinkEl.style.display = 'block';
+            } else if (status === 'rejected') {
+              badgeHtml = '<span style="background:#fee2e2; color:#dc2626; padding:4px 10px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap;">Rejected</span>';
+              statusText = 'Unfortunately, your application was not accepted at this time. Please contact support for more details.';
+            } else if (status === 'suspended') {
+              badgeHtml = '<span style="background:#fef08a; color:#854d0e; padding:4px 10px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap;">Suspended</span>';
+              statusText = 'Your vendor account is temporarily suspended. Please check violations or contact admin support.';
+              if (portalLinkEl) portalLinkEl.style.display = 'block';
+            } else if (status === 'banned') {
+              badgeHtml = '<span style="background:#fee2e2; color:#b91c1c; padding:4px 10px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap;">Banned</span>';
+              statusText = 'Your vendor account has been permanently banned due to policy violations.';
+            }
+
+            textEl.textContent = statusText;
+            badgeEl.innerHTML = badgeHtml;
+          }
         }
 
         // Pre-fill profile tab

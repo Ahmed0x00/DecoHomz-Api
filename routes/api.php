@@ -96,6 +96,27 @@ Route::middleware('activity.log')->group(function () {
         Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
         Route::patch('/addresses/{id}/set-default', [AddressController::class, 'setDefault']);
 
+        // Vendor Portal Routes
+        Route::post('vendor/register', [App\Http\Controllers\Api\VendorController::class, 'register']);
+        
+        Route::middleware('vendor')->group(function () {
+            Route::get('vendor/profile', [App\Http\Controllers\Api\VendorController::class, 'profile']);
+            Route::put('vendor/profile', [App\Http\Controllers\Api\VendorController::class, 'updateProfile']);
+            
+            Route::get('vendor/documents', [App\Http\Controllers\Api\VendorController::class, 'getDocuments']);
+            Route::post('vendor/documents', [App\Http\Controllers\Api\VendorController::class, 'uploadDocument']);
+            Route::delete('vendor/documents/{id}', [App\Http\Controllers\Api\VendorController::class, 'deleteDocument']);
+            
+            Route::get('vendor/finances', [App\Http\Controllers\Api\VendorController::class, 'getFinances']);
+            Route::get('vendor/violations', [App\Http\Controllers\Api\VendorController::class, 'getViolations']);
+            
+            Route::apiResource('vendor/products', App\Http\Controllers\Api\VendorProductController::class);
+            Route::post('vendor/products/{id}/submit', [App\Http\Controllers\Api\VendorProductController::class, 'submit']);
+            Route::post('vendor/products/{id}/images', [App\Http\Controllers\Api\VendorProductController::class, 'uploadImage']);
+            Route::delete('vendor/products/{productId}/images/{imageId}', [App\Http\Controllers\Api\VendorProductController::class, 'deleteImage']);
+            Route::patch('vendor/products/{productId}/images/{imageId}/set-primary', [App\Http\Controllers\Api\VendorProductController::class, 'setPrimaryImage']);
+        });
+
         // User Orders
         Route::get('/orders/{id}', [OrderController::class, 'show']);
 
@@ -217,6 +238,37 @@ Route::middleware('activity.log')->group(function () {
         Route::put('/deposit-rules/{id}', [DepositRuleController::class, 'update']);
         Route::patch('/deposit-rules/{id}/toggle', [DepositRuleController::class, 'toggle']);
         Route::delete('/deposit-rules/{id}', [DepositRuleController::class, 'destroy']);
+
+        // Vendor Management
+        Route::get('/vendors', [\App\Http\Controllers\Admin\VendorController::class, 'index']);
+        Route::get('/vendors/{id}', [\App\Http\Controllers\Admin\VendorController::class, 'show']);
+        Route::patch('/vendors/{id}/approve', [\App\Http\Controllers\Admin\VendorController::class, 'approve']);
+        Route::patch('/vendors/{id}/reject', [\App\Http\Controllers\Admin\VendorController::class, 'reject']);
+        Route::patch('/vendors/{id}/suspend', [\App\Http\Controllers\Admin\VendorController::class, 'suspend']);
+        Route::patch('/vendors/{id}/ban', [\App\Http\Controllers\Admin\VendorController::class, 'ban']);
+        Route::patch('/vendors/{id}/reinstate', [\App\Http\Controllers\Admin\VendorController::class, 'reinstate']);
+        Route::put('/vendors/{id}/notes', [\App\Http\Controllers\Admin\VendorController::class, 'updateNotes']);
+        Route::post('/vendors/{id}/violations', [\App\Http\Controllers\Admin\VendorController::class, 'issueViolation']);
+
+        // Vendor Documents
+        Route::patch('/vendor-documents/{id}/verify', [\App\Http\Controllers\Admin\VendorController::class, 'verifyDocument']);
+        Route::patch('/vendor-documents/{id}/reject', [\App\Http\Controllers\Admin\VendorController::class, 'rejectDocument']);
+
+        // Vendor Products
+        Route::get('/vendor-products', [\App\Http\Controllers\Admin\VendorProductController::class, 'index']);
+        Route::get('/vendor-products/{id}', [\App\Http\Controllers\Admin\VendorProductController::class, 'show']);
+        Route::patch('/vendor-products/{id}/review', [\App\Http\Controllers\Admin\VendorProductController::class, 'review']);
+        Route::patch('/vendor-products/{id}/unpublish', [\App\Http\Controllers\Admin\VendorProductController::class, 'unpublish']);
+
+        // Warehouse Inspections
+        Route::get('/warehouse/inspections', [\App\Http\Controllers\Admin\WarehouseController::class, 'index']);
+        Route::post('/warehouse/inspections', [\App\Http\Controllers\Admin\WarehouseController::class, 'store']);
+        Route::get('/warehouse/inspections/{id}', [\App\Http\Controllers\Admin\WarehouseController::class, 'show']);
+
+        // Vendor Finances
+        Route::get('/vendor-finances', [\App\Http\Controllers\Admin\VendorFinanceController::class, 'index']);
+        Route::post('/vendor-finances/process-payouts', [\App\Http\Controllers\Admin\VendorFinanceController::class, 'processPayouts']);
+        Route::get('/vendor-finances/{id}', [\App\Http\Controllers\Admin\VendorFinanceController::class, 'showVendorLedger']);
 
         // Dashboard & Settings
         Route::get('/dashboard', [DashboardController::class, 'stats']);

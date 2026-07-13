@@ -29,6 +29,9 @@ Route::get('/privacy', fn() => view('privacy'));
 Route::get('/terms', fn() => view('terms'));
 Route::get('/pre-order', fn() => view('pre-order'));
 Route::get('/pre-order/confirmed', fn() => view('pre-order-confirmation'));
+Route::get('/vendor/apply', fn() => view('vendor-apply'));
+Route::get('/vendor/portal', fn() => view('vendor.portal.index'));
+Route::get('/vendor-terms', fn() => view('vendor-terms'));
 
 // Admin routes (auth handled client-side via JS guard)
 Route::prefix('admin')->middleware(['admin.token', 'admin'])->group(function () {
@@ -59,5 +62,14 @@ Route::prefix('admin')->middleware(['admin.token', 'admin'])->group(function () 
     Route::get('/delivery-fees', fn() => view('admin.delivery-fees.index'));
     Route::get('/deposit-rules', fn() => view('admin.deposit-rules.index'));
     Route::get('/logs', fn() => view('admin.logs.index'));
+    
+    // Vendor System Views
+    Route::get('/vendors', fn() => view('admin.vendors.index'));
+    Route::get('/vendors/{id}', fn($id) => view('admin.vendors.show', ['id' => $id]));
+    Route::get('/vendor-products', fn() => view('admin.vendor-products.index'));
+    Route::get('/vendor-products/{id}', fn($id) => view('admin.vendor-products.show', ['id' => $id]));
+    Route::get('/warehouse', fn() => view('admin.warehouse.index'));
+    Route::get('/warehouse/inspect/{id}', fn($id) => view('admin.warehouse.inspect', ['id' => $id]));
+    Route::get('/vendor-finances', fn() => view('admin.vendor-finances.index'));
     Route::get('/settings', fn() => view('admin.settings'));
 });

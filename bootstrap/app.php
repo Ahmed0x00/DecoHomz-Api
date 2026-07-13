@@ -34,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'support.access' => \App\Http\Middleware\SupportAccessMiddleware::class,
             'admin.token' => \App\Http\Middleware\AdminTokenAuthMiddleware::class,
             'activity.log' => \App\Http\Middleware\ActivityLogger::class,
+            'vendor' => \App\Http\Middleware\VendorMiddleware::class,
         ]);
     })
     ->booting(function () {

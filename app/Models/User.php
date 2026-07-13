@@ -42,6 +42,20 @@ class User extends Authenticatable
         return $this->role === 'support';
     }
 
+    public function isVendor(): bool
+    {
+        if ($this->role !== 'vendor' && $this->vendor()->exists()) {
+            $this->role = 'vendor';
+            $this->save();
+        }
+        return $this->role === 'vendor';
+    }
+
+    public function vendor()
+    {
+        return $this->hasOne(Vendor::class);
+    }
+
     public function addresses()
     {
         return $this->hasMany(Address::class);

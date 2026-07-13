@@ -38,11 +38,11 @@ class ProductImage extends Model
 
     public function getUrlAttribute()
     {
-        return asset('storage/' . $this->image);
+        return '/storage/' . $this->image;
     }
 
     public function getThumbnailUrlAttribute()
     {
-        return $this->thumbnail ? asset('storage/' . $this->thumbnail) : $this->url;
+        return $this->thumbnail ? '/storage/' . $this->thumbnail : $this->url;
     }
 }

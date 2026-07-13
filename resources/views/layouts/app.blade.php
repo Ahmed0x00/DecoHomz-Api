@@ -57,6 +57,7 @@
         <li><a href="/about" class="{{ request()->is('about') ? 'active' : '' }}">{{ __('About Us') }}</a></li>
         <li><a href="/contact" class="{{ request()->is('contact') ? 'active' : '' }}">{{ __('Contact Us') }}</a></li>
         <li><a href="/pre-order" class="{{ request()->is('pre-order') ? 'active' : '' }}">{{ __('Pre-Order') }}</a></li>
+        <li><a href="/vendor/apply" class="{{ request()->is('vendor/apply') ? 'active' : '' }}">{{ __('Become a Vendor') }}</a></li>
       </ul>
 
       {{-- Right Actions --}}
@@ -117,6 +118,7 @@
       <a href="/about" class="{{ request()->is('about') ? 'active' : '' }}">{{ __('About Us') }}</a>
       <a href="/contact" class="{{ request()->is('contact') ? 'active' : '' }}">{{ __('Contact Us') }}</a>
       <a href="/pre-order" class="{{ request()->is('pre-order') ? 'active' : '' }}">{{ __('Pre-Order') }}</a>
+      <a href="/vendor/apply" class="{{ request()->is('vendor/apply') ? 'active' : '' }}">{{ __('Become a Vendor') }}</a>
     </div>
     <div class="mobile-nav-bottom">
       @if(app()->getLocale() === 'ar')
@@ -194,6 +196,7 @@
           <li><a href="/faq#returns">{{ __('Returns & Exchanges') }}</a></li>
           <li><a href="/contact">{{ __('Contact Us') }}</a></li>
           <li><a href="/pre-order">{{ __('Pre-Order') }}</a></li>
+          <li><a href="/vendor/apply">{{ __('Become a Vendor') }}</a></li>
         </ul>
       </div>
       <div>
@@ -274,6 +277,14 @@
         label.textContent = "{{ __('Account') }}";
       }
       link.title = label.textContent;
+
+      // Handle Vendor Portal Nav Item
+      if (user && user.role === 'vendor' && user.vendor && user.vendor.status === 'active') {
+        document.querySelectorAll('a[href="/vendor/apply"]').forEach(function(el) {
+          el.href = '/vendor/portal';
+          el.textContent = "{{ __('Vendor Portal') }}";
+        });
+      }
     }
   })();
   </script>

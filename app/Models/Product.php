@@ -12,6 +12,9 @@ class Product extends Model
 
     protected $fillable = [
         'category_id',
+        'vendor_id',
+        'vendor_status',
+        'vendor_price',
         'name',
         'slug',
         'description',
@@ -37,6 +40,7 @@ class Product extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'old_price' => 'decimal:2',
+        'vendor_price' => 'decimal:2',
         'specifications' => 'array',
         'colors' => 'array',
         'stars' => 'integer',
@@ -69,6 +73,16 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class);
+    }
+
+    public function specification()
+    {
+        return $this->hasOne(ProductSpecification::class);
+    }
+
     public function images()
     {
         return $this->hasMany(ProductImage::class)->orderBy('sort_order');
@@ -82,6 +96,16 @@ class Product extends Model
     public function reviews()
     {
         return $this->hasMany(Review::class);
+    }
+
+    public function reviewHistories()
+    {
+        return $this->morphMany(ReviewHistory::class, 'reviewable')->latest();
+    }
+
+    public function latestReviewHistory()
+    {
+        return $this->morphOne(ReviewHistory::class, 'reviewable')->latestOfMany();
     }
 
     public function approvedReviews()
@@ -111,12 +135,28 @@ class Product extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('is_active', true)
+            ->where(function ($q) {
+                $q->whereNull('vendor_id')
+                  ->orWhere('vendor_status', 'published');
+            });
     }
 
     public function scopeFeatured($query)
     {
         return $query->where('is_featured', true);
+    }
+
+    public function scopeDecoHomzOwned($query)
+    {
+        return $query->whereNull('vendor_id');
+    }
+
+    public function scopeVendorPublished($query)
+    {
+        return $query->whereNotNull('vendor_id')
+            ->where('vendor_status', 'published')
+            ->where('is_active', true);
     }
 
     public function hasDiscount(): bool

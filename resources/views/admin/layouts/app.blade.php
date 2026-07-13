@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ asset_v('/css/shared.css') }}">
+  @stack('styles')
   <script src="{{ asset_v('/js/api.js') }}"></script>
   <script>
     // Block render until auth is verified
@@ -144,6 +145,26 @@
       width: 18px;
       height: 18px;
       flex-shrink: 0;
+    }
+
+    .nav-sub-menu {
+      background: #111;
+      padding: 4px 0;
+    }
+    .nav-sub-menu a {
+      padding: 10px 20px 10px 48px;
+      font-size: 12px;
+      color: #888;
+      border-left: none;
+    }
+    .nav-sub-menu a:hover, .nav-sub-menu a.active {
+      color: #fff;
+      background: transparent;
+      border-left-color: transparent;
+    }
+    .nav-sub-menu a.active {
+      color: #c9a96e;
+      font-weight: 500;
     }
 
     .sidebar-footer {
@@ -536,6 +557,37 @@
         </svg>
         Users
       </a>
+      @php
+        $isVendorSection = request()->is('admin/vendors*') || request()->is('admin/vendor-products*') || request()->is('admin/warehouse*') || request()->is('admin/vendor-finances*');
+      @endphp
+      <div class="nav-admin-only">
+        <a href="#" onclick="var sm = this.nextElementSibling; var cv = this.querySelector('.chevron'); if(sm.style.display==='none'){sm.style.display='block';cv.style.transform='rotate(180deg)';}else{sm.style.display='none';cv.style.transform='rotate(0deg)';} return false;" class="{{ $isVendorSection ? 'active' : '' }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="11" cy="7" r="4" />
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          Vendors
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px;margin-left:auto;transition:transform 0.2s;transform:{{ $isVendorSection ? 'rotate(180deg)' : 'rotate(0deg)' }};">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </a>
+        <div class="nav-sub-menu" style="display: {{ $isVendorSection ? 'block' : 'none' }};">
+          <a href="/admin/vendors" class="{{ request()->is('admin/vendors') || request()->is('admin/vendors/*') ? 'active' : '' }}">
+            All Vendors
+          </a>
+          <a href="/admin/vendor-products" class="{{ request()->is('admin/vendor-products*') ? 'active' : '' }}">
+            Vendor Products
+          </a>
+          <a href="/admin/warehouse" class="{{ request()->is('admin/warehouse*') ? 'active' : '' }}">
+            Warehouse QA
+          </a>
+          <a href="/admin/vendor-finances" class="{{ request()->is('admin/vendor-finances*') ? 'active' : '' }}">
+            Vendor Finances
+          </a>
+        </div>
+      </div>
       <a href="/admin/reviews" class="{{ request()->is('admin/reviews*') ? 'active' : '' }} nav-admin-only">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <polygon

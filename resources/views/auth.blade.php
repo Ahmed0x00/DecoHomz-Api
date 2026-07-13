@@ -154,6 +154,8 @@ window.submitLogin = async function() {
     // Redirect based on role
     if (user.role === 'admin' || user.role === 'support') {
       setTimeout(() => { window.location.href = '/admin/dashboard'; }, 800);
+    } else if (user.role === 'vendor' && user.vendor && user.vendor.status === 'active') {
+      setTimeout(() => { window.location.href = '/vendor/portal'; }, 800);
     } else {
       // Check if there's an intended redirect (e.g. from checkout)
       const intended = new URLSearchParams(window.location.search).get('redirect');
@@ -234,6 +236,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const user = Auth.user();
     if (user && (user.role === 'admin' || user.role === 'support')) {
       window.location.href = '/admin/dashboard';
+    } else if (user && user.role === 'vendor' && user.vendor && user.vendor.status === 'active') {
+      window.location.href = '/vendor/portal';
     } else {
       window.location.href = '/account';
     }

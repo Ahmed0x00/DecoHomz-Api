@@ -53,7 +53,7 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $user = User::where('email', $validated['email'])->first();
+        $user = User::where('email', $validated['email'])->with('vendor')->first();
 
         if (!$user || !Hash::check($validated['password'], $user->password)) {
             ActivityLog::auth($request, 'Login Failed', "Failed login attempt for email: {$validated['email']}", null, 'failure');
@@ -86,7 +86,10 @@ class AuthController extends Controller
 
     public function user(Request $request): JsonResponse
     {
-        $user = $request->user()->load(['addresses' => function ($query) {
+        $user = $request->user();
+        $user->isVendor(); // Self-heal vendor role if user has a vendor profile
+        
+        $user->load(['vendor', 'addresses' => function ($query) {
             $query->where('is_default', true)->first();
         }]);
 

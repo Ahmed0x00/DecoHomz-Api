@@ -79,6 +79,27 @@ class OrderController extends Controller
             }
         }
 
+        // Vendor Payout Logic on Delivery
+        if ($validated['status'] === 'delivered' && $oldStatus !== 'delivered') {
+            $financeService = app(\App\Services\VendorFinanceService::class);
+            $order->load('items.product.vendor');
+
+            foreach ($order->items as $item) {
+                if ($item->product && $item->product->vendor_id) {
+                    $vendorPrice = $item->product->vendor_price ?? $item->product->price;
+                    $amount = $vendorPrice * $item->quantity;
+                    $financeService->createSaleCredit($item->product->vendor, $item, $amount);
+                    
+                    \App\Models\ActivityLog::vendors(
+                        $request, 
+                        'Sale Credit Created', 
+                        "Sale credit of {$amount} created for order #{$order->order_number}", 
+                        $item->product->vendor
+                    );
+                }
+            }
+        }
+
         $order->update(['status' => $validated['status']]);
 
         ActivityLog::orders($request, 'Update Order Status', ActivityLog::userName($request) . " changed order #{$order->order_number} status from {$oldStatus} to {$validated['status']}", $order);

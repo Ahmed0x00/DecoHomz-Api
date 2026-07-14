@@ -79,6 +79,9 @@ Route::middleware('activity.log')->group(function () {
     // Public Settings
     Route::get('/settings', [SettingsController::class, 'publicSettings']);
 
+    // Secure Document Viewer (Manual Auth inside controller)
+    Route::get('/vendor-documents/{id}/view', [\App\Http\Controllers\Api\VendorController::class, 'viewDocument']);
+
     // ============================================
     // PROTECTED ROUTES (Requires Authentication)
     // ============================================

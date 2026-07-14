@@ -1,8 +1,8 @@
 /**
  * Vendor Portal JavaScript Logic
  */
-const VendorPortal = (function() {
-  
+const VendorPortal = (function () {
+
   let categories = [];
   let activeVendor = null;
   let pendingImages = [];
@@ -22,7 +22,7 @@ const VendorPortal = (function() {
     try {
       const userRes = await API.get('/auth/user');
       const user = userRes.data || userRes;
-      
+
       if (user) {
         localStorage.setItem('dh_user', JSON.stringify(user));
       }
@@ -32,7 +32,7 @@ const VendorPortal = (function() {
         return;
       }
       activeVendor = user.vendor;
-    } catch(e) {
+    } catch (e) {
       window.location.href = '/auth';
       return;
     }
@@ -45,7 +45,7 @@ const VendorPortal = (function() {
 
   function setupEventListeners() {
     const docForm = document.getElementById('doc-upload-form');
-    if(docForm) {
+    if (docForm) {
       docForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         await uploadDocument();
@@ -53,7 +53,7 @@ const VendorPortal = (function() {
     }
 
     const prodForm = document.getElementById('product-form');
-    if(prodForm) {
+    if (prodForm) {
       prodForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         await saveProduct();
@@ -66,9 +66,9 @@ const VendorPortal = (function() {
       div.style.display = 'none';
       div.classList.remove('active');
     });
-    
+
     const targetTab = document.getElementById('tab-' + tabId);
-    if(targetTab) {
+    if (targetTab) {
       targetTab.style.display = 'block';
       // tiny delay for animation
       setTimeout(() => targetTab.classList.add('active'), 10);
@@ -87,7 +87,7 @@ const VendorPortal = (function() {
       policy: { title: 'DecoHomz Policies', sub: 'Marketplace operational, financial, and quality assurance rules.' }
     };
 
-    if(titles[tabId]) {
+    if (titles[tabId]) {
       document.getElementById('page-title').textContent = titles[tabId].title;
       document.getElementById('page-subtitle').textContent = titles[tabId].sub;
     }
@@ -130,7 +130,7 @@ const VendorPortal = (function() {
       const totalPts = vList.reduce((sum, v) => sum + (v.points || 0), 0);
       document.getElementById('stat-violations').textContent = totalPts;
 
-    } catch(e) {}
+    } catch (e) { }
   }
 
   async function loadCategories() {
@@ -139,10 +139,10 @@ const VendorPortal = (function() {
       categories = res.categories || res.data || res || [];
       const select = document.getElementById('p-category');
       if (select) {
-        select.innerHTML = '<option value="">Select Category</option>' + 
+        select.innerHTML = '<option value="">Select Category</option>' +
           categories.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
       }
-    } catch(e) {}
+    } catch (e) { }
   }
 
   async function loadProducts() {
@@ -151,7 +151,7 @@ const VendorPortal = (function() {
       productsCache = getPaginatedItems(res, 'products');
       renderProductFilters();
       renderProductGrid();
-    } catch(e) {
+    } catch (e) {
       showToast('Failed to load products', 'error');
     }
   }
@@ -203,7 +203,7 @@ const VendorPortal = (function() {
       if (activeProductFilter === 'needs_action') return status === 'changes_requested' || status === 'rejected';
       return status === activeProductFilter;
     });
-    
+
     if (!productsCache.length) {
       container.innerHTML = '<div class="product-empty-state">No products yet. Add your first product as a draft, then submit it for review.</div>';
       return;
@@ -224,7 +224,7 @@ const VendorPortal = (function() {
     const feedback = getProductFeedback(p);
     const needsAttention = status === 'changes_requested' || status === 'rejected';
     const actionText = needsAttention ? 'Revise and resubmit' : productActionText(status);
-    
+
     return `
       <button type="button" class="vendor-product-item vendor-product-${esc(status)}" onclick="VendorPortal.openProductForm(${p.id})">
         <div class="vendor-product-media">
@@ -239,12 +239,12 @@ const VendorPortal = (function() {
             <span class="badge badge-${color}">${esc(formatLabel(status))}</span>
           </div>
           ${needsAttention
-            ? `<div class="product-feedback ${status === 'rejected' ? 'danger' : 'warning'}">
+        ? `<div class="product-feedback ${status === 'rejected' ? 'danger' : 'warning'}">
                 <strong>${status === 'rejected' ? 'Rejected' : 'Changes requested'}</strong>
                 <span>${esc(feedback || 'Revise the product and submit it again.')}</span>
               </div>`
-            : `<div class="product-muted">${esc(status === 'submitted' ? 'Waiting for admin review' : actionText)}</div>`
-          }
+        : `<div class="product-muted">${esc(status === 'submitted' ? 'Waiting for admin review' : actionText)}</div>`
+      }
         </div>
         <div class="vendor-product-side">
           <div class="product-price-cell">
@@ -290,11 +290,11 @@ const VendorPortal = (function() {
 
       const deleteBtn = document.getElementById('btn-delete-product');
       if (p.vendor_status !== 'approved' && p.vendor_status !== 'active' && p.vendor_status !== 'published') {
-          deleteBtn.style.display = 'block';
+        deleteBtn.style.display = 'block';
       } else {
-          deleteBtn.style.display = 'none';
+        deleteBtn.style.display = 'none';
       }
-      
+
       document.getElementById('form-product-id').value = p.id;
       document.getElementById('p-name').value = p.name;
       document.getElementById('p-category').value = p.category_id;
@@ -309,9 +309,9 @@ const VendorPortal = (function() {
       materialsList = [];
       if (p.specifications) {
         const dims = p.specifications.Dimensions || {};
-        for (let k in dims) dimensionsList.push({key: k, value: dims[k]});
+        for (let k in dims) dimensionsList.push({ key: k, value: dims[k] });
         const mats = p.specifications.Materials || {};
-        for (let k in mats) materialsList.push({key: k, value: mats[k]});
+        for (let k in mats) materialsList.push({ key: k, value: mats[k] });
       }
       renderSpecsUI();
 
@@ -328,10 +328,10 @@ const VendorPortal = (function() {
         preview.innerHTML = generalImages.map(img => `
           <div class="img-preview-item" style="position:relative;">
             <img src="${escHtml(img.url)}" alt="Product Image">
-            ${img.is_primary 
-              ? '<div style="position:absolute;bottom:4px;left:4px;background:#10b981;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:bold;">Primary</div>' 
-              : `<button type="button" onclick="VendorPortal.setPrimaryImage(${p.id}, ${img.id})" style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:4px;font-size:10px;padding:2px 6px;cursor:pointer;">Set Primary</button>`
-            }
+            ${img.is_primary
+            ? '<div style="position:absolute;bottom:4px;left:4px;background:#10b981;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:bold;">Primary</div>'
+            : `<button type="button" onclick="VendorPortal.setPrimaryImage(${p.id}, ${img.id})" style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:4px;font-size:10px;padding:2px 6px;cursor:pointer;">Set Primary</button>`
+          }
             <button type="button" class="img-delete-btn" onclick="VendorPortal.deleteProductImage(${p.id}, ${img.id})">&times;</button>
           </div>
         `).join('');
@@ -347,8 +347,8 @@ const VendorPortal = (function() {
             const div = document.createElement('div');
             div.style = 'position:relative;width:60px;height:60px;border-radius:6px;overflow:hidden;border:1px solid #e5e5e5;box-shadow:0 1px 2px rgba(0,0,0,0.05);';
             div.innerHTML = `<img src="${escHtml(img.url)}" style="width:100%;height:100%;object-fit:cover;">
-              ${img.is_primary 
-                ? '<div style="position:absolute;bottom:2px;left:2px;background:#10b981;color:#fff;font-size:8px;padding:1px 4px;border-radius:3px;font-weight:bold;">Primary</div>' 
+              ${img.is_primary
+                ? '<div style="position:absolute;bottom:2px;left:2px;background:#10b981;color:#fff;font-size:8px;padding:1px 4px;border-radius:3px;font-weight:bold;">Primary</div>'
                 : `<button type="button" onclick="VendorPortal.setPrimaryImage(${p.id}, ${img.id})" style="position:absolute;bottom:2px;left:2px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:3px;font-size:8px;padding:1px 4px;cursor:pointer;">Primary</button>`
               }
               <button type="button" onclick="VendorPortal.deleteProductImage(${p.id}, ${img.id})" style="position:absolute;top:2px;right:2px;width:16px;height:16px;background:#ef4444;color:#fff;border:none;border-radius:50%;font-size:10px;line-height:1;cursor:pointer;">×</button>`;
@@ -357,7 +357,7 @@ const VendorPortal = (function() {
         });
       }
 
-    } catch(e) {
+    } catch (e) {
       showToast('Error loading product details', 'error');
     }
   }
@@ -376,7 +376,7 @@ const VendorPortal = (function() {
           showToast('Uploading image...', 'info');
           await API.post('/vendor/products/' + id + '/images', formData);
           showToast('Image uploaded successfully', 'success');
-        } catch(err) {
+        } catch (err) {
           showToast(err.data?.message || 'Failed to upload image', 'error');
         }
       }
@@ -399,13 +399,13 @@ const VendorPortal = (function() {
 
   function renderPendingImages() {
     const generalPreview = document.getElementById('product-images-preview');
-    if(generalPreview) generalPreview.innerHTML = '';
-    
+    if (generalPreview) generalPreview.innerHTML = '';
+
     // Clear color preview containers of pending images (keep existing)
     productColors.forEach(c => {
       const safeName = c.name.replace(/\s+/g, '-');
       const container = document.getElementById('color-preview-' + safeName);
-      if(container) {
+      if (container) {
         const pendingNodes = container.querySelectorAll('.pending-img-node');
         pendingNodes.forEach(n => n.remove());
       }
@@ -421,21 +421,21 @@ const VendorPortal = (function() {
           div.className = 'pending-img-node';
           div.style = 'position:relative;width:60px;height:60px;border-radius:6px;overflow:hidden;border:1px solid #e5e5e5;opacity:0.8;';
           div.innerHTML = `<img src="${url}" alt="Pending Image" style="width:100%;height:100%;object-fit:cover;">
-            ${img.isPrimary 
-              ? '<div style="position:absolute;bottom:2px;left:2px;background:#10b981;color:#fff;font-size:8px;padding:1px 4px;border-radius:3px;font-weight:bold;">Primary</div>' 
+            ${img.isPrimary
+              ? '<div style="position:absolute;bottom:2px;left:2px;background:#10b981;color:#fff;font-size:8px;padding:1px 4px;border-radius:3px;font-weight:bold;">Primary</div>'
               : `<button type="button" onclick="VendorPortal.setPendingPrimary(${idx})" style="position:absolute;bottom:2px;left:2px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:3px;font-size:8px;padding:1px 4px;cursor:pointer;">Primary</button>`
             }
             <button type="button" class="img-delete-btn" onclick="VendorPortal.removePendingImage(${idx})" style="position:absolute;top:4px;right:4px;width:16px;height:16px;font-size:12px;line-height:1;">&times;</button>`;
           container.insertBefore(div, container.lastElementChild);
         }
       } else {
-        if(generalPreview) {
+        if (generalPreview) {
           const div = document.createElement('div');
           div.className = 'img-preview-item';
           div.style = "position:relative;";
           div.innerHTML = `<img src="${url}" alt="Pending Image">
-            ${img.isPrimary 
-              ? '<div style="position:absolute;bottom:4px;left:4px;background:#10b981;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:bold;">Primary</div>' 
+            ${img.isPrimary
+              ? '<div style="position:absolute;bottom:4px;left:4px;background:#10b981;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:bold;">Primary</div>'
               : `<button type="button" onclick="VendorPortal.setPendingPrimary(${idx})" style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:4px;font-size:10px;padding:2px 6px;cursor:pointer;">Set Primary</button>`
             }
             <button type="button" class="img-delete-btn" onclick="VendorPortal.removePendingImage(${idx})">&times;</button>`;
@@ -461,7 +461,7 @@ const VendorPortal = (function() {
       await API.delete(`/vendor/products/${productId}/images/${imageId}`);
       showToast('Image deleted', 'success');
       loadProductForEditing(productId);
-    } catch(err) {
+    } catch (err) {
       showToast('Failed to delete image', 'error');
     }
   }
@@ -472,7 +472,7 @@ const VendorPortal = (function() {
       await API.patch(`/vendor/products/${productId}/images/${imageId}/set-primary`);
       showToast('Primary image updated', 'success');
       loadProductForEditing(productId);
-    } catch(err) {
+    } catch (err) {
       showToast(err.data?.message || 'Failed to update primary image', 'error');
     }
   }
@@ -507,14 +507,14 @@ const VendorPortal = (function() {
     if (pendingImages.length === 0) return;
 
     showToast(`Uploading ${pendingImages.length} image(s)...`, 'info');
-    for (let i=0; i<pendingImages.length; i++) {
+    for (let i = 0; i < pendingImages.length; i++) {
       const formData = new FormData();
       formData.append('image', pendingImages[i].file);
       if (pendingImages[i].colorName) formData.append('color_name', pendingImages[i].colorName);
       if (pendingImages[i].isPrimary) formData.append('is_primary', '1');
       try {
         await API.post('/vendor/products/' + pId + '/images', formData);
-      } catch(err) {
+      } catch (err) {
         showToast('Failed to upload some images', 'error');
       }
     }
@@ -534,7 +534,7 @@ const VendorPortal = (function() {
       submitBtn.disabled = true;
       saveBtn.textContent = options.submitAfterSave ? 'Saving...' : 'Saving...';
       if (options.submitAfterSave) submitBtn.textContent = 'Submitting...';
-      
+
       let productId = id;
       if (id) {
         await API.put('/vendor/products/' + id, payload);
@@ -563,7 +563,7 @@ const VendorPortal = (function() {
       showToast(options.submitAfterSave ? 'Product submitted for review!' : 'Product saved successfully', 'success');
       loadProducts();
       return productId;
-    } catch(err) {
+    } catch (err) {
       saveBtn.disabled = false;
       submitBtn.disabled = false;
       saveBtn.textContent = originalSaveText;
@@ -580,18 +580,18 @@ const VendorPortal = (function() {
   async function deleteProduct() {
     const id = document.getElementById('form-product-id').value;
     if (!id) return;
-    
+
     if (!confirm('Are you sure you want to completely delete this product? This action cannot be undone.')) {
       return;
     }
-    
+
     try {
       showToast('Deleting product...', 'info');
       await API.delete('/vendor/products/' + id);
       showToast('Product deleted successfully', 'success');
       VendorPortal.switchTab('products');
       loadProducts();
-    } catch(err) {
+    } catch (err) {
       showToast(err.data?.message || 'Failed to delete product', 'error');
     }
   }
@@ -601,7 +601,7 @@ const VendorPortal = (function() {
       const finances = await API.get('/vendor/finances');
       const txs = finances.transactions?.data || finances.transactions || [];
       const tbody = document.querySelector('#finances-tx-table tbody');
-      
+
       if (!txs.length) {
         tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No transactions found.</td></tr>';
       } else {
@@ -615,14 +615,14 @@ const VendorPortal = (function() {
           </tr>
         `).join('');
       }
-    } catch(e) {}
+    } catch (e) { }
   }
 
   async function loadDocuments() {
     try {
       const docs = await API.get('/vendor/documents');
       const container = document.getElementById('documents-list-container');
-      
+
       if (!docs || !docs.length) {
         container.innerHTML = '<div class="text-muted text-center py-4">No documents uploaded yet.</div>';
         return;
@@ -653,12 +653,12 @@ const VendorPortal = (function() {
             </div>
             <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
               <span class="badge badge-${color}">${esc(doc.status)}</span>
-              <a href="${doc.file_url || '/storage/'+doc.file_path}" target="_blank" class="btn btn-outline btn-sm">View File</a>
+              <a href="${doc.file_url || '/storage/' + doc.file_path}" target="_blank" class="btn btn-outline btn-sm">View File</a>
             </div>
           </div>
         `;
       }).join('') + '</div>';
-    } catch(e) {}
+    } catch (e) { }
   }
 
   async function uploadDocument() {
@@ -695,7 +695,7 @@ const VendorPortal = (function() {
       const res = await API.get('/vendor/violations');
       const list = res.data || res || [];
       const tbody = document.querySelector('#violations-table tbody');
-      
+
       if (!list.length) {
         tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No policy violations. Keep up the good work!</td></tr>';
       } else {
@@ -704,12 +704,12 @@ const VendorPortal = (function() {
             <td>${new Date(v.created_at).toLocaleDateString()}</td>
             <td style="font-weight:500;">${esc(v.violation_type.replace(/_/g, ' '))}</td>
             <td>${esc(v.description)}</td>
-            <td style="color:#dc2626; font-weight:700;">${v.points}</td>
+            <td style="color:#dc2626; font-weight:700;">${v.severity_points}</td>
             <td><span class="badge badge-danger">${esc(v.action_taken || 'Warning')}</span></td>
           </tr>
         `).join('');
       }
-    } catch(e) {}
+    } catch (e) { }
   }
 
   function esc(str) {
@@ -732,7 +732,7 @@ const VendorPortal = (function() {
   }
 
   // ─── SPECS AND COLORS LOGIC ───────────────────────────────────────────────
-  
+
   function renderSpecsUI() {
     const dimContainer = document.getElementById('dimensions-specs-container');
     const matContainer = document.getElementById('materials-specs-container');
@@ -756,8 +756,8 @@ const VendorPortal = (function() {
   }
 
   function addSpec(type) {
-    if (type === 'dimensions') dimensionsList.push({key: '', value: ''});
-    else materialsList.push({key: '', value: ''});
+    if (type === 'dimensions') dimensionsList.push({ key: '', value: '' });
+    else materialsList.push({ key: '', value: '' });
     renderSpecsUI();
   }
 
@@ -777,21 +777,21 @@ const VendorPortal = (function() {
     const hex = document.getElementById('new-color-hex').value.trim();
     const price = parseFloat(document.getElementById('new-color-price').value) || 0;
     const stock = parseInt(document.getElementById('new-color-stock').value) || 0;
-    
+
     if (!name) { showToast('Color name is required.', 'error'); return; }
     if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) { showToast('Enter a valid hex code', 'error'); return; }
     if (productColors.some(c => c.name.toLowerCase() === name.toLowerCase())) {
       showToast('This color already exists.', 'error'); return;
     }
-    
+
     productColors.push({ name, hex_code: hex.toUpperCase(), price_modifier: price, stock });
-    
+
     document.getElementById('new-color-name').value = '';
     document.getElementById('new-color-hex').value = '#1a365d';
     document.getElementById('new-color-preview').value = '#1a365d';
     document.getElementById('new-color-price').value = '';
     document.getElementById('new-color-stock').value = '';
-    
+
     renderColorList();
     renderPendingImages();
     showToast('Color added!', 'success');
@@ -810,16 +810,16 @@ const VendorPortal = (function() {
 
     if (!productColors.length) {
       list.innerHTML = '<div style="color:#aaa;font-size:13px;">No colors added yet.</div>';
-      if(countEl) countEl.textContent = '0 colors';
+      if (countEl) countEl.textContent = '0 colors';
       return;
     }
-    if(countEl) countEl.textContent = productColors.length + ' color' + (productColors.length !== 1 ? 's' : '');
-    
+    if (countEl) countEl.textContent = productColors.length + ' color' + (productColors.length !== 1 ? 's' : '');
+
     list.innerHTML = productColors.map((c, i) => {
       const priceText = c.price_modifier > 0 ? '+' + c.price_modifier + ' EGP' : (c.price_modifier < 0 ? c.price_modifier + ' EGP' : 'Base price');
       const safeName = c.name.replace(/\\s+/g, '-');
       const jsSafeName = escHtml(c.name).replace(/'/g, "\\\\'");
-      
+
       return `<div style="padding:16px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
           <div style="width:26px;height:26px;border-radius:50%;background:\${escHtml(c.hex_code)};border:2px solid #e5e7eb;flex-shrink:0;"></div>

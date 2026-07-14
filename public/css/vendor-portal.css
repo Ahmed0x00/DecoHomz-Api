@@ -731,7 +731,7 @@
 }
 
 /* Badges */
-.badge {
+.badge:not(.badge-cart) {
   display: inline-flex;
   align-items: center;
   justify-content: center;

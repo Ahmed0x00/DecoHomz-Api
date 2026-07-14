@@ -33,7 +33,7 @@ class VendorDocument extends Model
 
     public function getFileUrlAttribute()
     {
-        return $this->file_path ? asset('storage/' . $this->file_path) : null;
+        return $this->file_path ? url('/api/vendor-documents/' . $this->id . '/view') : null;
     }
 
     public function vendor()

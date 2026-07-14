@@ -50,7 +50,7 @@ class VendorController extends Controller
         ]);
 
         if ($request->hasFile('commercial_register')) {
-            $path = $request->file('commercial_register')->store('vendor_documents', 'public');
+            $path = $request->file('commercial_register')->store('vendor_documents');
             $vendor->documents()->create([
                 'type' => 'commercial_register',
                 'file_path' => $path,
@@ -59,7 +59,7 @@ class VendorController extends Controller
         }
 
         if ($request->hasFile('tax_card')) {
-            $path = $request->file('tax_card')->store('vendor_documents', 'public');
+            $path = $request->file('tax_card')->store('vendor_documents');
             $vendor->documents()->create([
                 'type' => 'tax_card',
                 'file_path' => $path,
@@ -121,7 +121,7 @@ class VendorController extends Controller
             'document_number' => 'nullable|string|max:100',
         ]);
 
-        $path = $request->file('file')->store('vendor_documents', 'public');
+        $path = $request->file('file')->store('vendor_documents');
 
         $document = $vendor->documents()->create([
             'type' => $validated['type'],
@@ -142,7 +142,11 @@ class VendorController extends Controller
             return response()->json(['message' => 'Cannot delete a verified document.'], 403);
         }
 
-        Storage::disk('public')->delete($document->file_path);
+        if (Storage::disk('local')->exists($document->file_path)) {
+            Storage::disk('local')->delete($document->file_path);
+        } else if (Storage::disk('public')->exists($document->file_path)) {
+            Storage::disk('public')->delete($document->file_path);
+        }
         $document->delete();
 
         return response()->json(['message' => 'Document deleted.']);
@@ -166,5 +170,43 @@ class VendorController extends Controller
     {
         $vendor = $request->user()->vendor;
         return response()->json($vendor->violations()->latest()->paginate(20));
+    }
+
+    public function viewDocument(Request $request, $id)
+    {
+        $document = \App\Models\VendorDocument::findOrFail($id);
+        
+        $user = null;
+        if (\Illuminate\Support\Facades\Auth::guard('web')->check()) {
+            $user = \Illuminate\Support\Facades\Auth::guard('web')->user();
+        } else {
+            $token = $request->query('token') ?? $request->cookie('dh_token') ?? $request->bearerToken();
+            if ($token) {
+                $accessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+                if ($accessToken) {
+                    $user = $accessToken->tokenable;
+                }
+            }
+        }
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        if (!$user->isAdmin() && !$user->isSupport()) {
+            if ($user->role !== 'vendor' || !$user->vendor || $user->vendor->id !== $document->vendor_id) {
+                return response()->json(['message' => 'Forbidden.'], 403);
+            }
+        }
+
+        if (Storage::disk('local')->exists($document->file_path)) {
+            return response()->file(Storage::disk('local')->path($document->file_path));
+        }
+        
+        if (Storage::disk('public')->exists($document->file_path)) {
+            return response()->file(Storage::disk('public')->path($document->file_path));
+        }
+
+        return response()->json(['message' => 'File not found.'], 404);
     }
 }

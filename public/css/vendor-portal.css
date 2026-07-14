@@ -145,6 +145,73 @@
   margin: 0;
 }
 
+/* Notifications */
+.notifications-wrapper {
+  position: relative;
+}
+
+.notification-btn {
+  transition: all 0.2s ease;
+}
+
+.notification-btn:hover {
+  color: var(--vp-primary) !important;
+  background: var(--vp-soft) !important;
+  border-radius: 50%;
+}
+
+.notifications-dropdown {
+  animation: slideDown 0.2s ease forwards;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.notification-item {
+  display: block;
+  padding: 16px;
+  border-bottom: 1px solid var(--vp-border);
+  text-decoration: none;
+  transition: background 0.2s;
+  cursor: pointer;
+  text-align: left;
+  border-left: 3px solid transparent;
+}
+
+.notification-item:hover {
+  background: var(--vp-soft);
+}
+
+.notification-item.unread {
+  background: #f0fdfa;
+  border-left-color: #0d9488;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--vp-text);
+  margin-bottom: 4px;
+}
+
+.notification-message {
+  font-size: 12px;
+  color: var(--vp-text-muted);
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+
+.notification-time {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
 /* Tabs */
 .portal-tab {
   opacity: 0;

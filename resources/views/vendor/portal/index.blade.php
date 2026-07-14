@@ -29,6 +29,16 @@
           </a>
         </li>
         <li>
+          <a href="#" data-tab="notifications" onclick="VendorPortal.switchTab('notifications', this); return false;" style="position: relative;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            Notifications
+            <span id="sidebar-notification-badge" style="display:none; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: #ef4444; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 10px;">0</span>
+          </a>
+        </li>
+        <li>
           <a href="#" data-tab="finances" onclick="VendorPortal.switchTab('finances', this); return false;">
             <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
             Finances
@@ -75,6 +85,7 @@
         @include('vendor.portal.tabs.dashboard')
         @include('vendor.portal.tabs.products')
         @include('vendor.portal.tabs.product-form')
+        @include('vendor.portal.tabs.notifications')
         @include('vendor.portal.tabs.finances')
         @include('vendor.portal.tabs.documents')
         @include('vendor.portal.tabs.violations')

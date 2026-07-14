@@ -113,6 +113,11 @@ Route::middleware('activity.log')->group(function () {
             Route::get('vendor/finances', [App\Http\Controllers\Api\VendorController::class, 'getFinances']);
             Route::get('vendor/violations', [App\Http\Controllers\Api\VendorController::class, 'getViolations']);
             
+            Route::get('vendor/notifications', [App\Http\Controllers\Api\VendorNotificationController::class, 'index']);
+            Route::patch('vendor/notifications/read-all', [App\Http\Controllers\Api\VendorNotificationController::class, 'markAllAsRead']);
+            Route::patch('vendor/notifications/{id}/read', [App\Http\Controllers\Api\VendorNotificationController::class, 'markAsRead']);
+            Route::delete('vendor/notifications/{id}', [App\Http\Controllers\Api\VendorNotificationController::class, 'destroy']);
+            
             Route::apiResource('vendor/products', App\Http\Controllers\Api\VendorProductController::class);
             Route::post('vendor/products/{id}/submit', [App\Http\Controllers\Api\VendorProductController::class, 'submit']);
             Route::post('vendor/products/{id}/images', [App\Http\Controllers\Api\VendorProductController::class, 'uploadImage']);
@@ -244,6 +249,7 @@ Route::middleware('activity.log')->group(function () {
 
         // Vendor Management
         Route::get('/vendors', [\App\Http\Controllers\Admin\VendorController::class, 'index']);
+        Route::post('/vendors/notify-all', [\App\Http\Controllers\Admin\VendorController::class, 'notifyAll']);
         Route::get('/vendors/{id}', [\App\Http\Controllers\Admin\VendorController::class, 'show']);
         Route::patch('/vendors/{id}/approve', [\App\Http\Controllers\Admin\VendorController::class, 'approve']);
         Route::patch('/vendors/{id}/reject', [\App\Http\Controllers\Admin\VendorController::class, 'reject']);
@@ -252,6 +258,7 @@ Route::middleware('activity.log')->group(function () {
         Route::patch('/vendors/{id}/reinstate', [\App\Http\Controllers\Admin\VendorController::class, 'reinstate']);
         Route::put('/vendors/{id}/notes', [\App\Http\Controllers\Admin\VendorController::class, 'updateNotes']);
         Route::post('/vendors/{id}/violations', [\App\Http\Controllers\Admin\VendorController::class, 'issueViolation']);
+        Route::post('/vendors/{id}/notifications', [\App\Http\Controllers\Admin\VendorController::class, 'sendNotification']);
 
         // Vendor Documents
         Route::patch('/vendor-documents/{id}/verify', [\App\Http\Controllers\Admin\VendorController::class, 'verifyDocument']);

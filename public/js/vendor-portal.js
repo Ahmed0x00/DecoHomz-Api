@@ -40,6 +40,7 @@ const VendorPortal = (function () {
     // Load initial data
     loadDashboard();
     loadCategories();
+    fetchNotifications();
     setupEventListeners();
   }
 
@@ -81,6 +82,7 @@ const VendorPortal = (function () {
     const titles = {
       dashboard: { title: 'Dashboard Overview', sub: 'Manage your furniture catalog and track earnings.' },
       products: { title: 'Products Catalog', sub: 'Add new items or request updates for published furniture.' },
+      notifications: { title: 'Notifications', sub: 'Stay updated with important announcements and alerts.' },
       finances: { title: 'Finances & Ledger', sub: 'Review sales, balance breakdowns, and payouts.' },
       documents: { title: 'Shop Documents', sub: 'Verify your business credibility to maintain active status.' },
       violations: { title: 'Policy Violations', sub: 'Ensure your products and services comply with our marketplace standards.' },
@@ -95,6 +97,14 @@ const VendorPortal = (function () {
     // Lazy load tab data
     if (tabId === 'dashboard') loadDashboard();
     if (tabId === 'products') loadProducts();
+    if (tabId === 'notifications') {
+      fetchNotifications().then(() => {
+        // Automatically mark all as read when visiting the page
+        API.patch('/vendor/notifications/read-all').then(() => {
+          document.getElementById('sidebar-notification-badge').style.display = 'none';
+        }).catch(e => {});
+      });
+    }
     if (tabId === 'finances') loadFinances();
     if (tabId === 'documents') loadDocuments();
     if (tabId === 'violations') loadViolations();
@@ -731,6 +741,58 @@ const VendorPortal = (function () {
     return [];
   }
 
+  // ─── NOTIFICATIONS LOGIC ───────────────────────────────────────────────
+
+  async function fetchNotifications() {
+    try {
+      const res = await API.get('/vendor/notifications');
+      const data = res.data || res;
+      
+      const badge = document.getElementById('sidebar-notification-badge');
+      if (data.unread_count > 0) {
+        badge.textContent = data.unread_count;
+        badge.style.display = 'block';
+      } else {
+        badge.style.display = 'none';
+      }
+
+      const notifs = data.notifications?.data || data.notifications || [];
+      renderNotificationsList(notifs);
+    } catch (e) {
+      console.error('Failed to load notifications', e);
+    }
+  }
+
+  function renderNotificationsList(notifications) {
+    const list = document.getElementById('notifications-page-list');
+    if (!list) return;
+
+    if (notifications.length === 0) {
+      list.innerHTML = '<div style="padding:32px;text-align:center;color:#64748b;font-size:14px;">No notifications.</div>';
+      return;
+    }
+
+    list.innerHTML = notifications.map(n => {
+      const isUnread = n.read_at === null;
+      const typeColor = n.data?.type === 'success' ? '#10b981' : (n.data?.type === 'danger' ? '#ef4444' : (n.data?.type === 'warning' ? '#f59e0b' : '#3b82f6'));
+      return `
+        <div class="notification-item ${isUnread ? 'unread' : ''}" onclick="VendorPortal.markNotificationRead('${n.id}', ${isUnread}, '${n.data?.action_url || ''}')" style="${isUnread ? 'border-left-color:' + typeColor : ''}; border-bottom: 1px solid #f1f5f9; padding: 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 8px;">
+            <div style="font-size: 15px; font-weight: 700; color: ${isUnread ? typeColor : 'var(--vp-text)'};">${esc(n.data?.title || 'Notification')}</div>
+            <div style="font-size: 12px; color: #94a3b8;">${new Date(n.created_at).toLocaleString()}</div>
+          </div>
+          <div style="font-size: 14px; color: var(--vp-text-muted); line-height: 1.5;">${esc(n.data?.message || '')}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function markNotificationRead(id, isUnread, actionUrl) {
+    if (actionUrl && actionUrl !== 'null') {
+      window.location.href = actionUrl;
+    }
+  }
+
   // ─── SPECS AND COLORS LOGIC ───────────────────────────────────────────────
 
   function renderSpecsUI() {
@@ -951,6 +1013,7 @@ const VendorPortal = (function () {
     filterProducts,
     openProductForm,
     setPrimaryImage,
+    markNotificationRead,
     setPendingPrimary,
     deleteProduct,
     handleImageSelection,

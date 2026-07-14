@@ -152,4 +152,39 @@ class VendorController extends Controller
 
         return response()->json(['message' => 'Violation issued successfully.', 'violation' => $violation], 201);
     }
+
+    public function sendNotification(Request $request, $vendorId)
+    {
+        $vendor = Vendor::findOrFail($vendorId);
+        
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'message' => 'required|string',
+            'type' => 'required|in:info,success,warning,danger',
+            'action_url' => 'nullable|url'
+        ]);
+
+        $vendor->notify(new \App\Notifications\VendorNotification(
+            $validated['title'],
+            $validated['message'],
+            $validated['type'],
+            $validated['action_url'] ?? null
+        ));
+
+        return response()->json(['message' => 'Notification sent successfully.']);
+    }
+
+    public function notifyAll(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'message' => 'required|string',
+            'type' => 'required|in:info,success,warning,danger',
+            'action_url' => 'nullable|url'
+        ]);
+
+        $announcement = \App\Models\VendorAnnouncement::create($validated);
+
+        return response()->json(['message' => 'Global notification sent successfully.', 'announcement' => $announcement], 201);
+    }
 }

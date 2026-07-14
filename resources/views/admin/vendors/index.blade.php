@@ -8,6 +8,7 @@
 <!-- Page Header -->
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
   <h1 style="font-size:24px;font-weight:700;color:#1a1a1a;">Vendors</h1>
+  <button onclick="openNotifyAllModal()" style="background:#3b82f6;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;">Notify All Vendors</button>
 </div>
 
 <!-- Vendors Table -->
@@ -31,6 +32,34 @@
 
 <!-- Pagination -->
 <div id="pagination" style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:24px;">
+</div>
+
+<!-- Notify All Modal -->
+<div id="notify-all-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:1000;">
+  <div style="background:#fff; width:100%; max-width:400px; border-radius:8px; box-shadow:0 10px 15px rgba(0,0,0,0.1); padding:24px;">
+    <h3 style="margin:0 0 16px 0; font-size:18px;">Notify All Vendors</h3>
+    <div style="margin-bottom:12px;">
+      <label style="display:block; font-size:13px; font-weight:600; margin-bottom:4px;">Title</label>
+      <input type="text" id="bulk-title" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block; font-size:13px; font-weight:600; margin-bottom:4px;">Message</label>
+      <textarea id="bulk-message" rows="3" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;"></textarea>
+    </div>
+    <div style="margin-bottom:16px;">
+      <label style="display:block; font-size:13px; font-weight:600; margin-bottom:4px;">Type</label>
+      <select id="bulk-type" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+        <option value="info">Info</option>
+        <option value="success">Success</option>
+        <option value="warning">Warning</option>
+        <option value="danger">Danger</option>
+      </select>
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button onclick="closeNotifyAllModal()" style="padding:8px 16px; border:none; background:#eee; border-radius:4px; cursor:pointer;">Cancel</button>
+      <button onclick="submitBulkNotification()" style="padding:8px 16px; border:none; background:#3b82f6; color:#fff; border-radius:4px; cursor:pointer; font-weight:600;">Send to All</button>
+    </div>
+  </div>
 </div>
 
 @endsection
@@ -121,6 +150,41 @@
   }
   
   window.loadVendors = loadVendors;
+
+  window.openNotifyAllModal = function() {
+    document.getElementById('bulk-title').value = '';
+    document.getElementById('bulk-message').value = '';
+    document.getElementById('bulk-type').value = 'info';
+    document.getElementById('notify-all-modal').style.display = 'flex';
+  }
+
+  window.closeNotifyAllModal = function() {
+    document.getElementById('notify-all-modal').style.display = 'none';
+  }
+
+  window.submitBulkNotification = async function() {
+    var title = document.getElementById('bulk-title').value.trim();
+    var message = document.getElementById('bulk-message').value.trim();
+    var type = document.getElementById('bulk-type').value;
+
+    if (!title || !message) {
+      showToast('Title and message are required', 'error');
+      return;
+    }
+
+    try {
+      await API.post('/admin/vendors/notify-all', {
+        title: title,
+        message: message,
+        type: type
+      });
+      showToast('Global notification sent successfully', 'success');
+      closeNotifyAllModal();
+    } catch (e) {
+      showToast('Failed to send global notification', 'error');
+    }
+  }
+
 })();
 </script>
 @endsection

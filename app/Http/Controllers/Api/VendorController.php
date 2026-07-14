@@ -28,16 +28,44 @@ class VendorController extends Controller
             'workshop_address' => 'nullable|string',
             'bank_account_number' => 'nullable|string|max:50',
             'e_wallet_number' => 'nullable|string|max:30',
+            'commercial_register' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'tax_card' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $vendor = Vendor::create(array_merge($validator->validated(), [
+        $vendor = Vendor::create([
             'user_id' => $user->id,
             'status' => 'pending',
-        ]));
+            'company_name' => $validator->validated()['company_name'],
+            'contact_name' => $validator->validated()['contact_name'],
+            'phone' => $validator->validated()['phone'],
+            'email' => $validator->validated()['email'] ?? null,
+            'address' => $validator->validated()['address'],
+            'workshop_address' => $validator->validated()['workshop_address'] ?? null,
+            'bank_account_number' => $validator->validated()['bank_account_number'] ?? null,
+            'e_wallet_number' => $validator->validated()['e_wallet_number'] ?? null,
+        ]);
+
+        if ($request->hasFile('commercial_register')) {
+            $path = $request->file('commercial_register')->store('vendor_documents', 'public');
+            $vendor->documents()->create([
+                'type' => 'commercial_register',
+                'file_path' => $path,
+                'status' => 'pending',
+            ]);
+        }
+
+        if ($request->hasFile('tax_card')) {
+            $path = $request->file('tax_card')->store('vendor_documents', 'public');
+            $vendor->documents()->create([
+                'type' => 'tax_card',
+                'file_path' => $path,
+                'status' => 'pending',
+            ]);
+        }
 
         $user->role = 'vendor';
         $user->save();

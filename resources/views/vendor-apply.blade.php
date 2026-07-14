@@ -277,6 +277,20 @@
       </div>
     </div>
 
+    <div class="section-title" style="margin-top:40px;">Legal Documents <span style="color:#ef4444">*</span></div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Commercial Register (السجل التجاري) *</label>
+        <input type="file" id="commercial_register" accept=".pdf,.jpg,.jpeg,.png" required style="padding: 10px;">
+        <small style="color: #666; margin-top: 4px;">PDF, JPG, or PNG (Max 5MB)</small>
+      </div>
+      <div class="field">
+        <label>Tax Card (البطاقة الضريبية) *</label>
+        <input type="file" id="tax_card" accept=".pdf,.jpg,.jpeg,.png" required style="padding: 10px;">
+        <small style="color: #666; margin-top: 4px;">PDF, JPG, or PNG (Max 5MB)</small>
+      </div>
+    </div>
+
     <div class="field full" style="flex-direction:row;align-items:center;margin-top:16px;">
       <input type="checkbox" id="agree_terms" required style="width:auto;margin-right:12px;transform:scale(1.2);">
       <label for="agree_terms" style="text-transform:none;letter-spacing:normal;">I have read and agree to the <a href="/vendor-terms" target="_blank" style="color:#8B6A48;text-decoration:underline;">DecoHomz Vendor Policies and Terms & Conditions</a>.</label>
@@ -328,22 +342,36 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      const payload = {
-        company_name: document.getElementById('company_name').value.trim(),
-        contact_name: document.getElementById('contact_name').value.trim(),
-        email: document.getElementById('email').value.trim() || null,
-        phone: document.getElementById('phone').value.trim(),
-        address: document.getElementById('address').value.trim(),
-        workshop_address: document.getElementById('workshop_address').value.trim() || null,
-        bank_account_number: document.getElementById('bank_account_number').value.trim() || null,
-        e_wallet_number: document.getElementById('e_wallet_number').value.trim() || null,
-      };
+      const formData = new FormData();
+      formData.append('company_name', document.getElementById('company_name').value.trim());
+      formData.append('contact_name', document.getElementById('contact_name').value.trim());
+      
+      const email = document.getElementById('email').value.trim();
+      if(email) formData.append('email', email);
+      
+      formData.append('phone', document.getElementById('phone').value.trim());
+      formData.append('address', document.getElementById('address').value.trim());
+      
+      const workshop = document.getElementById('workshop_address').value.trim();
+      if(workshop) formData.append('workshop_address', workshop);
+      
+      const bank = document.getElementById('bank_account_number').value.trim();
+      if(bank) formData.append('bank_account_number', bank);
+      
+      const wallet = document.getElementById('e_wallet_number').value.trim();
+      if(wallet) formData.append('e_wallet_number', wallet);
+      
+      const commRegFile = document.getElementById('commercial_register').files[0];
+      if (commRegFile) formData.append('commercial_register', commRegFile);
+      
+      const taxCardFile = document.getElementById('tax_card').files[0];
+      if (taxCardFile) formData.append('tax_card', taxCardFile);
 
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting...';
 
       try {
-        await API.post('/vendor/register', payload);
+        await API.post('/vendor/register', formData);
         showSuccessState();
       } catch (err) {
         const msg = err.data?.message || err.data?.errors?.[Object.keys(err.data.errors)[0]]?.[0] || 'An error occurred during application.';

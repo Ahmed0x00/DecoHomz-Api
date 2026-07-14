@@ -9,6 +9,13 @@ class Vendor extends Model
 {
     use HasFactory;
 
+    protected $appends = ['severity_points'];
+
+    public function getSeverityPointsAttribute(): int
+    {
+        return (int) $this->violations()->sum('severity_points');
+    }
+
     protected $fillable = [
         'user_id',
         'company_name',

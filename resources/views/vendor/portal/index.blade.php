@@ -3,7 +3,7 @@
 @section('title', 'Vendor Dashboard — DecoHomz')
 
 @section('extra_css')
-<link rel="stylesheet" href="/css/vendor-portal.css">
+<link rel="stylesheet" href="{{ asset('css/vendor-portal.css') }}?v={{ filemtime(public_path('css/vendor-portal.css')) }}">
 @endsection
 
 @section('content')
@@ -87,5 +87,5 @@
 @endsection
 
 @section('extra_js')
-<script src="/js/vendor-portal.js"></script>
+<script src="{{ asset('js/vendor-portal.js') }}?v={{ filemtime(public_path('js/vendor-portal.js')) }}"></script>
 @endsection

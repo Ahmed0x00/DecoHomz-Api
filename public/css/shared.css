@@ -2093,16 +2093,21 @@ footer {
   }
 
   .footer-grid {
-    grid-template-columns: 1fr;
-    text-align: center;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px 16px;
+    text-align: start;
+  }
+
+  .footer-grid > div:first-child {
+    grid-column: 1 / -1;
   }
 
   .f-links {
-    align-items: center;
+    align-items: flex-start;
   }
 
   .f-social {
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .sec-row {

@@ -572,7 +572,42 @@
 }
 
 @media (max-width: 480px) {
+  .account-page {
+    padding: 0 12px;
+  }
+
+  .acc-menu {
+    padding: 0 10px;
+    gap: 6px;
+  }
+
+  .acc-menu li a {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
   .stats-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .stat-card {
+    padding: 16px 12px;
+  }
+
+  .stat-num {
+    font-size: 20px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+  }
+
+  .order-card {
+    padding: 16px 12px;
+  }
+
+  .address-modal {
+    padding: 20px 14px;
   }
 }

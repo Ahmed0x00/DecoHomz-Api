@@ -134,6 +134,17 @@
   margin-top: 20px;
   flex-wrap: wrap;
 }
+
+@media (max-width: 768px) {
+  .od-banner { padding: 24px 20px; }
+  .refund-section { padding: 20px; }
+}
+@media (max-width: 480px) {
+  .od-banner { padding: 20px 16px; }
+  .refund-section { padding: 16px; }
+  .od-banner-actions { flex-direction: column; }
+  .od-banner-actions a, .od-banner-actions button { width: 100%; text-align: center; }
+}
 </style>
 @endsection
 

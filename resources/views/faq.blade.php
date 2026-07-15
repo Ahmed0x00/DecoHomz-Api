@@ -17,6 +17,24 @@
 .faq-item.active .faq-q svg { transform: rotate(180deg); }
 .faq-a { padding: 0 24px; max-height: 0; overflow: hidden; transition: 0.4s ease-out; color: #666; font-size: 13px; line-height: 1.8; }
 .faq-item.active .faq-a { padding: 0 24px 20px; max-height: 200px; }
+
+@media (max-width: 768px) {
+  .faq-hero { padding: 48px 20px; }
+  .faq-hero h1 { font-size: 26px; }
+  .faq-layout { margin: 32px auto; }
+  .faq-cat-title { font-size: 16px; margin: 28px 0 14px; }
+  .faq-q { padding: 14px 16px; font-size: 13px; }
+  .faq-item.active .faq-a { padding: 0 16px 16px; }
+  .faq-a { padding: 0 16px; font-size: 12.5px; }
+}
+
+@media (max-width: 480px) {
+  .faq-hero { padding: 36px 16px; }
+  .faq-hero h1 { font-size: 22px; margin-bottom: 8px; }
+  .faq-hero p { font-size: 13px; }
+  .faq-q { padding: 12px 14px; font-size: 12.5px; gap: 8px; }
+  .faq-q svg { width: 16px; height: 16px; flex-shrink: 0; }
+}
 </style>
 @endsection
 

@@ -839,10 +839,16 @@
   }
 
   .checkout-steps-nav {
-    padding: 16px;
-    gap: 4px;
-    flex-wrap: wrap;
+    padding: 12px 16px;
+    gap: 8px;
+    flex-wrap: nowrap;
     justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  
+  .checkout-steps-nav::-webkit-scrollbar {
+    display: none;
   }
 
   .checkout-step-pill {
@@ -859,7 +865,6 @@
 
   .checkout-summary-wrap {
     position: static;
-    order: -1;
   }
 
   .address-grid {

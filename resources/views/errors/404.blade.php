@@ -21,6 +21,20 @@
 
     /* Decorative furniture SVG */
     .error-illustration { margin-bottom: 32px; opacity: 0.6; }
+
+    @media (max-width: 768px) {
+      .error-code { font-size: 80px; }
+      .error-title { font-size: 22px; }
+      .error-sub { font-size: 14px; }
+    }
+    @media (max-width: 480px) {
+      .error-page { padding: 32px 16px; }
+      .error-code { font-size: 64px; margin-bottom: 8px; }
+      .error-title { font-size: 20px; margin-bottom: 8px; }
+      .error-sub { font-size: 13px; margin-bottom: 24px; }
+      .error-cta { flex-direction: column; width: 100%; }
+      .btn-home, .btn-shop { width: 100%; text-align: center; }
+    }
   </style>
 </head>
 <body>

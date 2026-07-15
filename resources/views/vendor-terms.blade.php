@@ -2,6 +2,27 @@
 
 @section('title', 'Vendor Terms & Policies — DecoHomz')
 
+@section('extra_css')
+<style>
+@media (max-width: 768px) {
+  .content-header h1 { font-size: 26px !important; }
+  .content-header p { font-size: 15px !important; }
+  .policy-card { padding: 20px !important; }
+  .policy-card h3 { font-size: 18px !important; }
+  .policy-card div[style*="font-size:16px"] { font-size: 14px !important; }
+}
+@media (max-width: 480px) {
+  .content-header h1 { font-size: 22px !important; }
+  .content-header p { font-size: 14px !important; }
+  .policy-card { padding: 16px !important; }
+  .policy-card h3 { font-size: 16px !important; }
+  .policy-card div[style*="display:flex"] { gap: 10px !important; }
+  .policy-card div[style*="padding:12px"] { padding: 8px !important; }
+  .policy-card svg { width: 22px !important; height: 22px !important; }
+}
+</style>
+@endsection
+
 @section('content')
 <div style="max-width:800px; margin: 60px auto; padding: 0 20px;">
   

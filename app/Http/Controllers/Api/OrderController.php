@@ -17,18 +17,19 @@ use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    private function getUserFromToken(Request $request)
+    protected function getUserFromToken(Request $request)
     {
-        $token = $request->bearerToken() ?? $request->cookie('dh_token');
-        if (!$token) return null;
+        $token = $request->bearerToken();
         
-        if ($request->bearerToken()) {
-            return auth('sanctum')->user();
+        // Only fallback to cookie for web views, NOT for API endpoints
+        if (!$token && !$request->expectsJson() && !$request->is('api/*')) {
+            $token = $request->cookie('dh_token');
         }
 
-        // If from cookie, manually resolve the Sanctum token
-        $accessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
-        return $accessToken ? $accessToken->tokenable : null;
+        if (!$token) return null;
+
+        $personalAccessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+        return $personalAccessToken ? $personalAccessToken->tokenable : null;
     }
 
     public function index(Request $request): JsonResponse

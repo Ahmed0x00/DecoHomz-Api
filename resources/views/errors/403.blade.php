@@ -15,6 +15,19 @@
     .btn-home { background: #2C1F14; color: #fff; border: none; padding: 14px 32px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; transition: 0.2s; }
     .btn-home:hover { background: #4A3020; }
     .error-illustration { margin-bottom: 32px; opacity: 0.6; }
+
+    @media (max-width: 768px) {
+      .error-code { font-size: 80px; }
+      .error-title { font-size: 22px; }
+      .error-sub { font-size: 14px; }
+    }
+    @media (max-width: 480px) {
+      .error-page { padding: 32px 16px; }
+      .error-code { font-size: 64px; margin-bottom: 8px; }
+      .error-title { font-size: 20px; margin-bottom: 8px; }
+      .error-sub { font-size: 13px; margin-bottom: 24px; }
+      .btn-home { width: 100%; text-align: center; }
+    }
   </style>
 </head>
 <body>

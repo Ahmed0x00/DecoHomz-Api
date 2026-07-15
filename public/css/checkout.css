@@ -898,12 +898,113 @@
 }
 
 @media (max-width: 480px) {
+  .checkout-header h1 {
+    font-size: 22px;
+  }
+
+  .checkout-grid {
+    padding: 0 10px;
+    gap: 16px;
+  }
+
+  .checkout-steps-nav {
+    padding: 10px 12px;
+    gap: 6px;
+  }
+
+  .checkout-step-pill {
+    padding: 4px 8px;
+  }
+
+  .checkout-step-pill .step-num {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+
   .checkout-step-pill .step-label {
-    display: none;
+    display: inline-block;
+    font-size: 11px;
   }
 
   .checkout-step-line {
-    width: 16px;
+    width: 12px;
+  }
+
+  .checkout-section {
+    padding: 20px 14px;
+    border-radius: var(--radius-md);
+  }
+
+  .checkout-section-header {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .step-circle {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
+
+  .checkout-section-header h2 {
+    font-size: 17px;
+  }
+
+  .address-grid {
+    gap: 12px;
+  }
+
+  .address-card {
+    padding: 12px;
+  }
+
+  .address-card h4 {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  .address-card p {
+    font-size: 12px;
+  }
+
+  .pay-method {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .pay-icon {
+    width: 36px;
+    height: 26px;
+  }
+
+  .pay-method-name {
+    font-size: 13px;
+  }
+
+  .pay-method-desc {
+    font-size: 11px;
+  }
+
+  .review-summary-box {
+    padding: 12px 14px;
+  }
+
+  .review-box-label {
+    font-size: 10px;
+  }
+
+  .review-box-value {
+    font-size: 12px;
+  }
+
+  .checkout-summary {
+    padding: 20px 16px;
+  }
+
+  .summary-heading {
+    font-size: 16px;
+    margin-bottom: 16px;
   }
 
   .promo-box {

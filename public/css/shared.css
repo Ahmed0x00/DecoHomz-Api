@@ -1998,6 +1998,18 @@ footer {
     --nav-height: 64px;
   }
 
+  .logo {
+    font-size: 21px;
+  }
+
+  .nav-icon-btn {
+    padding: 6px;
+  }
+
+  .nav-icon-btn .icon-label {
+    display: none;
+  }
+
   .hamburger {
     display: flex;
   }

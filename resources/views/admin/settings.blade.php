@@ -51,6 +51,70 @@
   </div>
 </div>
 
+<!-- Affiliate Settings Form -->
+<div class="admin-card" style="margin-top:24px;">
+  <div class="admin-card-header">
+    <div class="admin-card-title">Affiliate Program Settings</div>
+  </div>
+  <div style="padding:24px;">
+    <form id="affiliateSettingsForm" onsubmit="saveAffiliateSettings(event)">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:24px;">
+        <div class="form-group">
+          <label class="form-label">Program Active</label>
+          <select id="affiliate_program_active" class="form-input">
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Include Vendor Items in Commission</label>
+          <select id="affiliate_include_vendor" class="form-input">
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Customer Discount (%)</label>
+          <input type="number" step="0.1" id="affiliate_discount_percent" class="form-input" placeholder="3">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Customer Discount Cap (EGP)</label>
+          <input type="number" id="affiliate_discount_cap" class="form-input" placeholder="500">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Affiliate Commission (%)</label>
+          <input type="number" step="0.1" id="affiliate_commission_percent" class="form-input" placeholder="3">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Affiliate Commission Cap (EGP)</label>
+          <input type="number" id="affiliate_commission_cap" class="form-input" placeholder="500">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Minimum Order Amount (EGP)</label>
+          <input type="number" id="affiliate_min_order" class="form-input" placeholder="2000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hold Days Before Approval</label>
+          <input type="number" id="affiliate_hold_days" class="form-input" placeholder="14">
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+            <input type="checkbox" id="affiliate_ip_check" style="width:18px;height:18px;accent-color:#c9a96e;">
+            <div style="display:flex;flex-direction:column;">
+              <span>Enable IP Fraud Check</span>
+              <span style="font-size:12px;color:#666;font-weight:400;">Flag referrals if the buyer uses the same IP address as the affiliate. Note: Turn this off for local testing.</span>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div style="margin-top:24px;padding-top:24px;border-top:1px solid #eee;display:flex;align-items:center;gap:16px;">
+        <button type="submit" id="saveAffiliateBtn" style="background:#c9a96e;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">Save Affiliate Settings</button>
+        <span id="saveAffiliateStatus" style="font-size:13px;"></span>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Additional Settings Cards -->
 <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:24px;margin-top:24px;">
   <div class="admin-card">
@@ -114,6 +178,7 @@
 (function() {
   document.addEventListener('DOMContentLoaded', function() {
     loadSettings();
+    loadAffiliateSettings();
     loadQuickStats();
   });
 
@@ -130,6 +195,25 @@
       document.getElementById('instagramUrl').value = settings.instagram_url || settings.instagramUrl || '';
     } catch(e) {
       console.warn('Failed to load settings', e);
+    }
+  }
+
+  async function loadAffiliateSettings() {
+    try {
+      var res = await API.get('/admin/affiliates/settings');
+      var settings = res.data || res.settings || res || {};
+
+      document.getElementById('affiliate_program_active').value = settings.affiliate_program_active || '0';
+      document.getElementById('affiliate_include_vendor').value = settings.affiliate_include_vendor || '0';
+      document.getElementById('affiliate_discount_percent').value = settings.affiliate_discount_percent || '3';
+      document.getElementById('affiliate_discount_cap').value = settings.affiliate_discount_cap || '500';
+      document.getElementById('affiliate_commission_percent').value = settings.affiliate_commission_percent || '3';
+      document.getElementById('affiliate_commission_cap').value = settings.affiliate_commission_cap || '500';
+      document.getElementById('affiliate_min_order').value = settings.affiliate_min_order || '2000';
+      document.getElementById('affiliate_hold_days').value = settings.affiliate_hold_days || '14';
+      document.getElementById('affiliate_ip_check').checked = (settings.affiliate_ip_check ?? '1') === '1';
+    } catch(e) {
+      console.warn('Failed to load affiliate settings', e);
     }
   }
 
@@ -204,6 +288,45 @@
     }).finally(function() {
       btn.disabled = false;
       btn.textContent = 'Save Settings';
+    });
+  };
+
+  window.saveAffiliateSettings = function(e) {
+    e.preventDefault();
+
+    var btn = document.getElementById('saveAffiliateBtn');
+    var status = document.getElementById('saveAffiliateStatus');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    status.textContent = '';
+    status.style.color = '';
+
+    var data = {
+      affiliate_program_active: document.getElementById('affiliate_program_active').value,
+      affiliate_include_vendor: document.getElementById('affiliate_include_vendor').value,
+      affiliate_discount_percent: document.getElementById('affiliate_discount_percent').value,
+      affiliate_discount_cap: document.getElementById('affiliate_discount_cap').value,
+      affiliate_commission_percent: document.getElementById('affiliate_commission_percent').value,
+      affiliate_commission_cap: document.getElementById('affiliate_commission_cap').value,
+      affiliate_min_order: document.getElementById('affiliate_min_order').value,
+      affiliate_hold_days: document.getElementById('affiliate_hold_days').value,
+      affiliate_ip_check: document.getElementById('affiliate_ip_check').checked ? '1' : '0'
+    };
+
+    API.put('/admin/affiliates/settings', data).then(function() {
+      status.textContent = '✓ Settings saved successfully!';
+      status.style.color = '#065f46';
+      showToast('Affiliate settings saved.', 'success');
+      setTimeout(function() {
+        status.textContent = '';
+      }, 3000);
+    }).catch(function() {
+      status.textContent = 'Failed to save settings.';
+      status.style.color = '#991b1b';
+      showToast('Failed to save affiliate settings.', 'error');
+    }).finally(function() {
+      btn.disabled = false;
+      btn.textContent = 'Save Affiliate Settings';
     });
   };
 })();

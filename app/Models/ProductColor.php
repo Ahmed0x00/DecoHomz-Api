@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductColor extends Model
 {
+    use LogsActivity;
+
     protected $fillable = [
         'product_id',
         'name',
@@ -78,5 +82,13 @@ class ProductColor extends Model
     public function images()
     {
         return $this->hasMany(ProductImage::class, 'product_color_id')->orderBy('sort_order');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('ProductColors')
+            ->logAll()
+            ->logOnlyDirty();
     }
 }

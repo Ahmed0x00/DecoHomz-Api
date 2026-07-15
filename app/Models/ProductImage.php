@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ProductImage extends Model
 {
+    use LogsActivity;
+
     use HasFactory;
 
     protected $fillable = [
@@ -44,5 +48,13 @@ class ProductImage extends Model
     public function getThumbnailUrlAttribute()
     {
         return $this->thumbnail ? '/storage/' . $this->thumbnail : $this->url;
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('ProductImages')
+            ->logAll()
+            ->logOnlyDirty();
     }
 }

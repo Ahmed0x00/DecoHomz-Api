@@ -30,20 +30,25 @@ class ActivityLogger
 
     public function handle(Request $request, Closure $next): Response
     {
+        $startId = \Spatie\Activitylog\Models\Activity::max('id') ?? 0;
+
         $oldData = null;
         if (in_array($request->method(), ['PUT', 'PATCH', 'DELETE'])) {
             $oldData = $this->getOldData($request);
         }
 
+        $startTime = microtime(true);
         $response = $next($request);
+        $responseTimeMs = (int) round((microtime(true) - $startTime) * 1000);
 
-        // Only auto-log if controller did NOT log directly (no explicit log method call)
+        // Always auto-log HTTP lifecycle even if controller did explicit business logic logging
         if ($request->attributes->get('log_from_controller')) {
+            $this->enrichSpatieEntries($request, $response, $startId, $responseTimeMs);
             return $response;
         }
 
         if ($this->shouldLog($request)) {
-            $this->autoLog($request, $response, $oldData);
+            $this->autoLog($request, $response, $oldData, $startId, $responseTimeMs);
         }
 
         return $response;
@@ -67,7 +72,7 @@ class ActivityLogger
         return false;
     }
 
-    protected function autoLog(Request $request, Response $response, $oldData): void
+    protected function autoLog(Request $request, Response $response, $oldData, $startId, int $responseTimeMs): void
     {
         $user = Auth::user();
         $method = $request->method();
@@ -97,22 +102,86 @@ class ActivityLogger
         if (in_array($method, ['POST', 'PUT', 'PATCH'])) {
             $payload = $this->filterPayload($request->all());
         }
+        $activities = \Spatie\Activitylog\Models\Activity::where('id', '>', $startId)
+            ->where('causer_id', $user ? $user->id : null)
+            ->get();
 
-        ActivityLog::create([
-            'user_id' => $user ? $user->id : null,
-            'user_identifier' => ActivityLog::userName($request),
-            'action' => $action,
-            'resource_type' => $resourceType,
-            'resource_id' => $resourceId,
-            'description' => $description,
-            'section' => $section,
-            'result' => $result,
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->header('User-Agent'),
-            'payload' => $payload,
-            'response_data' => $this->decodeResponse($response),
-            'old_values' => $oldData,
-        ]);
+        if ($activities->count() > 0) {
+            foreach ($activities as $activity) {
+                $props = is_array($activity->properties) ? $activity->properties : $activity->properties->toArray();
+                $props['request_payload'] = $payload;
+                $props['response_data'] = $this->decodeResponse($response);
+                $props['ip'] = $request->ip();
+                $props['user_agent'] = $request->header('User-Agent');
+                
+                if (!isset($props['legacy_action'])) {
+                    $props['legacy_action'] = $action;
+                    $props['legacy_result'] = $result;
+                    $activity->description = $description;
+                }
+                
+                $activity->properties = $props;
+
+                $activity->http_method = $method;
+                $activity->url = '/' . ltrim($path, '/');
+                $activity->http_status_code = $status;
+                $activity->response_time_ms = $responseTimeMs;
+
+                $activity->save();
+            }
+        } else {
+            ActivityLog::create([
+                'user_id' => $user ? $user->id : null,
+                'user_identifier' => ActivityLog::userName($request),
+                'action' => $action,
+                'resource_type' => $resourceType,
+                'resource_id' => $resourceId,
+                'description' => $description,
+                'section' => $section,
+                'result' => $result,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+                'payload' => $payload,
+                'response_data' => $this->decodeResponse($response),
+                'old_values' => $oldData,
+                'http_method' => $method,
+                'url' => '/' . ltrim($path, '/'),
+                'http_status_code' => $status,
+                'response_time_ms' => $responseTimeMs,
+            ]);
+        }
+    }
+
+    protected function enrichSpatieEntries(Request $request, Response $response, $startId, int $responseTimeMs): void
+    {
+        $user = Auth::user();
+        $activities = \Spatie\Activitylog\Models\Activity::where('id', '>', $startId)
+            ->where('causer_id', $user ? $user->id : null)
+            ->get();
+
+        if ($activities->count() === 0) return;
+
+        $payload = null;
+        if (in_array($request->method(), ['POST', 'PUT', 'PATCH'])) {
+            $payload = $this->filterPayload($request->all());
+        }
+
+        foreach ($activities as $activity) {
+            $props = is_array($activity->properties) ? $activity->properties : $activity->properties->toArray();
+            $props['request_payload'] = $payload;
+            $props['response_data'] = $this->decodeResponse($response);
+            $props['ip'] = $request->ip();
+            $props['user_agent'] = $request->header('User-Agent');
+
+            $activity->properties = $props;
+
+            $activity->http_method = $request->method();
+            $activity->url = '/' . ltrim($request->path(), '/');
+            $activity->http_status_code = $response->getStatusCode();
+            $activity->response_time_ms = $responseTimeMs;
+
+            $activity->save();
+        }
     }
 
     protected function inferSection(string $path): string
@@ -177,7 +246,7 @@ class ActivityLogger
 
     protected function buildDescription($user, string $method, ?string $type, ?string $resId, int $status): string
     {
-        $userName = $user ? $user->name : 'Guest';
+        $userName = $user ? $user->name : 'System';
         $resourceLabel = $type ? str_replace(
             ['users', 'products', 'categories', 'orders', 'reviews', 'coupons'],
             ['user', 'product', 'category', 'order', 'review', 'coupon'],

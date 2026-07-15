@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class OrderItem extends Model
 {
+    use LogsActivity;
+
     use HasFactory;
 
     protected $fillable = [
@@ -46,5 +50,13 @@ class OrderItem extends Model
         return ProductColor::where('product_id', $this->product_id)
             ->where('color_slug', $this->variant)
             ->first();
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('OrderItems')
+            ->logAll()
+            ->logOnlyDirty();
     }
 }

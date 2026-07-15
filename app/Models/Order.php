@@ -4,10 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 class Order extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('Orders')
+            ->logAll()
+            ->logOnlyDirty();
+    }
 
     protected $fillable = [
         'user_id',
@@ -27,6 +37,8 @@ class Order extends Model
         'refund_status',
         'refund_reason',
         'refund_handled_at',
+        'referral_id',
+        'affiliate_discount',
     ];
 
     protected $casts = [
@@ -36,6 +48,7 @@ class Order extends Model
         'total' => 'decimal:2',
         'deposit_amount' => 'decimal:2',
         'vat_amount' => 'decimal:2',
+        'affiliate_discount' => 'decimal:2',
     ];
 
     public const STATUS_PENDING = 'pending';
@@ -82,6 +95,11 @@ class Order extends Model
     public function coupon()
     {
         return $this->belongsTo(Coupon::class);
+    }
+
+    public function referral()
+    {
+        return $this->belongsTo(Referral::class);
     }
 
     public function isPending(): bool

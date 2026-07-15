@@ -22,6 +22,7 @@ Route::get('/account/pre-orders/{id}', [App\Http\Controllers\Api\PreOrderControl
 Route::get('/contact', fn() => view('contact'));
 Route::get('/about', fn() => view('about'));
 Route::get('/faq', fn() => view('faq'));
+Route::get('/track-order', fn() => view('track-order'));
 Route::get('/categories', fn() => view('categories'));
 Route::get('/deals', fn() => view('deals'));
 Route::get('/new-arrivals', fn() => view('new-arrivals'));
@@ -48,6 +49,7 @@ Route::prefix('admin')->middleware(['admin.token', 'admin'])->group(function () 
 
     // Admin-only views
     Route::get('/dashboard', fn() => view('admin.dashboard'));
+    Route::get('/analytics', fn() => view('admin.analytics'));
     Route::get('/products', fn() => view('admin.products.index'));
     Route::get('/products/create', fn() => view('admin.products.create'));
     Route::get('/products/{id}/edit', fn($id) => view('admin.products.edit', ['id' => $id]));
@@ -71,5 +73,12 @@ Route::prefix('admin')->middleware(['admin.token', 'admin'])->group(function () 
     Route::get('/warehouse', fn() => view('admin.warehouse.index'));
     Route::get('/warehouse/inspect/{id}', fn($id) => view('admin.warehouse.inspect', ['id' => $id]));
     Route::get('/vendor-finances', fn() => view('admin.vendor-finances.index'));
+    
+    // Affiliate Admin Views
+    Route::get('/affiliates', fn() => view('admin.affiliates.index'));
+    Route::get('/affiliates/{id}', fn($id) => view('admin.affiliates.show', ['id' => $id]));
+    Route::get('/referrals', fn() => view('admin.referrals.index'));
+    Route::get('/referrals/{id}', fn($id) => view('admin.referrals.show', ['id' => $id]));
+    
     Route::get('/settings', fn() => view('admin.settings'));
 });

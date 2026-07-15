@@ -12,3 +12,9 @@ Artisan::command('inspire', function () {
 Schedule::job(new \App\Jobs\ProcessVendorPayouts)->daily();
 Schedule::job(new \App\Jobs\CheckVendorDocumentExpiry)->daily();
 Schedule::job(new \App\Jobs\LiftVendorSuspensions)->daily();
+
+// Process Affiliate Approvals
+Schedule::command('affiliate:process-approvals')->dailyAt('01:00');
+
+// Clean Activity Logs (older than 365 days)
+Schedule::command('activitylog:clean')->daily();

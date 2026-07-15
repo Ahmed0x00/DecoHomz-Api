@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class GovernorateDeliveryFee extends Model
 {
+    use LogsActivity;
+
     protected $fillable = [
         'governorate_name',
         'governorate_name_ar',
@@ -94,5 +98,13 @@ class GovernorateDeliveryFee extends Model
     public function getDisplayNameAttribute(): string
     {
         return $this->governorate_name_ar ?: $this->governorate_name;
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('GovernorateDeliveryFees')
+            ->logAll()
+            ->logOnlyDirty();
     }
 }

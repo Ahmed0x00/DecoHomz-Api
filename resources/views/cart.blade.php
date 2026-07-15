@@ -75,8 +75,10 @@ function renderFullCart() {
     const items = cart.items || [];
     const subtotal = parseFloat(cart.subtotal) || 0;
     const discount = parseFloat(cart.discount) || 0;
+    const affiliate = cart.affiliate || null;
+    const affiliateDiscount = affiliate ? parseFloat(affiliate.discount) : 0;
     const coupon = cart.coupon || null;
-    const total = Math.max(0, subtotal - discount);
+    const total = parseFloat(cart.total) || Math.max(0, subtotal - discount - affiliateDiscount);
     
     // Update badge globally
     if (window.Cart && Cart.updateBadge) Cart.updateBadge(cart.items_count);
@@ -152,6 +154,13 @@ function renderFullCart() {
               '</div>';
     }
     
+    if (affiliateDiscount > 0) {
+      html += '<div class="sum-row">' +
+                '<span class="k">' + "{{ __('Affiliate Discount') }}" + (affiliate ? ' (' + esc(affiliate.code) + ')' : '') + '</span>' +
+                '<span class="v" style="color:var(--color-error)">-EGP ' + affiliateDiscount.toLocaleString() + '</span>' +
+              '</div>';
+    }
+    
     html += '<div class="sum-row">' +
                 '<span class="k">' + "{{ __('Delivery') }}" + '</span>' +
                 '<span class="v" style="color:var(--color-text-faint);font-size:12px">' + "{{ __('Calculated at checkout') }}" + '</span>' +
@@ -162,15 +171,21 @@ function renderFullCart() {
               '</div>' +
               
               '<div style="margin-top:24px; margin-bottom:16px;">' +
-                '<div class="k" style="font-size:12px;margin-bottom:8px">' + "{{ __('Promo Code') }}" + '</div>' +
-                '<div class="promo-box">';
+                '<div class="k" style="font-size:12px;margin-bottom:8px">' + "{{ __('Promo / Affiliate Code') }}" + '</div>' +
+                '<div class="promo-box" style="flex-direction:column; gap:8px;">';
     
     if (coupon) {
-      html +=   '<input type="text" id="cart-promo-input" value="' + esc(coupon.code) + '" disabled>' +
-                '<button onclick="cartRemoveCoupon()">' + "{{ __('Remove') }}" + '</button>';
-    } else {
-      html +=   '<input type="text" id="cart-promo-input" placeholder="' + "{{ __('Enter code') }}" + '">' +
-                '<button onclick="cartApplyCoupon()">' + "{{ __('Apply') }}" + '</button>';
+      html +=   '<div style="display:flex; gap:8px; width: 100%;"><input type="text" value="' + esc(coupon.code) + '" disabled style="flex:1;">' +
+                '<button onclick="cartRemoveCoupon()">' + "{{ __('Remove Coupon') }}" + '</button></div>';
+    }
+    if (affiliate) {
+      html +=   '<div style="display:flex; gap:8px; width: 100%;"><input type="text" value="' + esc(affiliate.code) + '" disabled style="flex:1;">' +
+                '<button onclick="cartRemoveAffiliate()">' + "{{ __('Remove Affiliate') }}" + '</button></div>';
+    }
+    
+    if (!coupon || !affiliate) {
+      html +=   '<div style="display:flex; gap:8px; width: 100%;"><input type="text" id="cart-promo-input" placeholder="' + "{{ __('Enter code') }}" + '" style="flex:1;">' +
+                '<button onclick="cartApplyPromo()">' + "{{ __('Apply') }}" + '</button></div>';
     }
     
     html +=   '</div>' +
@@ -221,18 +236,29 @@ window.pageRemoveItem = async function(itemId) {
   renderFullCart();
 };
 
-window.cartApplyCoupon = async function() {
+window.cartApplyPromo = async function() {
   var code = document.getElementById('cart-promo-input').value.trim();
   if (!code) {
-    showToast("{{ __('Please enter a promo code.') }}", 'warning');
+    showToast("{{ __('Please enter a code.') }}", 'warning');
     return;
   }
+  
+  // Try affiliate code first, if it fails, try coupon code
+  try {
+    await API.post('/cart/affiliate', { code: code });
+    showToast("{{ __('Affiliate code applied!') }}", 'success');
+    renderFullCart();
+    return;
+  } catch(e) {
+    // If it's a 404 or 422, it might not be an affiliate code. Let's try coupon.
+  }
+  
   try {
     await API.post('/cart/coupon', { code: code });
     showToast("{{ __('Promo code applied!') }}", 'success');
     renderFullCart();
   } catch(e) {
-    showToast(e.data?.message || "{{ __('Invalid promo code.') }}", 'error');
+    showToast(e.data?.message || "{{ __('Invalid or expired code.') }}", 'error');
   }
 };
 
@@ -243,6 +269,16 @@ window.cartRemoveCoupon = async function() {
     renderFullCart();
   } catch(e) {
     showToast(e.data?.message || "{{ __('Failed to remove coupon.') }}", 'error');
+  }
+};
+
+window.cartRemoveAffiliate = async function() {
+  try {
+    await API.del('/cart/affiliate');
+    showToast("{{ __('Affiliate code removed.') }}", 'info');
+    renderFullCart();
+  } catch(e) {
+    showToast(e.data?.message || "{{ __('Failed to remove affiliate code.') }}", 'error');
   }
 };
 </script>

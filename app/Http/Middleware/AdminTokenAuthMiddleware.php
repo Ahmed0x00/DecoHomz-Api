@@ -19,7 +19,8 @@ class AdminTokenAuthMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         // 1. GET requests to Blade view routes — let the JS auth guard handle it
-        if ($request->is('admin/dashboard') ||
+        if (
+            $request->is('admin/dashboard') ||
             $request->is('admin/products*') ||
             $request->is('admin/categories*') ||
             $request->is('admin/users*') ||
@@ -36,7 +37,10 @@ class AdminTokenAuthMiddleware
             $request->is('admin/vendors*') ||
             $request->is('admin/vendor-products*') ||
             $request->is('admin/warehouse*') ||
-            $request->is('admin/vendor-finances*')
+            $request->is('admin/vendor-finances*') ||
+            $request->is('admin/affiliates*') ||
+            $request->is('admin/referrals*') ||
+            $request->is('admin/analytics')
         ) {
             // For GET requests, just pass through — JS guard in Blade template will handle auth
             if ($request->isMethod('GET')) {

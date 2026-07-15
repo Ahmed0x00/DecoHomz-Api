@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ContactController as AdminContactController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\GovernorateDeliveryFeeController;
 use App\Http\Controllers\Admin\RefundController as AdminRefundController;
@@ -27,6 +28,8 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\Api\PreOrderController;
+use App\Http\Controllers\Admin\AffiliateController as AdminAffiliateController;
+use App\Http\Controllers\Admin\ReferralController as AdminReferralController;
 
 // Public Delivery Fees
 Route::get('/shipping/governorate-fees/active', [GovernorateDeliveryFeeController::class, 'active']);
@@ -63,8 +66,11 @@ Route::middleware('activity.log')->group(function () {
     Route::delete('/cart', [CartController::class, 'clear']);
     Route::post('/cart/coupon', [CartController::class, 'applyCoupon']);
     Route::delete('/cart/coupon', [CartController::class, 'removeCoupon']);
+    Route::post('/cart/affiliate', [CartController::class, 'applyAffiliateCode']);
+    Route::delete('/cart/affiliate', [CartController::class, 'removeAffiliateCode']);
 
     // Orders — public for creation (guests and auth), protected for read/cancel
+    Route::post('/orders/track', [OrderController::class, 'track']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
@@ -139,6 +145,12 @@ Route::middleware('activity.log')->group(function () {
         Route::post('/reviews', [ReviewController::class, 'store']);
         Route::put('/reviews/{id}', [ReviewController::class, 'update']);
         Route::delete('/reviews/{id}', [ReviewController::class, 'destroy']);
+
+        // Affiliate Program (User)
+        Route::post('/affiliate/join', [\App\Http\Controllers\Api\AffiliateController::class, 'join']);
+        Route::get('/affiliate/dashboard', [\App\Http\Controllers\Api\AffiliateController::class, 'dashboard']);
+        Route::put('/affiliate/bank-details', [\App\Http\Controllers\Api\AffiliateController::class, 'updateBankDetails']);
+        Route::get('/affiliate/referrals', [\App\Http\Controllers\Api\AffiliateController::class, 'referrals']);
     }); // end auth:sanctum
 
     // ============================================
@@ -176,6 +188,23 @@ Route::middleware('activity.log')->group(function () {
 
     // Admin-only routes (support.access middleware blocks support users from these paths)
     Route::middleware(['admin.token', 'admin', 'support.access'])->prefix('admin')->group(function () {
+        // Analytics
+        Route::prefix('analytics')->group(function () {
+            Route::get('/overview', [AnalyticsController::class, 'overview']);
+            Route::get('/revenue', [AnalyticsController::class, 'revenue']);
+            Route::get('/orders', [AnalyticsController::class, 'orders']);
+            Route::get('/products', [AnalyticsController::class, 'products']);
+            Route::get('/customers', [AnalyticsController::class, 'customers']);
+            Route::get('/geographic', [AnalyticsController::class, 'geographic']);
+            Route::get('/vendors', [AnalyticsController::class, 'vendors']);
+            Route::get('/inventory', [AnalyticsController::class, 'inventory']);
+            Route::get('/categories', [AnalyticsController::class, 'categories']);
+            Route::get('/marketing', [AnalyticsController::class, 'marketing']);
+            Route::get('/activity', [AnalyticsController::class, 'activity']);
+            Route::get('/export', [AnalyticsController::class, 'export']);
+            Route::get('/live', [AnalyticsController::class, 'live']);
+        });
+
         // Categories CRUD
         Route::get('/categories', [AdminCategoryController::class, 'index']);
         Route::post('/categories', [AdminCategoryController::class, 'store']);
@@ -284,6 +313,19 @@ Route::middleware('activity.log')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'stats']);
         Route::get('/charts/orders', [DashboardController::class, 'chartsOrders']);
         Route::get('/charts/revenue', [DashboardController::class, 'chartsRevenue']);
+        
+        // Affiliate Management
+        Route::get('/affiliates', [AdminAffiliateController::class, 'index']);
+        Route::get('/affiliates/settings', [AdminAffiliateController::class, 'settings']);
+        Route::put('/affiliates/settings', [AdminAffiliateController::class, 'updateSettings']);
+        Route::get('/affiliates/{affiliate}', [AdminAffiliateController::class, 'show']);
+        Route::patch('/affiliates/{affiliate}/toggle-status', [AdminAffiliateController::class, 'toggleStatus']);
+        
+        Route::get('/referrals', [AdminReferralController::class, 'index']);
+        Route::get('/referrals/{id}', [AdminReferralController::class, 'show']);
+        Route::post('/referrals/update-status', [AdminReferralController::class, 'updateStatus']);
+        Route::post('/referrals/process-payouts', [AdminReferralController::class, 'processPayouts']);
+
         Route::get('/settings', [SettingsController::class, 'index']);
         Route::get('/settings/{key}', [SettingsController::class, 'show']);
         Route::put('/settings', [SettingsController::class, 'update']);

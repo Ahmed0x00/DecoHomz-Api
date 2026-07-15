@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class DepositRule extends Model
 {
+    use LogsActivity;
+
     use HasFactory;
 
     protected $fillable = [
@@ -36,5 +40,13 @@ class DepositRule extends Model
     {
         $deposit = ($total * $this->percentage) / 100;
         return max($this->minimum_amount, $deposit);
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('DepositRules')
+            ->logAll()
+            ->logOnlyDirty();
     }
 }

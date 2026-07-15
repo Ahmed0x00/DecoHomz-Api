@@ -232,7 +232,7 @@ class CartController extends Controller
         }
 
         $cart->items()->delete();
-        $cart->update(['coupon_code' => null, 'discount' => 0]);
+        $cart->update(['coupon_code' => null, 'discount' => 0, 'affiliate_code' => null, 'affiliate_discount' => 0]);
 
         return response()->json([
             'message' => 'Cart cleared',
@@ -303,6 +303,58 @@ class CartController extends Controller
 
         return response()->json([
             'message' => 'Coupon removed',
+            'cart' => $this->formatCart($cart),
+        ]);
+    }
+
+    public function applyAffiliateCode(Request $request): JsonResponse
+    {
+        $request->validate([
+            'code' => 'required|string|max:20',
+        ]);
+
+        $cart = $this->getExistingCart($request);
+
+        if (!$cart) {
+            return response()->json(['message' => 'Cart not found'], 404);
+        }
+
+        $user = $request->user() ?? $this->getUserFromToken($request);
+
+        $affiliateService = app(\App\Services\AffiliateService::class);
+        $result = $affiliateService->applyCodeToCart($cart, strtoupper($request->code), $user, $request);
+
+        if (!$result['success']) {
+            return response()->json(['message' => $result['message']], 422);
+        }
+
+        ActivityLog::cart($request, 'Apply Affiliate Code', ActivityLog::userName($request) . " applied affiliate code '{$request->code}'", null);
+
+        $cart->load(['items.product.primaryImage', 'items.product.images', 'coupon']);
+
+        return response()->json([
+            'message' => $result['message'],
+            'cart' => $this->formatCart($cart),
+        ]);
+    }
+
+    public function removeAffiliateCode(Request $request): JsonResponse
+    {
+        $cart = $this->getExistingCart($request);
+
+        if (!$cart) {
+            return response()->json(['message' => 'Cart not found'], 404);
+        }
+
+        $oldCode = $cart->affiliate_code;
+        app(\App\Services\AffiliateService::class)->removeCodeFromCart($cart);
+
+        ActivityLog::cart($request, 'Remove Affiliate Code', ActivityLog::userName($request) . " removed affiliate code '{$oldCode}' from cart");
+
+        $cart->load(['items.product.primaryImage', 'items.product.images', 'coupon']);
+
+        return response()->json([
+            'message' => 'Affiliate code removed',
             'cart' => $this->formatCart($cart),
         ]);
     }
@@ -429,7 +481,8 @@ class CartController extends Controller
 
         $subtotal = $cart->getSubtotalAttribute();
         $discount = (float) $cart->discount;
-        $total = max(0, $subtotal - $discount);
+        $affiliateDiscount = (float) $cart->affiliate_discount;
+        $total = max(0, $subtotal - $discount - $affiliateDiscount);
 
         return [
             'id' => $cart->id,
@@ -442,6 +495,10 @@ class CartController extends Controller
                 'code' => $cart->coupon->code,
                 'discount_type' => $cart->coupon->discount_type,
                 'discount_value' => $cart->coupon->discount_value,
+            ] : null,
+            'affiliate' => $cart->affiliate_code ? [
+                'code' => $cart->affiliate_code,
+                'discount' => $affiliateDiscount,
             ] : null,
         ];
     }

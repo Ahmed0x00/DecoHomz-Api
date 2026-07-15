@@ -65,6 +65,12 @@
             </svg>
             {{ __('My Pre-Orders') }}
           </a></li>
+        <li id="menu-affiliate" style="display:none;"><a href="#" data-tab="affiliate" onclick="showTab('affiliate', this); return false;">
+            <svg viewBox="0 0 24 24" stroke-width="1.5">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+            {{ __('Affiliate Program') }}
+          </a></li>
         <li class="logout">
           <a href="#" id="btn-logout">
             <svg viewBox="0 0 24 24" stroke-width="1.5">
@@ -83,7 +89,37 @@
 
       <!-- OVERVIEW TAB -->
       <div id="tab-overview">
-        <div id="vendor-status-alert" style="display:none; margin-bottom:24px; padding:16px; border-radius:8px; border:1px solid #e0e0e0; background:#fafafa;">
+        <!-- Guest State -->
+        <div id="overview-guest-state" style="display:none; text-align:center; padding:40px 20px; background:var(--color-surface); border-radius:12px; border:1px solid var(--color-border); margin-bottom:32px;">
+          <svg viewBox="0 0 24 24" style="width:48px; height:48px; color:var(--color-primary); margin-bottom:16px;" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <h2 style="font-size:24px; font-weight:700; margin-bottom:8px; color:var(--color-text);">{{ __('Welcome to DecoHomz') }}</h2>
+          <p style="font-size:15px; color:var(--color-text-secondary); margin-bottom:24px; max-width:400px; margin-left:auto; margin-right:auto;">{{ __('Create an account or sign in to save your orders, manage your addresses, and checkout faster.') }}</p>
+          <a href="/auth" class="btn-dark" style="display:inline-flex; align-items:center; justify-content:center; padding:12px 32px; border-radius:8px; font-weight:600; text-decoration:none; margin-bottom:32px;">{{ __('Sign In / Create Account') }}</a>
+          
+          <div style="border-top:1px solid var(--color-border); margin-top:16px; padding-top:32px; max-width:500px; margin-left:auto; margin-right:auto; text-align:left;">
+            <h3 style="font-size:18px; font-weight:700; margin-bottom:8px;">{{ __('Track an Order') }}</h3>
+            <p style="font-size:14px; color:var(--color-text-secondary); margin-bottom:20px;">{{ __('Enter your order number and email/phone to check the status of a guest order.') }}</p>
+            <form onsubmit="trackGuestOrder(event)" style="display:grid; gap:16px;">
+              <div>
+                <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">{{ __('Order Number') }}</label>
+                <input type="text" id="track_order_number" placeholder="ORD-..." required style="width:100%; padding:12px 16px; border:1px solid var(--color-border); border-radius:8px; font-size:14px;">
+              </div>
+              <div>
+                <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">{{ __('Email Address or Phone') }}</label>
+                <input type="text" id="track_email_phone" placeholder="{{ __('Email or phone number') }}" required style="width:100%; padding:12px 16px; border:1px solid var(--color-border); border-radius:8px; font-size:14px;">
+              </div>
+              <button type="submit" class="btn" id="btn-track-submit" style="background:var(--color-primary); color:#fff; padding:12px; border-radius:8px; font-weight:600; font-size:14px; border:none; cursor:pointer;">{{ __('Track Order') }}</button>
+              <div id="track_error_msg" style="color:#e74c3c; font-size:13px; display:none;"></div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Auth State -->
+        <div id="overview-auth-state">
+          <div id="vendor-status-alert" style="display:none; margin-bottom:24px; padding:16px; border-radius:8px; border:1px solid #e0e0e0; background:#fafafa;">
           <div style="display:flex; justify-content:space-between; align-items:center; gap: 16px;">
             <div>
               <div style="font-weight:700; font-size:15px; color:#1a1a1a;">Vendor Application Status</div>
@@ -148,6 +184,7 @@
         <div id="recent-orders-container" class="orders-list">
           <!-- Loaded dynamically -->
         </div>
+        </div> <!-- End of overview-auth-state -->
       </div>
 
       <!-- ORDERS TAB -->
@@ -267,6 +304,85 @@
         <div id="preorders-list" class="orders-list"></div>
       </div>
 
+      <!-- AFFILIATE TAB -->
+      <div id="tab-affiliate" style="display:none">
+        <div class="section-head">
+          <div class="section-title">{{ __('Affiliate Program') }}</div>
+        </div>
+        
+        <div id="affiliate-join-section" style="display:none; text-align:center; padding: 40px 20px; background: #fff; border-radius: 8px; border: 1px solid #eee;">
+            <h2 style="font-size: 20px; margin-bottom: 10px; color: #8B6A48;">Join Our Affiliate Program</h2>
+            <p style="color: #666; margin-bottom: 24px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                Share your unique promo code with friends and followers. They get a discount, and you earn a commission on every successful order!
+            </p>
+            <button id="btn-join-affiliate" class="save-btn" style="width: auto; padding: 12px 32px;">{{ __('Join Now') }}</button>
+        </div>
+
+        <div id="affiliate-dashboard-section" style="display:none;">
+            <div class="stats-row" style="margin-bottom: 24px;">
+              <div class="stat-card">
+                <div class="stat-icon" style="background:#F5F0E8">
+                  <svg viewBox="0 0 24 24" stroke="#8B6A48" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+                <div class="stat-num" id="aff-stat-earnings">—</div>
+                <div class="stat-label">{{ __('Total Earnings') }}</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon" style="background:#F0F7EC">
+                  <svg viewBox="0 0 24 24" stroke="#4A7C3F" stroke-width="1.5"><polyline points="20 6 9 17 4 12" /></svg>
+                </div>
+                <div class="stat-num" id="aff-stat-approved">—</div>
+                <div class="stat-label">{{ __('Approved (Ready)') }}</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon" style="background:#FFF8E6">
+                  <svg viewBox="0 0 24 24" stroke="#B8860B" stroke-width="1.5"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                </div>
+                <div class="stat-num" id="aff-stat-pending">—</div>
+                <div class="stat-label">{{ __('Pending') }}</div>
+              </div>
+            </div>
+            
+            <div class="profile-form">
+              <div class="form-section-title">{{ __('Your Affiliate Info') }}</div>
+              <div class="form-grid">
+                <div class="field">
+                  <label>{{ __('Your Promo Code') }}</label>
+                  <div style="display:flex; gap:10px;">
+                    <input type="text" id="aff-code" readonly style="font-family: monospace; font-size: 16px; font-weight: bold; background: #f9f9f9; text-align: center;">
+                    <button class="btn-edit" onclick="copyAffiliateCode()">Copy</button>
+                  </div>
+                  <div style="font-size: 12px; color: #666; margin-top: 5px;">Share this code to give discounts and earn commissions.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-form">
+              <div class="form-section-title">{{ __('Bank Details for Payouts') }}</div>
+              <div class="form-grid">
+                <div class="field">
+                  <label>{{ __('Bank Name') }}</label>
+                  <input type="text" id="aff-bank-name" placeholder="e.g. CIB">
+                </div>
+                <div class="field">
+                  <label>{{ __('Account Name') }}</label>
+                  <input type="text" id="aff-account-name" placeholder="Full Name">
+                </div>
+                <div class="field full">
+                  <label>{{ __('Account Number / IBAN') }}</label>
+                  <input type="text" id="aff-account-number" placeholder="EG...">
+                </div>
+              </div>
+              <button class="save-btn" id="btn-save-bank-details">{{ __('Update Bank Details') }}</button>
+            </div>
+
+            <div class="section-head" style="margin-top:32px;">
+              <div class="section-title">{{ __('Recent Referrals') }}</div>
+            </div>
+            <div id="affiliate-referrals-list" class="orders-list"></div>
+        </div>
+      </div>
+
     </div>
   </div>
   </div>
@@ -293,14 +409,26 @@
       (async function init() {
         if (isGuest) {
           try {
-            // Fetch guest orders to see if they have any
-            const res = await API.get('/orders');
-            // Support paginated or flat list response format
-            const orders = res.data || res.orders || [];
-            if (orders.length === 0) {
-              // Guest has no orders to track, redirect to login
-              location.href = '/auth';
-              return;
+            // Fetch guest orders and pre-orders to see if they have any
+            const [resOrders, resPreOrders] = await Promise.all([
+                API.get('/orders').catch(() => ({ data: [] })),
+                API.get('/pre-orders').catch(() => ({ data: [] }))
+            ]);
+            
+            const orders = resOrders.data || resOrders.orders || [];
+            const preOrders = resPreOrders.data || resPreOrders.pre_orders || resPreOrders || [];
+            
+            if (orders.length === 0 && preOrders.length === 0) {
+              // Guest has no orders, but we DO NOT redirect them anymore.
+              // We will show them the empty state track order view.
+              document.getElementById('overview-guest-state').style.display = 'block';
+              document.getElementById('overview-auth-state').style.display = 'none';
+              
+              var ordersList = document.getElementById('orders-list');
+              if (ordersList) ordersList.innerHTML = '<p style="color:#aaa;font-size:13px;padding:20px 0;">{{ __("You have no active orders on this device. If you checked out as a guest, please use the Track Order feature in the Overview tab.") }}</p>';
+            } else {
+              document.getElementById('overview-guest-state').style.display = 'block';
+              document.getElementById('overview-auth-state').style.display = 'none';
             }
 
             // Set up guest UI: Hide profile, address, and logout actions
@@ -312,16 +440,7 @@
             if (addressesMenuItem) addressesMenuItem.parentNode.style.display = 'none';
 
             if (logoutMenuItem) {
-              logoutMenuItem.innerHTML = `
-                <a href="/auth">
-                  <svg viewBox="0 0 24 24" stroke-width="1.5">
-                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                    <polyline points="10 17 15 12 10 7" />
-                    <line x1="15" y1="12" x2="3" y2="12" />
-                  </svg>
-                  {{ __('Sign In') }}
-                </a>
-              `;
+              logoutMenuItem.style.display = 'none';
             }
 
             // Show guest tracking info in sidebar
@@ -422,6 +541,9 @@
         if (nameInput) nameInput.value = fullName || '';
         if (emailInput) emailInput.value = user.email || '';
         if (phoneInput) phoneInput.value = user.phone || '';
+
+        // Check if affiliate program is active and user is affiliate
+        checkAffiliateStatus();
       }
 
       async function loadOverview() {
@@ -460,8 +582,8 @@
 
         const html = orders.slice(0, 10).map(o => buildOrderCard(o)).join('');
 
-        if (container) container.innerHTML = html || '<p style="color:#aaa;font-size:13px">' + "{{ __('No orders yet.') }}" + '</p>';
-        if (fullContainer) fullContainer.innerHTML = html || '<p style="color:#aaa;font-size:13px">' + "{{ __('No orders yet.') }}" + '</p>';
+        if (container) container.innerHTML = html || '<p style="color:#aaa;font-size:13px">' + "{{ __('You have no active orders on this device.') }}" + '</p>';
+        if (fullContainer) fullContainer.innerHTML = html || '<p style="color:#aaa;font-size:13px;padding:20px 0;">' + "{{ __('You have no active orders on this device. If you checked out as a guest, please use the Track Order feature in the Overview tab.') }}" + '</p>';
       }
 
       function buildOrderCard(o) {
@@ -515,6 +637,7 @@
         if (tabId === 'orders') loadOrdersTab();
         if (tabId === 'addresses') loadAddressesTab();
         if (tabId === 'preorders') loadPreordersTab();
+        if (tabId === 'affiliate') loadAffiliateTab();
       };
 
       async function loadOrdersTab() {
@@ -525,7 +648,7 @@
           if (container) {
             container.innerHTML = orders.length
               ? orders.map(o => buildOrderCard(o)).join('')
-              : '<p style="color:#aaa;font-size:13px">' + "{{ __('No orders yet.') }}" + '</p>';
+              : '<p style="color:#aaa;font-size:13px;padding:20px 0;">' + "{{ __('You have no active orders on this device. If you checked out as a guest, please use the Track Order feature in the Overview tab.') }}" + '</p>';
           }
         } catch (e) { }
       }
@@ -548,7 +671,7 @@
           const res = await API.get('/pre-orders');
           const preOrders = res.pre_orders || res.data || [];
           if (!preOrders.length) {
-            container.innerHTML = '<p style="color:#aaa;font-size:13px">{{ __("No pre-order requests yet.") }}</p>';
+            container.innerHTML = '<p style="color:#aaa;font-size:13px;padding:20px 0;">{{ __("You have no active pre-orders on this device. If you checked out as a guest, please use the Track Order feature in the Overview tab.") }}</p>';
             return;
           }
           container.innerHTML = preOrders.map(function(po) {
@@ -581,6 +704,101 @@
           container.innerHTML = '<p style="color:#aaa;font-size:13px">{{ __("Failed to load pre-orders.") }}</p>';
         }
       }
+
+      async function checkAffiliateStatus() {
+        try {
+          const res = await API.get('/affiliate/dashboard');
+          if (res.active) {
+              document.getElementById('menu-affiliate').style.display = 'block';
+              if (res.affiliate) {
+                  document.getElementById('affiliate-join-section').style.display = 'none';
+                  document.getElementById('affiliate-dashboard-section').style.display = 'block';
+                  
+                  document.getElementById('aff-stat-earnings').textContent = 'EGP ' + (res.balances.paid || 0);
+                  document.getElementById('aff-stat-approved').textContent = 'EGP ' + (res.balances.approved || 0);
+                  document.getElementById('aff-stat-pending').textContent = 'EGP ' + (res.balances.pending || 0);
+                  
+                  document.getElementById('aff-code').value = res.affiliate.referral_code || '';
+                  document.getElementById('aff-bank-name').value = res.affiliate.bank_name || '';
+                  document.getElementById('aff-account-name').value = res.affiliate.bank_account_name || '';
+                  document.getElementById('aff-account-number').value = res.affiliate.bank_account_number || '';
+              } else {
+                  document.getElementById('affiliate-join-section').style.display = 'block';
+                  document.getElementById('affiliate-dashboard-section').style.display = 'none';
+              }
+          }
+        } catch (e) { }
+      }
+
+      async function loadAffiliateTab() {
+        checkAffiliateStatus();
+        try {
+            const res = await API.get('/affiliate/referrals');
+            const referrals = res.referrals.data || res.referrals || [];
+            const container = document.getElementById('affiliate-referrals-list');
+            if (referrals.length === 0) {
+                container.innerHTML = '<p style="color:#aaa;font-size:13px">{{ __("No referrals yet.") }}</p>';
+                return;
+            }
+            container.innerHTML = referrals.map(r => {
+                var status = r.commission_status || 'pending';
+                var statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+                var dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString() : '—';
+                return '<div class="order-card">' +
+                  '<div>' +
+                    '<div class="order-top">' +
+                      '<span class="order-id">Ref #' + r.id + '</span>' +
+                      '<span class="order-status status-' + status + '">' + statusLabel + '</span>' +
+                      '<span class="order-date">' + dateStr + '</span>' +
+                    '</div>' +
+                  '</div>' +
+                  '<div class="order-meta">' +
+                    '<div class="order-total">EGP ' + parseFloat(r.commission_amount).toFixed(2) + '</div>' +
+                  '</div>' +
+                '</div>';
+            }).join('');
+        } catch(e) {}
+      }
+
+      window.copyAffiliateCode = function() {
+          var input = document.getElementById('aff-code');
+          input.select();
+          input.setSelectionRange(0, 99999);
+          document.execCommand("copy");
+          showToast('Code copied to clipboard', 'success');
+      };
+
+      document.getElementById('btn-join-affiliate').addEventListener('click', async function() {
+          this.disabled = true;
+          this.textContent = "{{ __('Joining...') }}";
+          try {
+              await API.post('/affiliate/join');
+              showToast('Welcome to the affiliate program!', 'success');
+              checkAffiliateStatus();
+          } catch(e) {
+              showToast(e.data?.message || 'Failed to join program', 'error');
+              this.disabled = false;
+              this.textContent = "{{ __('Join Now') }}";
+          }
+      });
+
+      document.getElementById('btn-save-bank-details').addEventListener('click', async function() {
+          this.disabled = true;
+          this.textContent = "{{ __('Saving...') }}";
+          try {
+              await API.put('/affiliate/bank-details', {
+                  bank_name: document.getElementById('aff-bank-name').value,
+                  bank_account_name: document.getElementById('aff-account-name').value,
+                  bank_account_number: document.getElementById('aff-account-number').value
+              });
+              showToast('Bank details updated successfully', 'success');
+          } catch(e) {
+              showToast(e.data?.message || 'Failed to update details', 'error');
+          } finally {
+              this.disabled = false;
+              this.textContent = "{{ __('Update Bank Details') }}";
+          }
+      });
 
       function escHtml(str) {
         if (!str) return '';
@@ -802,6 +1020,49 @@
         Auth.logout();
         location.href = '/';
       });
+
+      // ── Track Order ────────────────────────────────────────────
+      window.trackGuestOrder = async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btn-track-submit');
+        const msg = document.getElementById('track_error_msg');
+        const orderNumber = document.getElementById('track_order_number').value.trim();
+        const emailOrPhone = document.getElementById('track_email_phone').value.trim();
+        
+        msg.style.display = 'none';
+        btn.disabled = true;
+        btn.textContent = 'Tracking...';
+
+        try {
+          const res = await fetch('/api/orders/track', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              order_number: orderNumber,
+              contact: emailOrPhone
+            })
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || 'Could not track order.');
+          
+          if (data.session_id) {
+            document.cookie = "session_id=" + data.session_id + "; path=/; max-age=31536000; SameSite=Lax";
+            localStorage.setItem('dh_session_id', data.session_id);
+          }
+
+          location.href = data.redirect_url;
+        } catch(err) {
+          msg.textContent = err.message;
+          msg.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Track Order';
+        }
+      };
+
     })();
   </script>
 @endsection

@@ -43,7 +43,7 @@ class ReviewController extends Controller
         return response()->json(['review' => $review]);
     }
 
-    public function approve(string $id): JsonResponse
+    public function approve(Request $request, string $id): JsonResponse
     {
         $review = Review::find($id);
 
@@ -62,7 +62,7 @@ class ReviewController extends Controller
         ]);
     }
 
-    public function reject(string $id): JsonResponse
+    public function reject(Request $request, string $id): JsonResponse
     {
         $review = Review::find($id);
 

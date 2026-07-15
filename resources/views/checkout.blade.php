@@ -282,8 +282,10 @@ function renderPaymentStep() {
   return html;
 }
 
-function renderReviewStep(cart, discount) {
+function renderReviewStep(cart, discount, affiliateDiscount) {
   var snap = checkoutState.formSnapshot;
+  var hasCode = cart.coupon || cart.affiliate;
+  var codeStr = cart.coupon ? cart.coupon.code : (cart.affiliate ? cart.affiliate.code : '');
   var html = '<div class="checkout-step-panel' + (checkoutState.currentStep === 3 ? ' active' : '') + '" id="step-3" data-step="3">' +
                '<div class="checkout-section">' +
                  '<div class="checkout-section-header">' +
@@ -296,15 +298,16 @@ function renderReviewStep(cart, discount) {
                  '<div class="review-summary-box" id="review-shipping-summary"></div>' +
                  '<div class="review-summary-box" id="review-payment-summary"></div>' +
                  '<div class="checkout-subsection">' +
-                   '<h3>' + "{{ __('Promo Code') }}" + '</h3>' +
+                   '<h3>' + "{{ __('Promo / Affiliate Code') }}" + '</h3>' +
                    '<div class="promo-box">' +
-                     '<input type="text" id="promo-input" placeholder="' + "{{ __('Enter promo code') }}" + '"' +
-                       (cart.coupon ? ' value="' + esc(cart.coupon.code) + '" disabled' : '') + '>' +
-                     (cart.coupon
-                       ? '<button type="button" class="btn-outline" id="btn-remove-coupon">' + "{{ __('Remove') }}" + '</button>'
-                       : '<button type="button" class="btn-dark" id="btn-apply-coupon">' + "{{ __('Apply') }}" + '</button>') +
+                     '<input type="text" id="promo-input" placeholder="' + "{{ __('Enter code') }}" + '"' +
+                       (hasCode ? ' value="' + esc(codeStr) + '" disabled' : '') + '>' +
+                     (hasCode
+                       ? '<button type="button" class="btn-outline" id="btn-remove-promo">' + "{{ __('Remove') }}" + '</button>'
+                       : '<button type="button" class="btn-dark" id="btn-apply-promo">' + "{{ __('Apply') }}" + '</button>') +
                    '</div>' +
                    (cart.coupon ? '<div class="promo-applied">✓ ' + "{{ __('Coupon applied!') }}" + ' (-EGP ' + discount.toLocaleString() + ')</div>' : '') +
+                   (cart.affiliate ? '<div class="promo-applied">✓ ' + "{{ __('Affiliate code applied!') }}" + ' (-EGP ' + affiliateDiscount.toLocaleString() + ')</div>' : '') +
                  '</div>' +
                  '<div class="checkout-subsection">' +
                    '<h3>' + "{{ __('Order Notes') }}" + '</h3>' +
@@ -324,6 +327,7 @@ function renderCheckout() {
   const cart = checkoutState.cart;
   const subtotal = parseFloat(cart.subtotal) || 0;
   const discount = parseFloat(cart.discount) || 0;
+  const affiliateDiscount = cart.affiliate ? parseFloat(cart.affiliate.discount) : 0;
   const savedStep = checkoutState.currentStep;
 
   captureFormState();
@@ -336,7 +340,7 @@ function renderCheckout() {
   html += '<div class="checkout-main animate-fade-up">';
   html += renderShippingStep();
   html += renderPaymentStep();
-  html += renderReviewStep(cart, discount);
+  html += renderReviewStep(cart, discount, affiliateDiscount);
   html += '</div>';
 
   html += '<div class="checkout-summary-wrap animate-fade-up stagger-2">';
@@ -367,9 +371,13 @@ function renderCheckout() {
   if (discount > 0) {
     html += '<div class="sum-row"><span class="k">' + "{{ __('Discount') }}" + '</span><span class="v sum-discount">-EGP ' + discount.toLocaleString() + '</span></div>';
   }
+  
+  if (affiliateDiscount > 0) {
+    html += '<div class="sum-row"><span class="k">' + "{{ __('Affiliate Discount') }}" + '</span><span class="v sum-discount">-EGP ' + affiliateDiscount.toLocaleString() + '</span></div>';
+  }
 
   html += '<div class="sum-row"><span class="k">' + "{{ __('Delivery') }}" + '</span><span class="v" id="summary-delivery">' + "{{ __('Select governorate') }}" + '</span></div>' +
-          '<div class="sum-row total"><span>' + "{{ __('Total') }}" + '</span><span id="summary-total">EGP ' + Math.max(0, subtotal - discount).toLocaleString() + '</span></div>' +
+          '<div class="sum-row total"><span>' + "{{ __('Total') }}" + '</span><span id="summary-total">EGP ' + Math.max(0, subtotal - discount - affiliateDiscount).toLocaleString() + '</span></div>' +
           '<div id="checkout-error" class="checkout-error" style="display:none"></div>' +
           '<button class="btn-place-order" id="btn-place" style="display:' + (checkoutState.currentStep === 3 ? 'block' : 'none') + '">' + "{{ __('Place Order') }}" + '</button>' +
           '<p class="checkout-step-hint" id="checkout-step-hint" style="display:' + (checkoutState.currentStep < 3 ? 'block' : 'none') + '">' + "{{ __('Complete all steps to place your order') }}" + '</p>' +
@@ -415,8 +423,8 @@ function bindCheckoutEvents() {
   document.getElementById('btn-step-3-back')?.addEventListener('click', function() { goToStep(2); });
   document.getElementById('btn-place')?.addEventListener('click', placeOrder);
 
-  document.getElementById('btn-apply-coupon')?.addEventListener('click', applyCoupon);
-  document.getElementById('btn-remove-coupon')?.addEventListener('click', removeCoupon);
+  document.getElementById('btn-apply-promo')?.addEventListener('click', applyPromo);
+  document.getElementById('btn-remove-promo')?.addEventListener('click', removePromo);
 
   document.getElementById('ship-governorate')?.addEventListener('change', onGovernorateChange);
 
@@ -738,8 +746,9 @@ function updateSummaryTotals() {
 
   var subtotal = parseFloat(checkoutState.cart.subtotal) || 0;
   var discount = parseFloat(checkoutState.cart.discount) || 0;
+  var affiliateDiscount = checkoutState.cart.affiliate ? parseFloat(checkoutState.cart.affiliate.discount) : 0;
   var delivery = checkoutState.deliveryFee;
-  var total = Math.max(0, subtotal - discount + delivery);
+  var total = Math.max(0, subtotal - discount - affiliateDiscount + delivery);
 
   deliveryEl.removeAttribute('title');
 
@@ -843,13 +852,23 @@ function updateReviewSummaries() {
     '<div class="review-box-value">' + payLabel + '</div>';
 }
 
-async function applyCoupon() {
+async function applyPromo() {
   captureFormState();
   var code = document.getElementById('promo-input')?.value?.trim();
   if (!code) {
-    showToast("{{ __('Please enter a promo code.') }}", 'warning');
+    showToast("{{ __('Please enter a code.') }}", 'warning');
     return;
   }
+  
+  try {
+    var res = await API.post('/cart/affiliate', { code: code });
+    checkoutState.cart = res.cart;
+    showToast("{{ __('Affiliate code applied!') }}", 'success');
+    renderCheckout();
+    goToStep(3);
+    return;
+  } catch (e) {}
+
   try {
     var res = await API.post('/cart/coupon', { code: code });
     checkoutState.cart = res.cart;
@@ -857,20 +876,32 @@ async function applyCoupon() {
     renderCheckout();
     goToStep(3);
   } catch (e) {
-    showToast(e.data?.message || "{{ __('Invalid promo code.') }}", 'error');
+    showToast(e.data?.message || "{{ __('Invalid or expired code.') }}", 'error');
   }
 }
 
-async function removeCoupon() {
+async function removePromo() {
   captureFormState();
-  try {
-    var res = await API.del('/cart/coupon');
-    checkoutState.cart = res.cart;
-    showToast("{{ __('Promo code removed.') }}", 'info');
-    renderCheckout();
-    goToStep(3);
-  } catch (e) {
-    showToast(e.data?.message || "{{ __('Failed to remove coupon.') }}", 'error');
+  if (checkoutState.cart.coupon) {
+      try {
+        var res = await API.del('/cart/coupon');
+        checkoutState.cart = res.cart;
+        showToast("{{ __('Promo code removed.') }}", 'info');
+        renderCheckout();
+        goToStep(3);
+      } catch (e) {
+        showToast(e.data?.message || "{{ __('Failed to remove coupon.') }}", 'error');
+      }
+  } else if (checkoutState.cart.affiliate) {
+      try {
+        var res = await API.del('/cart/affiliate');
+        checkoutState.cart = res.cart;
+        showToast("{{ __('Affiliate code removed.') }}", 'info');
+        renderCheckout();
+        goToStep(3);
+      } catch (e) {
+        showToast(e.data?.message || "{{ __('Failed to remove affiliate code.') }}", 'error');
+      }
   }
 }
 

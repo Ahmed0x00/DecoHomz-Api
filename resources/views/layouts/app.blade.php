@@ -90,13 +90,13 @@
           <div class="badge badge-cart" style="display:none">0</div>
         </a>
 
-        {{-- Account / Login (JS-driven since we use API tokens, not sessions) --}}
-        <a href="/auth" class="nav-icon-btn user-trigger" id="nav-auth-link" title="{{ __('Login') }}">
+        {{-- Account (JS-driven since we use API tokens, not sessions) --}}
+        <a href="/account" class="nav-icon-btn user-trigger" id="nav-auth-link" title="{{ __('Account') }}">
           <svg viewBox="0 0 24 24">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>
-          <span class="icon-label" id="nav-auth-label">{{ __('Login') }}</span>
+          <span class="icon-label" id="nav-auth-label">{{ __('Account') }}</span>
         </a>
       </div>
     </div>
@@ -194,6 +194,7 @@
           <li><a href="/faq">{{ __('FAQ') }}</a></li>
           <li><a href="/faq#shipping">{{ __('Shipping & Delivery') }}</a></li>
           <li><a href="/faq#returns">{{ __('Returns & Exchanges') }}</a></li>
+          <li><a href="/track-order" style="color:var(--color-primary); font-weight:600;">{{ __('Track Order') }}</a></li>
           <li><a href="/contact">{{ __('Contact Us') }}</a></li>
           <li><a href="/pre-order">{{ __('Pre-Order') }}</a></li>
           <li><a href="/vendor/apply">{{ __('Become a Vendor') }}</a></li>
@@ -289,6 +290,20 @@
   })();
   </script>
   @yield('extra_js')
+
+  <!--Start of Tawk.to Script-->
+  <script type="text/javascript">
+  var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+  (function(){
+  var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+  s1.async=true;
+  s1.src='https://embed.tawk.to/6a574a8f5342201d457982dd/1jtifmghp';
+  s1.charset='UTF-8';
+  s1.setAttribute('crossorigin','*');
+  s0.parentNode.insertBefore(s1,s0);
+  })();
+  </script>
+  <!--End of Tawk.to Script-->
 </body>
 
 </html>

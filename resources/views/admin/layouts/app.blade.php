@@ -520,6 +520,13 @@
         </svg>
         Dashboard
       </a>
+      <a href="/admin/analytics" class="{{ request()->is('admin/analytics') ? 'active' : '' }} nav-admin-only">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+          <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+        </svg>
+        Analytics
+      </a>
       <a href="/admin/products" class="{{ request()->is('admin/products*') ? 'active' : '' }} nav-admin-only">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
@@ -602,6 +609,31 @@
         </svg>
         Coupons
       </a>
+      @php
+        $isAffiliateSection = request()->is('admin/affiliates*') || request()->is('admin/referrals*');
+      @endphp
+      <div class="nav-admin-only">
+        <a href="#" onclick="var sm = this.nextElementSibling; var cv = this.querySelector('.chevron'); if(sm.style.display==='none'){sm.style.display='block';cv.style.transform='rotate(180deg)';}else{sm.style.display='none';cv.style.transform='rotate(0deg)';} return false;" class="{{ $isAffiliateSection ? 'active' : '' }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          Affiliates
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px;margin-left:auto;transition:transform 0.2s;transform:{{ $isAffiliateSection ? 'rotate(180deg)' : 'rotate(0deg)' }};">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </a>
+        <div class="nav-sub-menu" style="display: {{ $isAffiliateSection ? 'block' : 'none' }};">
+          <a href="/admin/affiliates" class="{{ request()->is('admin/affiliates') || request()->is('admin/affiliates/*') ? 'active' : '' }}">
+            All Affiliates
+          </a>
+          <a href="/admin/referrals" class="{{ request()->is('admin/referrals*') ? 'active' : '' }}">
+            Referrals Dashboard
+          </a>
+        </div>
+      </div>
       <a href="/admin/delivery-fees" class="{{ request()->is('admin/delivery-fees*') ? 'active' : '' }} nav-admin-only">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <rect x="1" y="3" width="15" height="13" rx="1" />

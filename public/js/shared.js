@@ -18,6 +18,16 @@ window.esc = function(str) {
 };
 
 /**
+ * Format a date string into a readable format
+ */
+window.formatDate = function(dateStr) {
+    if (!dateStr) return '';
+    var d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+};
+
+/**
  * Persistence Helper
  */
 const DH_STORAGE = {

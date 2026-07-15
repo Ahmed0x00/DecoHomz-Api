@@ -73,6 +73,13 @@ class RefundController extends Controller
                     'refund_handled_at' => now(),
                 ]);
 
+                if ($order->referral_id) {
+                    $referral = \App\Models\Referral::find($order->referral_id);
+                    if ($referral) {
+                        app(\App\Services\AffiliateService::class)->revokeCommission($referral, 'Order was refunded');
+                    }
+                }
+
                 foreach ($order->items as $item) {
                     if ($item->variant) {
                         $productColor = ProductColor::where('product_id', $item->product_id)

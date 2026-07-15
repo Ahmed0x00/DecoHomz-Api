@@ -235,19 +235,24 @@
           day: '2-digit', month: 'short', year: 'numeric',
           hour: '2-digit', minute: '2-digit'
       });
-      var resultClass = 'result-' + (log.result || 'info');
-      var sectionClass = 'section-' + (log.section || 'General');
-      var userName = log.user ? esc(log.user.name) : (log.user_identifier ? esc(log.user_identifier) : '<span style="color:#cbd5e1;font-style:italic;">System</span>');
+      var legacyAction = log.properties && log.properties.legacy_action;
+      var legacyResult = log.properties && log.properties.legacy_result;
+      
+      var actionDisplay = legacyAction || log.event || 'Action';
+      var resultDisplay = legacyResult || (log.event === 'created' ? 'success' : (log.event === 'deleted' ? 'deletion' : (log.event === 'updated' ? 'warning' : 'info')));
+      var resultClass = 'result-' + (legacyResult ? legacyResult : (log.event === 'created' ? 'success' : (log.event === 'deleted' ? 'deletion' : (log.event === 'updated' ? 'warning' : 'info'))));
+      var sectionClass = 'section-' + (log.log_name || 'General');
+      var userName = log.causer ? esc(log.causer.name) : '<span style="color:#cbd5e1;font-style:italic;">System</span>';
       var description = log.description ? esc(log.description) : '';
 
       return '<tr class="log-row" onclick="viewLog(' + log.id + ')">' +
         '<td style="padding:11px 16px;font-size:12px;color:#64748b;white-space:nowrap;border-bottom:1px solid #f8fafc;">' + date + '</td>' +
-        '<td style="padding:11px 16px;font-weight:600;font-size:13px;color:#1e293b;border-bottom:1px solid #f8fafc;">' + esc(log.action || '') + '</td>' +
+        '<td style="padding:11px 16px;font-weight:600;font-size:13px;color:#1e293b;border-bottom:1px solid #f8fafc;text-transform:capitalize;">' + esc(actionDisplay) + '</td>' +
         '<td style="padding:11px 16px;font-size:13px;color:#334155;border-bottom:1px solid #f8fafc;">' + userName + '</td>' +
-        '<td style="padding:11px 16px;border-bottom:1px solid #f8fafc;"><span class="' + sectionClass + '" style="padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;">' + (log.section || 'General') + '</span></td>' +
-        '<td style="padding:11px 16px;border-bottom:1px solid #f8fafc;"><span class="' + resultClass + '" style="padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;">' + (log.result || 'info') + '</span></td>' +
+        '<td style="padding:11px 16px;border-bottom:1px solid #f8fafc;"><span class="' + sectionClass + '" style="padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;">' + (log.log_name || 'General') + '</span></td>' +
+        '<td style="padding:11px 16px;border-bottom:1px solid #f8fafc;"><span class="' + resultClass + '" style="padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;">' + resultDisplay + '</span></td>' +
         '<td style="padding:11px 16px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#64748b;border-bottom:1px solid #f8fafc;" title="' + description + '">' + description + '</td>' +
-        '<td style="padding:11px 16px;font-size:11px;color:#94a3b8;font-family:monospace;border-bottom:1px solid #f8fafc;white-space:nowrap;">' + (log.ip_address || '—') + '</td>' +
+        '<td style="padding:11px 16px;font-size:11px;color:#94a3b8;font-family:monospace;border-bottom:1px solid #f8fafc;white-space:nowrap;">' + (log.properties && log.properties.ip ? log.properties.ip : '—') + '</td>' +
         '<td style="padding:11px 16px;border-bottom:1px solid #f8fafc;"><button onclick="event.stopPropagation(); deleteLog(' + log.id + ')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;opacity:0.5;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5">&times;</button></td>' +
         '</tr>';
     }).join('');
@@ -260,14 +265,32 @@
         var body = document.getElementById('logModalBody');
 
         var date = new Date(log.created_at).toLocaleString();
-        var payload = log.payload ? JSON.stringify(log.payload, null, 2) : 'No payload';
-        var response = log.response_data ? JSON.stringify(log.response_data, null, 2) : 'No response data';
-        var resultClass = 'result-' + (log.result || 'info');
-        var sectionClass = 'section-' + (log.section || 'General');
+
+        // Database diffs (Spatie native)
+        var attributesObj = log.attribute_changes && log.attribute_changes.attributes ? log.attribute_changes.attributes : (log.properties && log.properties.attributes && !log.properties.legacy_action ? log.properties.attributes : null);
+        var oldObj = log.attribute_changes && log.attribute_changes.old ? log.attribute_changes.old : (log.properties && log.properties.old ? log.properties.old : null);
+        
+        // HTTP payload and response
+        // Legacy standalone logs stored request in 'attributes', new enriched logs use 'request_payload'
+        var requestPayloadObj = log.properties && log.properties.request_payload ? log.properties.request_payload : (log.properties && log.properties.legacy_action && log.properties.attributes ? log.properties.attributes : null);
+        var responseDataObj = log.properties && log.properties.response_data ? log.properties.response_data : null;
+        
+        var attributesJson = (attributesObj && Object.keys(attributesObj).length) ? JSON.stringify(attributesObj, null, 2) : null;
+        var oldJson = (oldObj && Object.keys(oldObj).length) ? JSON.stringify(oldObj, null, 2) : null;
+        var requestJson = (requestPayloadObj && Object.keys(requestPayloadObj).length) ? JSON.stringify(requestPayloadObj, null, 2) : null;
+        var responseJson = (responseDataObj && Object.keys(responseDataObj).length) ? JSON.stringify(responseDataObj, null, 2) : null;
+        
+        var legacyAction = log.properties && log.properties.legacy_action;
+        var legacyResult = log.properties && log.properties.legacy_result;
+
+        var actionDisplay = legacyAction || log.event || 'Action';
+        var resultDisplay = legacyResult || (log.event === 'created' ? 'success' : (log.event === 'deleted' ? 'deletion' : (log.event === 'updated' ? 'warning' : 'info')));
+        var resultClass = 'result-' + (legacyResult ? legacyResult : (log.event === 'created' ? 'success' : (log.event === 'deleted' ? 'deletion' : (log.event === 'updated' ? 'warning' : 'info'))));
+        var sectionClass = 'section-' + (log.log_name || 'General');
 
         var diffHtml = '';
-        if (log.old_values && log.payload && log.action && log.action.includes('Update')) {
-            diffHtml = buildDiff(log.old_values, log.payload);
+        if (oldObj && attributesObj && log.event === 'updated') {
+            diffHtml = buildDiff(oldObj, attributesObj);
         }
 
         body.innerHTML = `
@@ -275,19 +298,19 @@
                 <div style="padding:18px;background:#f8fafc;border-radius:12px;">
                     <div style="font-weight:700;color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;">Context</div>
                     <div style="display:grid;grid-template-columns:90px 1fr;gap:10px;font-size:13px;">
-                        <span style="color:#64748b;">Action:</span> <span style="font-weight:700;color:#1e293b;">${esc(log.action || '')}</span>
-                        <span style="color:#64748b;">Section:</span> <span class="${sectionClass}" style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;text-transform:uppercase;">${log.section || 'General'}</span>
-                        <span style="color:#64748b;">Resource:</span> <span style="color:#334155;">${log.resource_type || '—'} ${log.resource_id ? '#' + log.resource_id : ''}</span>
-                        <span style="color:#64748b;">User:</span> <span style="color:#334155;">${log.user ? esc(log.user.name) : (log.user_identifier ? esc(log.user_identifier) : '<i>System</i>')}</span>
+                        <span style="color:#64748b;">Action:</span> <span style="font-weight:700;color:#1e293b;text-transform:capitalize;">${esc(actionDisplay)}</span>
+                        <span style="color:#64748b;">Log Name:</span> <span class="${sectionClass}" style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;text-transform:uppercase;">${log.log_name || 'General'}</span>
+                        <span style="color:#64748b;">Resource:</span> <span style="color:#334155;">${log.subject_type ? log.subject_type.split('\\\\').pop() : '—'} ${log.subject_id ? '#' + log.subject_id : ''}</span>
+                        <span style="color:#64748b;">User:</span> <span style="color:#334155;">${log.causer ? esc(log.causer.name) : '<i>System</i>'}</span>
                         <span style="color:#64748b;">Time:</span> <span style="color:#64748b;font-size:12px;">${date}</span>
                     </div>
                 </div>
                 <div style="padding:18px;background:#f8fafc;border-radius:12px;">
                     <div style="font-weight:700;color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;">Outcome</div>
                     <div style="display:grid;grid-template-columns:90px 1fr;gap:10px;font-size:13px;">
-                        <span style="color:#64748b;">Result:</span> <span class="${resultClass}" style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;text-transform:uppercase;">${log.result || 'info'}</span>
-                        <span style="color:#64748b;">IP Address:</span> <span style="font-family:monospace;color:#64748b;">${log.ip_address || '—'}</span>
-                        <span style="color:#64748b;">Browser:</span> <span style="font-size:11px;color:#94a3b8;">${(log.user_agent || '—').substring(0, 60)}</span>
+                        <span style="color:#64748b;">Result:</span> <span class="${resultClass}" style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;text-transform:uppercase;">${resultDisplay}</span>
+                        <span style="color:#64748b;">IP Address:</span> <span style="font-family:monospace;color:#64748b;">${(log.properties && log.properties.ip) || '—'}</span>
+                        <span style="color:#64748b;">Browser:</span> <span style="font-size:11px;color:#94a3b8;">${((log.properties && log.properties.user_agent) || '—').substring(0, 60)}</span>
                     </div>
                 </div>
             </div>
@@ -297,33 +320,47 @@
                 <div style="padding:16px 18px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;font-size:14px;color:#1e293b;line-height:1.6;">${esc(log.description || '')}</div>
             </div>
 
-            ${diffHtml ? `
-            <div style="margin-bottom:24px;">
-                <div style="font-weight:700;color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Data Changes</div>
-                <div style="border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
-                    ${diffHtml}
+            ${(requestJson || responseJson) ? `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+                <div>
+                    <div style="font-weight:700;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Request Payload</div>
+                    <pre style="padding:14px;background:#f8fafc;color:#0f172a;border:1px solid #e2e8f0;border-radius:12px;font-size:12px;max-height:280px;overflow-y:auto;margin:0;line-height:1.5;">${requestJson || 'No payload'}</pre>
+                </div>
+                <div>
+                    <div style="font-weight:700;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Server Response</div>
+                    <pre style="padding:14px;background:#f8fafc;color:#0f172a;border:1px solid #e2e8f0;border-radius:12px;font-size:12px;max-height:280px;overflow-y:auto;margin:0;line-height:1.5;">${responseJson || 'No response data'}</pre>
                 </div>
             </div>
             ` : ''}
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                <div>
-                    <div style="font-weight:700;color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Request Payload</div>
-                    <pre style="padding:14px;background:#1e293b;color:#a5f3fc;border-radius:12px;font-size:11px;max-height:280px;overflow-y:auto;margin:0;line-height:1.5;">${esc(payload)}</pre>
+            ${(attributesJson || oldJson || diffHtml) ? `
+            <div style="border-top:1px dashed #cbd5e1;padding-top:24px;">
+                <div style="font-weight:700;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;">Database Diffs (Background Data)</div>
+                ${diffHtml ? `
+                <div style="margin-bottom:16px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
+                    ${diffHtml}
                 </div>
-                <div>
-                    <div style="font-weight:700;color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Server Response</div>
-                    <pre style="padding:14px;background:#1e293b;color:#dcfdd4;border-radius:12px;font-size:11px;max-height:280px;overflow-y:auto;margin:0;line-height:1.5;">${esc(response)}</pre>
+                ` : ''}
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div>
+                        <div style="font-weight:700;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">New Data (Attributes)</div>
+                        <pre style="padding:14px;background:#f1f5f9;color:#334155;border:1px solid #e2e8f0;border-radius:12px;font-size:11px;max-height:200px;overflow-y:auto;margin:0;line-height:1.5;">${attributesJson || 'No new data'}</pre>
+                    </div>
+                    <div>
+                        <div style="font-weight:700;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Old Data</div>
+                        <pre style="padding:14px;background:#f1f5f9;color:#334155;border:1px solid #e2e8f0;border-radius:12px;font-size:11px;max-height:200px;overflow-y:auto;margin:0;line-height:1.5;">${oldJson || 'No old data'}</pre>
+                    </div>
                 </div>
             </div>
+            ` : ''}
         `;
 
         var secBadge = document.getElementById('modalSectionBadge');
         secBadge.className = sectionClass;
-        secBadge.textContent = log.section || 'General';
+        secBadge.textContent = log.log_name || 'General';
         var resBadge = document.getElementById('modalResultBadge');
         resBadge.className = resultClass;
-        resBadge.textContent = log.result || 'info';
+        resBadge.textContent = resultDisplay;
 
         document.getElementById('logModal').style.display = 'flex';
     } catch(e) {

@@ -385,6 +385,18 @@
                     <div style="text-align: center; color: var(--text-muted);">Checking refunds...</div>
                 </div>
             </div>
+
+            <!-- Referral Card -->
+            <div class="premium-card" id="referralCard" style="display:none;">
+                <div class="premium-card-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <h5 class="premium-card-title">Affiliate Referral</h5>
+                </div>
+                <div id="referralSection" class="premium-card-body">
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -403,12 +415,68 @@
                     renderCustomer(order.user, order.shippingAddress || order.shipping_address);
                     renderAddress(order.shippingAddress || order.shipping_address);
                     renderRefund(order);
+                    renderReferral(order);
                     document.getElementById('trackingNumber').value = order.tracking_number || '';
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     document.getElementById('orderDetails').innerHTML = '<div style="color: #ef4444; text-align: center;">Error loading order data.</div>';
                 });
+        }
+
+        function renderReferral(order) {
+            if (!order.referral) return;
+            const ref = order.referral;
+            const affiliate = ref.affiliate || {};
+            const affiliateUser = affiliate.user || {};
+            
+            document.getElementById('referralCard').style.display = 'block';
+            
+            let statusColor = '#9a3412';
+            let statusBg = '#fff7ed';
+            if (ref.commission_status === 'approved' || ref.commission_status === 'paid') {
+                statusColor = '#166534';
+                statusBg = '#f0fdf4';
+            } else if (ref.commission_status === 'revoked' || ref.commission_status === 'clawback') {
+                statusColor = '#991b1b';
+                statusBg = '#fef2f2';
+            }
+
+            let fraudWarnings = '';
+            if (ref.fraud_flags && typeof ref.fraud_flags === 'object') {
+                const flags = [];
+                if (ref.fraud_flags.self_referral) flags.push('Self Referral');
+                if (ref.fraud_flags.same_ip) flags.push('Same IP Address');
+                if (flags.length > 0) {
+                    fraudWarnings = `<div style="margin-top:12px;padding:8px 12px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;color:#991b1b;font-size:12px;font-weight:600;">⚠️ Flags: ${flags.join(', ')}</div>`;
+                }
+            }
+
+            document.getElementById('referralSection').innerHTML = `
+                <div class="info-group">
+                    <label class="info-label">Affiliate</label>
+                    <div class="info-value">
+                        <a href="/admin/affiliates/${affiliate.id}" style="color:var(--primary);text-decoration:none;font-weight:600;">
+                            ${esc(affiliateUser.name || 'Unknown Affiliate')}
+                        </a>
+                    </div>
+                </div>
+                <div class="info-group" style="margin-top:12px;">
+                    <label class="info-label">Commission</label>
+                    <div class="info-value" style="font-size:16px;font-weight:700;color:var(--secondary);">
+                        EGP ${parseFloat(ref.commission_amount).toFixed(2)}
+                    </div>
+                </div>
+                <div class="info-group" style="margin-top:12px;">
+                    <label class="info-label">Status</label>
+                    <div style="margin-top:4px;">
+                        <span style="display:inline-block;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:600;background:${statusBg};color:${statusColor};text-transform:capitalize;">
+                            ${esc(ref.commission_status)}
+                        </span>
+                    </div>
+                </div>
+                ${fraudWarnings}
+            `;
         }
 
         function renderOrderOverview(order) {
@@ -498,9 +566,21 @@
         }
 
         function renderOrderTotals(order) {
+            let discountHtml = '';
+            let discountVal = parseFloat(order.discount) || 0;
+            let affDiscountVal = parseFloat(order.affiliate_discount) || 0;
+            
+            if (affDiscountVal > 0) {
+                discountHtml = `<div class="summary-row" style="color:#ef4444;"><span>Affiliate Discount</span><span>-${affDiscountVal.toFixed(2)} EGP</span></div>`;
+            } else if (discountVal > 0) {
+                discountHtml = `<div class="summary-row" style="color:#ef4444;"><span>Discount</span><span>-${discountVal.toFixed(2)} EGP</span></div>`;
+            } else {
+                discountHtml = `<div class="summary-row" style="color:#ef4444;"><span>Discount</span><span>-0.00 EGP</span></div>`;
+            }
+
             document.getElementById('orderTotals').innerHTML = `
                 <div class="summary-row"><span>Subtotal</span><span>${parseFloat(order.subtotal).toFixed(2)} EGP</span></div>
-                <div class="summary-row" style="color:#ef4444;"><span>Discount</span><span>-${parseFloat(order.discount).toFixed(2)} EGP</span></div>
+                ${discountHtml}
                 <div class="summary-row"><span>Delivery Fee</span><span>${parseFloat(order.delivery_fee).toFixed(2)} EGP</span></div>
                 <div class="summary-row"><span>VAT (14%)</span><span>${parseFloat(order.vat_amount).toFixed(2)} EGP</span></div>
                 <div class="summary-row grand-total"><span>Grand Total</span><span>${parseFloat(order.total).toFixed(2)} EGP</span></div>

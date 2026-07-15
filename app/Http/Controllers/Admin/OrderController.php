@@ -44,7 +44,7 @@ class OrderController extends Controller
 
     public function show(string $id): JsonResponse
     {
-        $order = Order::with(['user', 'items.product', 'shippingAddress', 'coupon'])->findOrFail($id);
+        $order = Order::with(['user', 'items.product', 'shippingAddress', 'coupon', 'referral.affiliate.user'])->findOrFail($id);
 
         // Append color explicitly to avoid N+1 globally but ensure it is in the API response
         $order->items->each(function ($item) {

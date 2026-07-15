@@ -13,26 +13,21 @@ class ActivityLogController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ActivityLog::with('user')->latest();
+        $query = \Spatie\Activitylog\Models\Activity::with(['causer', 'subject'])->latest();
 
-        // Filter by section
+        // Filter by section (log_name in Spatie)
         if ($request->has('section')) {
-            $query->where('section', $request->section);
+            $query->where('log_name', $request->section);
         }
 
-        // Filter by result (success, failure, deletion, warning, read, info)
-        if ($request->has('result')) {
-            $query->where('result', $request->result);
-        }
-
-        // Filter by resource type
+        // Filter by resource type (subject_type in Spatie)
         if ($request->has('resource_type')) {
-            $query->where('resource_type', $request->resource_type);
+            $query->where('subject_type', 'like', '%' . $request->resource_type . '%');
         }
 
-        // Filter by user
+        // Filter by user (causer_id in Spatie)
         if ($request->has('user_id')) {
-            $query->where('user_id', $request->user_id);
+            $query->where('causer_id', $request->user_id);
         }
 
         // Filter by date range
@@ -43,13 +38,13 @@ class ActivityLogController extends Controller
             $query->whereDate('created_at', '<=', $request->to);
         }
 
-        // Search across action, description, user name
+        // Search across description or user name
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('action', 'like', "%$search%")
-                  ->orWhere('description', 'like', "%$search%")
-                  ->orWhereHas('user', function($qu) use ($search) {
+                $q->where('description', 'like', "%$search%")
+                  ->orWhere('log_name', 'like', "%$search%")
+                  ->orWhereHasMorph('causer', [\App\Models\User::class], function($qu) use ($search) {
                       $qu->where('name', 'like', "%$search%")
                          ->orWhere('email', 'like', "%$search%");
                   });
@@ -59,12 +54,9 @@ class ActivityLogController extends Controller
         return response()->json($query->paginate($request->per_page ?? 20));
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
-        $log = ActivityLog::with('user')->findOrFail($id);
+        $log = \Spatie\Activitylog\Models\Activity::with(['causer', 'subject'])->findOrFail($id);
         return response()->json($log);
     }
 
@@ -73,7 +65,7 @@ class ActivityLogController extends Controller
      */
     public function destroy($id)
     {
-        $log = ActivityLog::findOrFail($id);
+        $log = \Spatie\Activitylog\Models\Activity::findOrFail($id);
         $log->delete();
         return response()->json(['message' => 'Log deleted successfully']);
     }
@@ -83,7 +75,7 @@ class ActivityLogController extends Controller
      */
     public function clear()
     {
-        ActivityLog::truncate();
+        \Spatie\Activitylog\Models\Activity::truncate();
         return response()->json(['message' => 'All logs cleared']);
     }
 }

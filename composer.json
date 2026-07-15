@@ -13,7 +13,8 @@
         "intervention/image-laravel": "^4.0",
         "laravel/framework": "^13.7",
         "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^3.0"
+        "laravel/tinker": "^3.0",
+        "spatie/laravel-activitylog": "^5.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

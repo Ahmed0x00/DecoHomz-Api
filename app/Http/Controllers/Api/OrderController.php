@@ -100,6 +100,79 @@ class OrderController extends Controller
     }
 
     /**
+     * Track a guest order using Order Number and Email OR Phone.
+     */
+    public function track(Request $request)
+    {
+        $validated = $request->validate([
+            'order_number' => 'required|string',
+            'contact' => 'required|string'
+        ]);
+
+        $orderNumber = trim($validated['order_number']);
+        $contact = trim($validated['contact']);
+
+        $order = Order::where('order_number', $orderNumber)->with(['shippingAddress', 'user'])->first();
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found.'], 404);
+        }
+
+        // Verify the contact (either email or phone) matches the shipping address
+        $matches = false;
+        
+        $inputPhone = preg_replace('/[^0-9]/', '', $contact);
+        $inputEmail = strtolower(trim($contact));
+
+        if ($order->shippingAddress) {
+            if (strtolower(trim($order->shippingAddress->email)) === $inputEmail) {
+                $matches = true;
+            } else {
+                $dbPhone = preg_replace('/[^0-9]/', '', $order->shippingAddress->phone);
+                if (strlen($dbPhone) >= 8 && strlen($inputPhone) >= 8) {
+                    if (str_ends_with($dbPhone, $inputPhone) || str_ends_with($inputPhone, $dbPhone)) {
+                        $matches = true;
+                    }
+                }
+            }
+        }
+
+        if (!$matches && $order->user) {
+            if (strtolower(trim($order->user->email)) === $inputEmail) {
+                $matches = true;
+            } else {
+                $dbPhone = preg_replace('/[^0-9]/', '', $order->user->phone);
+                if (strlen($dbPhone) >= 8 && strlen($inputPhone) >= 8) {
+                    if (str_ends_with($dbPhone, $inputPhone) || str_ends_with($inputPhone, $dbPhone)) {
+                        $matches = true;
+                    }
+                }
+            }
+        }
+
+        if (!$matches) {
+            return response()->json(['message' => 'The order number and email/phone do not match our records.'], 403);
+        }
+
+        if ($order->user_id) {
+            return response()->json(['message' => 'This order belongs to a registered account. Please sign in to view it.'], 403);
+        }
+
+        // Match successful! Adopt the order to the new session
+        $sessionId = $request->header('X-Session-ID') ?? $request->cookie('session_id') ?? \Illuminate\Support\Str::uuid()->toString();
+
+        // Update the order's session ID so it appears in this device's "My Orders" tab
+        $order->session_id = $sessionId;
+        $order->save();
+
+        return response()->json([
+            'message' => 'Order verified.',
+            'session_id' => $sessionId,
+            'redirect_url' => '/account/orders/' . $order->id
+        ]);
+    }
+
+    /**
      * Customer order detail page (web view) — clean read-only view.
      * Requires authentication — user must own the order.
      */
@@ -246,6 +319,7 @@ class OrderController extends Controller
             // Calculate totals
             $subtotal = $cart->getSubtotalAttribute();
             $discount = (float) $cart->discount;
+            $affiliateDiscount = (float) $cart->affiliate_discount;
 
             // Determine governorate from shipping address
             $governorate = null;
@@ -266,7 +340,7 @@ class OrderController extends Controller
                     $deliveryFee = $feeRecord->getFeeForSubtotal($subtotal);
                 }
             }
-            $total = max(0, $subtotal - $discount + $deliveryFee);
+            $total = max(0, $subtotal - $discount - $affiliateDiscount + $deliveryFee);
 
             // Calculate VAT first (14% on the pre-deposit base total)
             $vatRate = 0.14;
@@ -296,6 +370,7 @@ class OrderController extends Controller
                 'subtotal' => $subtotal,
                 'delivery_fee' => $deliveryFee,
                 'discount' => $discount,
+                'affiliate_discount' => $affiliateDiscount,
                 'total' => $total,
                 'coupon_id' => $couponId,
                 'status' => 'pending',
@@ -310,6 +385,8 @@ class OrderController extends Controller
             if ($cart->coupon) {
                 $cart->coupon->increment('used_count');
             }
+
+            // Referral creation is moved to after OrderItems are created
 
             // Update shipping address with order_id
             if (isset($shippingAddress) && $shippingAddress) {
@@ -338,9 +415,21 @@ class OrderController extends Controller
                 $item->product->decrement('stock', $item->quantity);
             }
 
+            // Create referral if applicable (must be done after OrderItems are created)
+            if ($cart->affiliate_code) {
+                // Ensure the items relationship is loaded so createReferral can calculate commission
+                $order->load('items.product');
+                
+                $affiliateService = app(\App\Services\AffiliateService::class);
+                $referral = $affiliateService->createReferral($order, $cart->affiliate_code, $user, $request->ip());
+                if ($referral) {
+                    $order->update(['referral_id' => $referral->id]);
+                }
+            }
+
             // Clear cart
             $cart->items()->delete();
-            $cart->update(['coupon_code' => null, 'discount' => 0]);
+            $cart->update(['coupon_code' => null, 'discount' => 0, 'affiliate_code' => null, 'affiliate_discount' => 0]);
 
             $logUser = ActivityLog::userLabel($user, $sessionId);
             $itemCount = $order->items()->count();
@@ -417,6 +506,14 @@ class OrderController extends Controller
                 // Ensure used_count doesn't go below zero
                 if ($order->coupon->used_count > 0) {
                     $order->coupon->decrement('used_count');
+                }
+            }
+
+            // Revoke referral commission
+            if ($order->referral_id) {
+                $referral = \App\Models\Referral::find($order->referral_id);
+                if ($referral) {
+                    app(\App\Services\AffiliateService::class)->revokeCommission($referral, 'Order cancelled by user');
                 }
             }
 

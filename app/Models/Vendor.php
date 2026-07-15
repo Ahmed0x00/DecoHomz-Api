@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 
 class Vendor extends Model
 {
+    use LogsActivity;
+
     use HasFactory, Notifiable;
 
     protected $appends = ['severity_points'];
@@ -71,5 +75,13 @@ class Vendor extends Model
     public function isActive()
     {
         return $this->status === 'active';
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('Vendors')
+            ->logAll()
+            ->logOnlyDirty();
     }
 }

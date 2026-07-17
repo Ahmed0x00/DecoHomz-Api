@@ -86,6 +86,10 @@
 
     <!-- Main Content -->
     <div class="acc-main">
+      <a href="#" class="mobile-back-btn" onclick="goBackToMenu(); return false;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; margin-inline-end: 6px;"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        {{ __('Back to Account Menu') }}
+      </a>
 
       <!-- OVERVIEW TAB -->
       <div id="tab-overview">
@@ -626,18 +630,31 @@
 
       // ── Tab switching ───────────────────────────────────────────
       window.showTab = function (tabId, el) {
-        document.querySelectorAll('.acc-main > div').forEach(tab => tab.style.display = 'none');
+        document.querySelectorAll('.acc-main > div[id^="tab-"]').forEach(tab => tab.style.display = 'none');
         const target = document.getElementById('tab-' + tabId);
         if (target) target.style.display = 'block';
 
         document.querySelectorAll('.acc-menu a').forEach(a => a.classList.remove('active'));
         if (el) el.classList.add('active');
 
+        const layout = document.querySelector('.account-layout');
+        if (layout) {
+          layout.classList.add('show-content');
+        }
+
         // Lazy-load tab content
         if (tabId === 'orders') loadOrdersTab();
         if (tabId === 'addresses') loadAddressesTab();
         if (tabId === 'preorders') loadPreordersTab();
         if (tabId === 'affiliate') loadAffiliateTab();
+      };
+
+      window.goBackToMenu = function () {
+        const layout = document.querySelector('.account-layout');
+        if (layout) {
+          layout.classList.remove('show-content');
+        }
+        document.querySelectorAll('.acc-menu a').forEach(a => a.classList.remove('active'));
       };
 
       async function loadOrdersTab() {

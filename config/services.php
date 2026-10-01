@@ -47,4 +47,14 @@ return [
         'site_url' => env('CLOUDFLARE_SITE_URL', env('APP_URL')),
     ],
 
+    'paymob' => [
+        'api_key' => env('PAYMOB_API_KEY'),
+        'public_key' => env('PAYMOB_PUBLIC_KEY'),
+        'secret_key' => env('PAYMOB_SECRET_KEY'),
+        'hmac_secret' => env('PAYMOB_HMAC_SECRET'),
+        'card_integration_id' => env('PAYMOB_CARD_INTEGRATION_ID', 5790995),
+        'card_iframe_id' => env('PAYMOB_CARD_IFRAME_ID', 1063247),
+        'base_url' => env('PAYMOB_BASE_URL', 'https://accept.paymob.com'),
+    ],
+
 ];

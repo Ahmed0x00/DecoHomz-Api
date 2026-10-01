@@ -39,6 +39,9 @@ class Order extends Model
         'refund_handled_at',
         'referral_id',
         'affiliate_discount',
+        'paymob_order_id',
+        'paymob_transaction_id',
+        'payment_details',
     ];
 
     protected $casts = [
@@ -49,6 +52,7 @@ class Order extends Model
         'deposit_amount' => 'decimal:2',
         'vat_amount' => 'decimal:2',
         'affiliate_discount' => 'decimal:2',
+        'payment_details' => 'array',
     ];
 
     public const STATUS_PENDING = 'pending';

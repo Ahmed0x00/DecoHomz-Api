@@ -38,6 +38,11 @@ Route::get('/shipping/governorate-fees/active', [GovernorateDeliveryFeeControlle
 Route::get('/whatsapp/webhook', [WhatsAppWebhookController::class, 'verify']);
 Route::post('/whatsapp/webhook', [WhatsAppWebhookController::class, 'handle']);
 
+// Paymob Webhook & Payment Routes
+Route::post('/payments/paymob/webhook', [\App\Http\Controllers\Api\PaymobController::class, 'webhook']);
+Route::get('/payments/paymob/callback', [\App\Http\Controllers\Api\PaymobController::class, 'callback']);
+Route::post('/orders/{id}/paymob/initiate', [\App\Http\Controllers\Api\PaymobController::class, 'initiate']);
+
 Route::middleware('activity.log')->group(function () {
     // ============================================
     // PUBLIC ROUTES

@@ -1,0 +1,51 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: 🚀 Deploy to VPS
+    runs-on: ubuntu-latest
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+
+    steps:
+      - name: 🔐 Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          timeout: 60s
+          script: |
+            set -e
+            cd /home/decohomz/htdocs/decohomz.com
+
+            echo "📥 Pulling latest changes..."
+            git pull origin main
+
+            echo "📦 Installing dependencies..."
+            if git diff HEAD~1 --name-only | grep -q "composer.lock"; then
+              composer install --no-dev --optimize-autoloader --no-interaction
+            else
+              echo "No composer changes, skipping."
+            fi
+
+            echo "🗃️ Running migrations..."
+            php artisan migrate --force
+
+            echo "🧹 Clearing caches..."
+            php artisan cache:clear
+            php artisan view:clear
+            php artisan config:clear
+            php artisan route:clear
+
+            echo "⚡ Optimizing..."
+            php artisan optimize
+
+            echo "✅ Deployment complete!"

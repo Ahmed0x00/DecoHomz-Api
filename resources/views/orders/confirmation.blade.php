@@ -55,7 +55,26 @@ if ($currentIdx === false) $currentIdx = 0;
 $couponDiscount = $coupon ? ($coupon->discount_amount ?? $coupon->discount ?? 0) : 0;
 ?>
 
+<script>
+  if (window.top !== window.self) {
+    window.top.location.href = window.self.location.href;
+  }
+</script>
+
 <div class="confirm-wrap">
+
+  @if(request('payment_status') === 'failed' || ($paymentMethod === 'card' && $order->payment_status === 'unpaid'))
+  <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:12px; padding:16px 20px; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div>
+        <div style="font-weight:700; color:#991b1b; font-size:14px;">{{ __('Card Payment Incomplete or Declined') }}</div>
+        <div style="font-size:12px; color:#b91c1c;">{{ __('Your order is saved, but payment has not been confirmed yet.') }}</div>
+      </div>
+    </div>
+    <button type="button" onclick="retryPayment()" id="btn-retry-pay" style="background:#dc2626; color:#fff; border:none; padding:10px 18px; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer;">{{ __('Pay Now with Card') }}</button>
+  </div>
+  @endif
 
   {{-- Success Banner --}}
   <div class="success-banner">
@@ -103,6 +122,21 @@ $couponDiscount = $coupon ? ($coupon->discount_amount ?? $coupon->discount ?? 0)
         {{ __('Payment Details') }}
       </div>
       <div class="info-row"><span class="key">{{ __('Method') }}</span><span class="val">{{ $paymentDisplay }}</span></div>
+      <div class="info-row">
+        <span class="key">{{ __('Payment Status') }}</span>
+        @if($order->payment_status === \App\Models\Order::PAYMENT_FULL_PAID)
+          <span class="val" style="color:#16a34a;font-weight:700;"><span style="display:inline-block;width:7px;height:7px;background:#16a34a;border-radius:50%;margin-right:5px;"></span>{{ __('Paid (Paymob)') }}</span>
+        @elseif($order->payment_status === \App\Models\Order::PAYMENT_PAID_DEPOSIT)
+          <span class="val" style="color:#ca8a04;font-weight:700;">{{ __('Deposit Paid') }}</span>
+        @elseif($paymentMethod === 'card')
+          <span class="val" style="color:#dc2626;font-weight:700;">{{ __('Unpaid / Pending') }}</span>
+        @else
+          <span class="val" style="color:#64748b;">{{ __('Pending Delivery') }}</span>
+        @endif
+      </div>
+      @if($order->paymob_transaction_id)
+      <div class="info-row"><span class="key">{{ __('Transaction ID') }}</span><span class="val" style="font-family:monospace;font-size:12px;font-weight:600;">#{{ $order->paymob_transaction_id }}</span></div>
+      @endif
       <div class="info-row"><span class="key">{{ __('Subtotal') }}</span><span class="val">EGP {{ number_format($subtotal) }}</span></div>
       @if($couponDiscount > 0)
       <div class="info-row">
@@ -266,7 +300,29 @@ $couponDiscount = $coupon ? ($coupon->discount_amount ?? $coupon->discount ?? 0)
 @section('extra_js')
 <script>
 (function() {
-  Cart.updateBadge();
+  if (window.Cart && Cart.updateBadge) Cart.updateBadge();
 })();
+
+async function retryPayment() {
+  var btn = document.getElementById('btn-retry-pay');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "{{ __('Loading...') }}";
+  }
+  try {
+    var res = await API.post('/orders/{{ $order->id }}/paymob/initiate');
+    if (res.iframe_url) {
+      window.location.href = res.iframe_url;
+    } else {
+      throw new Error('No payment URL received.');
+    }
+  } catch (e) {
+    alert(e.data?.message || e.message || "{{ __('Failed to initialize payment gateway. Please try again.') }}");
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "{{ __('Pay Now with Card') }}";
+    }
+  }
+}
 </script>
 @endsection

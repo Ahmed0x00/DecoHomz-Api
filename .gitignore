@@ -1,3 +1,5 @@
+backend/vendor/
+
 *.log
 .DS_Store
 .env
@@ -26,3 +28,20 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 Ready-Pictures-Of-Products
+
+# Deployment and local upload scripts (contains sensitive credentials)
+/deploy_to_production.sh
+/remote_exec.py
+/upload_local.sh
+
+# Deployment documentation / skills (contains credentials)
+/deploy_skill.md
+
+# Local test and seed scripts
+/seed_vendors.php
+/test_admin_referrals.php
+/test_api_flow.php
+/test_vendor_api.php
+/tinker_test.php
+
+/test.py

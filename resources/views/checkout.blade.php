@@ -21,6 +21,8 @@
   </div>
 </div>
 
+<!-- No external payment SDKs needed - native card form -->
+
 @endsection
 
 @section('extra_js')
@@ -37,7 +39,9 @@ let checkoutState = {
   couponApplied: false,
   isGuest: !Auth.token(),
   currentStep: 1,
-  paymentMethod: 'cod',
+  paymentMethod: 'card',
+  paymentToken: null,
+  savedCards: [],
   formSnapshot: {
     shipFirstName: '',
     shipLastName: '',
@@ -58,8 +62,8 @@ let checkoutState = {
 
 const CHECKOUT_STEPS = [
   { id: 1, label: "{{ __('Shipping') }}" },
-  { id: 2, label: "{{ __('Payment') }}" },
-  { id: 3, label: "{{ __('Review') }}" },
+  { id: 2, label: "{{ __('Review') }}" },
+  { id: 3, label: "{{ __('Payment') }}" },
 ];
 
 var SVG = ' fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"';
@@ -196,7 +200,7 @@ function renderShippingStep() {
   html += '<div id="step-1-error" class="step-error" style="display:none"></div>' +
           '<div class="step-actions">' +
             '<a href="/cart" class="btn-outline step-back-link">' + "{{ __('Back to Cart') }}" + '</a>' +
-            '<button type="button" class="btn-dark step-continue" id="btn-step-1-continue">' + "{{ __('Continue to Payment') }}" + '</button>' +
+            '<button type="button" class="btn-dark step-continue" id="btn-step-1-continue">' + "{{ __('Continue to Review') }}" + '</button>' +
           '</div>';
 
   html += '</div></div>';
@@ -223,62 +227,100 @@ function captureFormState() {
 }
 
 function renderPaymentStep() {
-  var isCard = checkoutState.paymentMethod === 'card';
-  var snap = checkoutState.formSnapshot;
-  var html = '<div class="checkout-step-panel' + (checkoutState.currentStep === 2 ? ' active' : '') + '" id="step-2" data-step="2">' +
+  var savedCards = checkoutState.savedCards || [];
+  var isLoggedIn = !checkoutState.isGuest;
+  var html = '<div class="checkout-step-panel' + (checkoutState.currentStep === 3 ? ' active' : '') + '" id="step-3" data-step="3">' +
                '<div class="checkout-section">' +
                  '<div class="checkout-section-header">' +
-                   '<div class="step-circle">2</div>' +
+                   '<div class="step-circle">3</div>' +
                    '<div>' +
-                     '<h2>' + "{{ __('Payment Method') }}" + '</h2>' +
-                     '<p class="section-desc">' + "{{ __('Choose how you would like to pay') }}" + '</p>' +
+                     '<h2>' + "{{ __('Card Payment') }}" + '</h2>' +
+                     '<p class="section-desc">' + "{{ __('Enter your card details to complete your purchase') }}" + '</p>' +
                    '</div>' +
-                 '</div>' +
-                 '<div class="payment-methods">' +
-                   '<label class="pay-method' + (checkoutState.paymentMethod === 'cod' ? ' selected' : '') + '" data-method="cod">' +
-                     '<input type="radio" name="payment" value="cod"' + (checkoutState.paymentMethod === 'cod' ? ' checked' : '') + '>' +
-                     '<div class="pay-icon">' +
-                       '<svg viewBox="0 0 24 24"' + SVG + ' stroke-width="2"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>' +
-                     '</div>' +
-                     '<div class="pay-method-info">' +
-                       '<div class="pay-method-name">' + "{{ __('Cash on Delivery') }}" + '</div>' +
-                       '<div class="pay-method-desc">' + "{{ __('Pay when your order arrives') }}" + '</div>' +
-                     '</div>' +
-                   '</label>' +
-                   '<label class="pay-method' + (isCard ? ' selected' : '') + '" data-method="card">' +
-                     '<input type="radio" name="payment" value="card"' + (isCard ? ' checked' : '') + '>' +
-                     '<div class="pay-icon">' +
-                       '<svg viewBox="0 0 24 24"' + SVG + ' stroke-width="2"><rect width="22" height="16" x="1" y="4" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>' +
-                     '</div>' +
-                     '<div class="pay-method-info">' +
-                       '<div class="pay-method-name">' + "{{ __('Credit / Debit Card') }}" + '</div>' +
-                       '<div class="pay-method-desc">' + "{{ __('Visa, Mastercard, and more') }}" + '</div>' +
-                     '</div>' +
-                   '</label>' +
-                 '</div>' +
-                 '<div id="card-payment-details" class="card-payment-panel" style="display:' + (isCard ? 'block' : 'none') + '">' +
-                   '<div class="card-panel-header">' +
-                     '<svg viewBox="0 0 24 24"' + SVG + ' stroke-width="2"><rect width="22" height="16" x="1" y="4" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>' +
-                     '<span>' + "{{ __('Enter your card details') }}" + '</span>' +
-                   '</div>' +
-                   '<div class="form-grid">' +
-                     '<div class="field full"><label>' + "{{ __('Cardholder Name') }}" + ' *</label><input type="text" id="card-name" value="' + esc(snap.cardName) + '" placeholder="John Doe" autocomplete="cc-name"></div>' +
-                     '<div class="field full"><label>' + "{{ __('Card Number') }}" + ' *</label><input type="text" id="card-number" value="' + esc(snap.cardNumber) + '" placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric" autocomplete="cc-number"></div>' +
-                     '<div class="field"><label>' + "{{ __('Expiry Date') }}" + ' *</label><input type="text" id="card-expiry" value="' + esc(snap.cardExpiry) + '" placeholder="MM/YY" maxlength="5" inputmode="numeric" autocomplete="cc-exp"></div>' +
-                     '<div class="field"><label>' + "{{ __('CVV') }}" + ' *</label><input type="text" id="card-cvv" value="' + esc(snap.cardCvv) + '" placeholder="123" maxlength="4" inputmode="numeric" autocomplete="cc-csc"></div>' +
-                   '</div>' +
-                   '<p class="card-secure-note">' +
-                     '<svg viewBox="0 0 24 24"' + SVG + ' stroke-width="2" style="stroke:var(--color-success)"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>' +
-                     "{{ __('Your payment is encrypted and secure. A deposit may be charged upon order confirmation.') }}" +
-                   '</p>' +
-                 '</div>' +
-                 '<div id="step-2-error" class="step-error" style="display:none"></div>' +
-                 '<div class="step-actions">' +
-                   '<button type="button" class="btn-outline step-back" id="btn-step-2-back">' + "{{ __('Back') }}" + '</button>' +
-                   '<button type="button" class="btn-dark step-continue" id="btn-step-2-continue">' + "{{ __('Continue to Review') }}" + '</button>' +
-                 '</div>' +
-               '</div>' +
-             '</div>';
+                 '</div>';
+
+  // Loading state (shown while preparing payment)
+  html += '<div id="payment-loading" style="display:none; text-align:center; padding:40px 20px;">' +
+            '<div style="width:32px; height:32px; border:3px solid #e2e8f0; border-top-color:#c9a96e; border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 12px;"></div>' +
+            '<p style="font-size:13px; color:#64748b; margin:0;">' + "{{ __('Preparing secure payment...') }}" + '</p>' +
+          '</div>';
+
+  // Card form (visible after payment prepared)
+  html += '<div id="card-form-wrapper" style="display:none;">';
+
+  // Saved cards section
+  if (isLoggedIn && savedCards.length > 0) {
+    html += '<div class="checkout-subsection" style="margin-bottom:16px;">' +
+              '<h3>' + "{{ __('Saved Cards') }}" + '</h3>';
+    for (var i = 0; i < savedCards.length; i++) {
+      var sc = savedCards[i];
+      html += '<label class="pay-method" style="cursor:pointer; margin-bottom:8px;" data-saved-card-id="' + sc.id + '">' +
+                '<input type="radio" name="card-choice" value="saved_' + sc.id + '" style="margin-right:10px;">' +
+                '<div class="pay-method-info" style="flex:1;">' +
+                  '<div class="pay-method-name">' + esc(sc.masked_pan) + (sc.brand ? ' <span style="color:#64748b; font-weight:400;">(' + esc(sc.brand) + ')</span>' : '') + '</div>' +
+                  (sc.expiry_month && sc.expiry_year ? '<div class="pay-method-desc">' + "{{ __('Expires') }}" + ' ' + sc.expiry_month + '/' + sc.expiry_year + '</div>' : '') +
+                '</div>' +
+              '</label>';
+    }
+    html += '<label class="pay-method" style="cursor:pointer; margin-bottom:8px;">' +
+              '<input type="radio" name="card-choice" value="new" checked style="margin-right:10px;">' +
+              '<div class="pay-method-info">' +
+                '<div class="pay-method-name">' + "{{ __('Use a new card') }}" + '</div>' +
+              '</div>' +
+            '</label>' +
+          '</div>';
+  }
+
+  // New card form
+  html += '<div id="new-card-fields">' +
+            '<div class="form-group" style="margin-bottom:14px;">' +
+              '<label for="card-number" style="display:block; font-size:13px; font-weight:600; color:#334155; margin-bottom:6px;">' + "{{ __('Card Number') }}" + '</label>' +
+              '<div style="position:relative;">' +
+                '<input type="text" id="card-number" inputmode="numeric" autocomplete="cc-number" maxlength="19" placeholder="4111 1111 1111 1111" style="width:100%; padding:12px 14px 12px 42px; border:1px solid #d1d5db; border-radius:8px; font-size:15px; font-family:monospace; outline:none; transition:border-color .2s;">' +
+                '<div id="card-brand-icon" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); width:24px; height:16px; display:flex; align-items:center;">' +
+                  '<svg viewBox="0 0 24 24"' + SVG + ' stroke-width="1.5" style="width:20px; height:20px; color:#94a3b8;"><rect width="22" height="16" x="1" y="4" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">' +
+              '<div class="form-group">' +
+                '<label for="card-expiry" style="display:block; font-size:13px; font-weight:600; color:#334155; margin-bottom:6px;">' + "{{ __('Expiry Date') }}" + '</label>' +
+                '<input type="text" id="card-expiry" inputmode="numeric" autocomplete="cc-exp" maxlength="5" placeholder="MM/YY" style="width:100%; padding:12px 14px; border:1px solid #d1d5db; border-radius:8px; font-size:15px; font-family:monospace; outline:none; transition:border-color .2s;">' +
+              '</div>' +
+              '<div class="form-group">' +
+                '<label for="card-cvv" style="display:block; font-size:13px; font-weight:600; color:#334155; margin-bottom:6px;">' + "{{ __('CVV') }}" + '</label>' +
+                '<input type="text" id="card-cvv" inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="123" style="width:100%; padding:12px 14px; border:1px solid #d1d5db; border-radius:8px; font-size:15px; font-family:monospace; outline:none; transition:border-color .2s;">' +
+              '</div>' +
+            '</div>' +
+            '<div class="form-group" style="margin-bottom:14px;">' +
+              '<label for="card-name" style="display:block; font-size:13px; font-weight:600; color:#334155; margin-bottom:6px;">' + "{{ __('Name on Card') }}" + '</label>' +
+              '<input type="text" id="card-name" autocomplete="cc-name" placeholder="' + "{{ __('Ahmed Mohamed') }}" + '" style="width:100%; padding:12px 14px; border:1px solid #d1d5db; border-radius:8px; font-size:15px; outline:none; transition:border-color .2s;">' +
+            '</div>';
+
+  // Save card checkbox (logged-in users only)
+  if (isLoggedIn) {
+    html += '<label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-bottom:14px; font-size:13px; color:#475569;">' +
+              '<input type="checkbox" id="save-card-checkbox">' +
+              "{{ __('Save this card for future purchases') }}" +
+            '</label>';
+  }
+
+  html += '</div>'; // close new-card-fields
+
+  // Security badge
+  html += '<p class="card-secure-note" style="margin-top:12px;">' +
+            '<svg viewBox="0 0 24 24"' + SVG + ' stroke-width="2" style="stroke:var(--color-success)"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>' +
+            "{{ __('Your card details are sent directly to our payment processor. They never touch our servers.') }}" +
+          '</p>';
+
+  html += '</div>'; // close card-form-wrapper
+
+  html += '<div id="step-3-error" class="step-error" style="display:none"></div>' +
+          '<div class="step-actions">' +
+            '<button type="button" class="btn-outline step-back" id="btn-step-3-back">' + "{{ __('Back') }}" + '</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
   return html;
 }
 
@@ -286,17 +328,16 @@ function renderReviewStep(cart, discount, affiliateDiscount) {
   var snap = checkoutState.formSnapshot;
   var hasCode = cart.coupon || cart.affiliate;
   var codeStr = cart.coupon ? cart.coupon.code : (cart.affiliate ? cart.affiliate.code : '');
-  var html = '<div class="checkout-step-panel' + (checkoutState.currentStep === 3 ? ' active' : '') + '" id="step-3" data-step="3">' +
+  var html = '<div class="checkout-step-panel' + (checkoutState.currentStep === 2 ? ' active' : '') + '" id="step-2" data-step="2">' +
                '<div class="checkout-section">' +
                  '<div class="checkout-section-header">' +
-                   '<div class="step-circle">3</div>' +
+                   '<div class="step-circle">2</div>' +
                    '<div>' +
-                     '<h2>' + "{{ __('Review & Confirm') }}" + '</h2>' +
-                     '<p class="section-desc">' + "{{ __('Add a promo code or notes, then place your order') }}" + '</p>' +
+                     '<h2>' + "{{ __('Review & Extras') }}" + '</h2>' +
+                     '<p class="section-desc">' + "{{ __('Add a promo code or notes before payment') }}" + '</p>' +
                    '</div>' +
                  '</div>' +
                  '<div class="review-summary-box" id="review-shipping-summary"></div>' +
-                 '<div class="review-summary-box" id="review-payment-summary"></div>' +
                  '<div class="checkout-subsection">' +
                    '<h3>' + "{{ __('Promo / Affiliate Code') }}" + '</h3>' +
                    '<div class="promo-box">' +
@@ -313,9 +354,10 @@ function renderReviewStep(cart, discount, affiliateDiscount) {
                    '<h3>' + "{{ __('Order Notes') }}" + '</h3>' +
                    '<textarea id="order-notes" placeholder="' + "{{ __('Any special instructions for your order...') }}" + '">' + esc(snap.orderNotes) + '</textarea>' +
                  '</div>' +
-                 '<div id="step-3-error" class="step-error" style="display:none"></div>' +
+                 '<div id="step-2-error" class="step-error" style="display:none"></div>' +
                  '<div class="step-actions">' +
-                   '<button type="button" class="btn-outline step-back" id="btn-step-3-back">' + "{{ __('Back') }}" + '</button>' +
+                   '<button type="button" class="btn-outline step-back" id="btn-step-2-back">' + "{{ __('Back') }}" + '</button>' +
+                   '<button type="button" class="btn-dark step-continue" id="btn-step-2-continue">' + "{{ __('Continue to Payment') }}" + '</button>' +
                  '</div>' +
                '</div>' +
              '</div>';
@@ -339,8 +381,8 @@ function renderCheckout() {
   let html = renderStepNav();
   html += '<div class="checkout-main animate-fade-up">';
   html += renderShippingStep();
-  html += renderPaymentStep();
   html += renderReviewStep(cart, discount, affiliateDiscount);
+  html += renderPaymentStep();
   html += '</div>';
 
   html += '<div class="checkout-summary-wrap animate-fade-up stagger-2">';
@@ -416,9 +458,7 @@ function bindCheckoutEvents() {
   });
 
   document.getElementById('btn-step-2-back')?.addEventListener('click', function() { goToStep(1); });
-  document.getElementById('btn-step-2-continue')?.addEventListener('click', function() {
-    if (validatePaymentStep()) goToStep(3);
-  });
+  document.getElementById('btn-step-2-continue')?.addEventListener('click', function() { preparePaymentAndGoToStep3(); });
 
   document.getElementById('btn-step-3-back')?.addEventListener('click', function() { goToStep(2); });
   document.getElementById('btn-place')?.addEventListener('click', placeOrder);
@@ -448,26 +488,27 @@ function bindCheckoutEvents() {
     }
   });
 
-  document.querySelectorAll('.pay-method').forEach(function(el) {
-    el.addEventListener('click', function() {
-      selectPayment(el);
+  var orderNotes = document.getElementById('order-notes');
+  if (orderNotes) {
+    orderNotes.addEventListener('input', function() {
+      checkoutState.formSnapshot.orderNotes = orderNotes.value;
     });
-  });
+  }
 
-  document.querySelectorAll('input[name="payment"]').forEach(function(radio) {
-    radio.addEventListener('change', function() {
-      var label = radio.closest('.pay-method');
-      if (label) selectPayment(label);
-    });
-  });
+  // Card input formatting
+  bindCardInputs();
+}
 
+function bindCardInputs() {
   var cardNumber = document.getElementById('card-number');
   if (cardNumber) {
     cardNumber.addEventListener('input', function() {
       var v = cardNumber.value.replace(/\D/g, '').substring(0, 16);
       cardNumber.value = v.replace(/(.{4})/g, '$1 ').trim();
-      checkoutState.formSnapshot.cardNumber = cardNumber.value;
+      updateCardBrandIcon(v);
     });
+    cardNumber.addEventListener('focus', function() { cardNumber.style.borderColor = '#c9a96e'; });
+    cardNumber.addEventListener('blur', function() { cardNumber.style.borderColor = '#d1d5db'; });
   }
 
   var cardExpiry = document.getElementById('card-expiry');
@@ -476,30 +517,47 @@ function bindCheckoutEvents() {
       var v = cardExpiry.value.replace(/\D/g, '').substring(0, 4);
       if (v.length >= 3) v = v.substring(0, 2) + '/' + v.substring(2);
       cardExpiry.value = v;
-      checkoutState.formSnapshot.cardExpiry = cardExpiry.value;
     });
+    cardExpiry.addEventListener('focus', function() { cardExpiry.style.borderColor = '#c9a96e'; });
+    cardExpiry.addEventListener('blur', function() { cardExpiry.style.borderColor = '#d1d5db'; });
   }
 
   var cardCvv = document.getElementById('card-cvv');
   if (cardCvv) {
     cardCvv.addEventListener('input', function() {
       cardCvv.value = cardCvv.value.replace(/\D/g, '').substring(0, 4);
-      checkoutState.formSnapshot.cardCvv = cardCvv.value;
     });
+    cardCvv.addEventListener('focus', function() { cardCvv.style.borderColor = '#c9a96e'; });
+    cardCvv.addEventListener('blur', function() { cardCvv.style.borderColor = '#d1d5db'; });
   }
 
   var cardName = document.getElementById('card-name');
   if (cardName) {
-    cardName.addEventListener('input', function() {
-      checkoutState.formSnapshot.cardName = cardName.value;
-    });
+    cardName.addEventListener('focus', function() { cardName.style.borderColor = '#c9a96e'; });
+    cardName.addEventListener('blur', function() { cardName.style.borderColor = '#d1d5db'; });
   }
 
-  var orderNotes = document.getElementById('order-notes');
-  if (orderNotes) {
-    orderNotes.addEventListener('input', function() {
-      checkoutState.formSnapshot.orderNotes = orderNotes.value;
+  // Saved card radio toggle
+  document.querySelectorAll('input[name="card-choice"]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      var newFields = document.getElementById('new-card-fields');
+      if (newFields) newFields.style.display = radio.value === 'new' ? 'block' : 'none';
     });
+  });
+}
+
+function updateCardBrandIcon(digits) {
+  var el = document.getElementById('card-brand-icon');
+  if (!el) return;
+  var brand = '';
+  if (/^4/.test(digits)) brand = 'VISA';
+  else if (/^5[1-5]/.test(digits) || /^2[2-7]/.test(digits)) brand = 'MC';
+  else if (/^50/.test(digits) || /^60/.test(digits) || /^62/.test(digits)) brand = 'MEEZA';
+
+  if (brand) {
+    el.innerHTML = '<span style="font-size:11px; font-weight:800; color:#0f172a; letter-spacing:0.5px;">' + brand + '</span>';
+  } else {
+    el.innerHTML = '<svg viewBox="0 0 24 24"' + SVG + ' stroke-width="1.5" style="width:20px; height:20px; color:#94a3b8;"><rect width="22" height="16" x="1" y="4" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>';
   }
 }
 
@@ -507,6 +565,7 @@ function goToStep(step) {
   checkoutState.currentStep = step;
   updateStepUI();
   updateReviewSummaries();
+  if (step === 3) bindCardInputs();
   var panel = document.getElementById('step-' + step);
   if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -531,7 +590,12 @@ function updateStepUI() {
 
   var placeBtn = document.getElementById('btn-place');
   var hint = document.getElementById('checkout-step-hint');
-  if (placeBtn) placeBtn.style.display = checkoutState.currentStep === 3 ? 'block' : 'none';
+  if (placeBtn) {
+    placeBtn.style.display = checkoutState.currentStep === 3 ? 'block' : 'none';
+    if (checkoutState.currentStep === 3 && checkoutState.paymentToken) {
+      placeBtn.textContent = "{{ __('Pay Now') }}";
+    }
+  }
   if (hint) hint.style.display = checkoutState.currentStep < 3 ? 'block' : 'none';
 }
 
@@ -579,34 +643,8 @@ function validateShippingStep() {
 }
 
 function validatePaymentStep() {
-  showStepError(2, '');
-  var paymentRadio = document.querySelector('input[name="payment"]:checked');
-  checkoutState.paymentMethod = paymentRadio ? paymentRadio.value : 'cod';
-
-  if (checkoutState.paymentMethod !== 'card') return true;
-
-  var snap = checkoutState.formSnapshot;
-  var name = document.getElementById('card-name')?.value?.trim() || snap.cardName?.trim();
-  var number = (document.getElementById('card-number')?.value || snap.cardNumber || '').replace(/\s/g, '');
-  var expiry = document.getElementById('card-expiry')?.value?.trim() || snap.cardExpiry?.trim();
-  var cvv = document.getElementById('card-cvv')?.value?.trim() || snap.cardCvv?.trim();
-
-  if (!name || !number || !expiry || !cvv) {
-    showStepError(2, "{{ __('Please fill in all card details.') }}");
-    return false;
-  }
-  if (number.length < 13 || number.length > 19) {
-    showStepError(2, "{{ __('Please enter a valid card number.') }}");
-    return false;
-  }
-  if (!/^\d{2}\/\d{2}$/.test(expiry)) {
-    showStepError(2, "{{ __('Please enter expiry as MM/YY.') }}");
-    return false;
-  }
-  if (cvv.length < 3) {
-    showStepError(2, "{{ __('Please enter a valid CVV.') }}");
-    return false;
-  }
+  showStepError(3, '');
+  checkoutState.paymentMethod = 'card';
   return true;
 }
 
@@ -632,21 +670,7 @@ function showNewAddressForm() {
   showStepError(1, '');
 }
 
-function selectPayment(el) {
-  document.querySelectorAll('.pay-method').forEach(function(c) { c.classList.remove('selected'); });
-  el.classList.add('selected');
-  var radio = el.querySelector('input[type="radio"]');
-  if (radio) {
-    radio.checked = true;
-    checkoutState.paymentMethod = radio.value;
-  }
-
-  var cardPanel = document.getElementById('card-payment-details');
-  if (cardPanel) {
-    cardPanel.style.display = checkoutState.paymentMethod === 'card' ? 'block' : 'none';
-  }
-  showStepError(2, '');
-}
+// Payment is always card — no selectPayment needed
 
 function getAddressGovernorate(addr) {
   if (!addr) return '';
@@ -820,8 +844,7 @@ function updateAddressDeliveryHint() {
 
 function updateReviewSummaries() {
   var shipEl = document.getElementById('review-shipping-summary');
-  var payEl = document.getElementById('review-payment-summary');
-  if (!shipEl || !payEl) return;
+  if (!shipEl) return;
 
   if (checkoutState.selectedAddressId) {
     var addr = checkoutState.addresses.find(function(a) { return a.id == checkoutState.selectedAddressId; });
@@ -844,12 +867,6 @@ function updateReviewSummaries() {
       '<div class="review-box-value">' + esc(fn) + ' ' + esc(ln) + '<br>' +
       esc(addr1) + '<br>' + esc(city) + ', ' + esc(gov) + '<br>' + esc(phone) + '</div>';
   }
-
-  var payLabel = checkoutState.paymentMethod === 'card'
-    ? "{{ __('Credit / Debit Card') }}"
-    : "{{ __('Cash on Delivery') }}";
-  payEl.innerHTML = '<div class="review-box-label">' + "{{ __('Payment') }}" + '</div>' +
-    '<div class="review-box-value">' + payLabel + '</div>';
 }
 
 async function applyPromo() {
@@ -905,20 +922,16 @@ async function removePromo() {
   }
 }
 
-async function placeOrder() {
-  if (!validateShippingStep() || !validatePaymentStep()) {
-    if (!validateShippingStep()) goToStep(1);
-    else if (!validatePaymentStep()) goToStep(2);
-    return;
-  }
-
-  var btn = document.getElementById('btn-place');
-  var errorEl = document.getElementById('checkout-error');
-  errorEl.style.display = 'none';
+// Build order payload from form data
+function buildOrderPayload() {
+  var notes = document.getElementById('order-notes')?.value?.trim() || checkoutState.formSnapshot.orderNotes?.trim() || null;
+  var saveCard = document.getElementById('save-card-checkbox')?.checked;
+  if (saveCard && notes) notes = notes + ' [SAVE_CARD]';
+  else if (saveCard) notes = '[SAVE_CARD]';
 
   var payload = {
-    payment_method: checkoutState.paymentMethod,
-    notes: document.getElementById('order-notes')?.value?.trim() || checkoutState.formSnapshot.orderNotes?.trim() || null,
+    payment_method: 'card',
+    notes: notes,
   };
 
   if (checkoutState.selectedAddressId) {
@@ -938,31 +951,181 @@ async function placeOrder() {
       country: 'Egypt',
     };
   }
+  return payload;
+}
 
-  btn.classList.add('btn-loading');
-  btn.disabled = true;
-  btn.textContent = "{{ __('Processing...') }}";
+// Step 2 → Step 3: Create order and prepare payment token
+async function preparePaymentAndGoToStep3() {
+  if (!validateShippingStep()) { goToStep(1); return; }
+
+  // If already prepared, just go to step 3
+  if (checkoutState.paymentToken && checkoutState.activeOrderId) {
+    goToStep(3);
+    return;
+  }
+
+  goToStep(3);
+  var loadingEl = document.getElementById('payment-loading');
+  var formEl = document.getElementById('card-form-wrapper');
+  if (loadingEl) loadingEl.style.display = 'block';
+  if (formEl) formEl.style.display = 'none';
+
+  var btn = document.getElementById('btn-place');
+  if (btn) { btn.disabled = true; btn.textContent = "{{ __('Preparing...') }}"; }
 
   try {
+    var payload = buildOrderPayload();
     var res = await API.post('/orders', payload);
     if (window.Cart && Cart.updateBadge) Cart.updateBadge();
-    showToast("{{ __('Order placed successfully!') }}", 'success');
-    var orderId = res.order?.id;
-    setTimeout(function() {
-      window.location.href = orderId ? '/orders/confirmation/' + orderId : '/account';
-    }, 800);
+
+    checkoutState.activeOrderId = res.order?.id;
+    checkoutState.paymentToken = res.paymob?.payment_token || null;
+    checkoutState.savedCards = res.saved_cards || [];
+
+    if (loadingEl) loadingEl.style.display = 'none';
+    if (formEl) formEl.style.display = 'block';
+    if (btn) { btn.disabled = false; btn.textContent = "{{ __('Pay Now') }}"; }
+
+    // Re-render step 3 with saved cards if any
+    if (checkoutState.savedCards.length > 0) {
+      var step3 = document.getElementById('step-3');
+      if (step3) {
+        step3.outerHTML = renderPaymentStep();
+        var newLoadingEl = document.getElementById('payment-loading');
+        var newFormEl = document.getElementById('card-form-wrapper');
+        if (newLoadingEl) newLoadingEl.style.display = 'none';
+        if (newFormEl) newFormEl.style.display = 'block';
+        bindCardInputs();
+        document.getElementById('btn-step-3-back')?.addEventListener('click', function() { goToStep(2); });
+      }
+    } else {
+      bindCardInputs();
+    }
+
+    if (!checkoutState.paymentToken) {
+      showStepError(3, "{{ __('Payment setup failed. Please go back and try again.') }}");
+    }
+
   } catch (e) {
-    var msg = e.data?.message || "{{ __('Failed to place order. Please try again.') }}";
+    if (loadingEl) loadingEl.style.display = 'none';
+    var msg = e.data?.message || "{{ __('Failed to prepare payment. Please try again.') }}";
     if (e.data?.errors) {
       var firstError = Object.values(e.data.errors)[0];
       msg = Array.isArray(firstError) ? firstError[0] : firstError;
     }
-    errorEl.textContent = msg;
-    errorEl.style.display = 'block';
-    errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    showStepError(3, msg);
+    if (btn) { btn.disabled = false; btn.textContent = "{{ __('Place Order') }}"; }
+  }
+}
+
+// Validate card fields
+function validateCardFields() {
+  var cardChoice = document.querySelector('input[name="card-choice"]:checked');
+  if (cardChoice && cardChoice.value !== 'new') return true; // saved card selected
+
+  var num = (document.getElementById('card-number')?.value || '').replace(/\s/g, '');
+  var exp = (document.getElementById('card-expiry')?.value || '').trim();
+  var cvv = (document.getElementById('card-cvv')?.value || '').trim();
+  var name = (document.getElementById('card-name')?.value || '').trim();
+
+  if (num.length < 13 || num.length > 19) { showStepError(3, "{{ __('Please enter a valid card number.') }}"); return false; }
+  if (!/^\d{2}\/\d{2}$/.test(exp)) { showStepError(3, "{{ __('Please enter expiry as MM/YY.') }}"); return false; }
+  if (cvv.length < 3) { showStepError(3, "{{ __('Please enter a valid CVV.') }}"); return false; }
+  if (name.length < 2) { showStepError(3, "{{ __('Please enter the name on your card.') }}"); return false; }
+
+  showStepError(3, '');
+  return true;
+}
+
+// Submit payment: browser → Paymob API directly
+async function placeOrder() {
+  if (!checkoutState.paymentToken || !checkoutState.activeOrderId) {
+    showStepError(3, "{{ __('Payment not ready. Please go back and try again.') }}");
+    return;
+  }
+
+  if (!validateCardFields()) return;
+
+  var btn = document.getElementById('btn-place');
+  var errorEl = document.getElementById('checkout-error');
+  if (errorEl) errorEl.style.display = 'none';
+  showStepError(3, '');
+
+  btn.classList.add('btn-loading');
+  btn.disabled = true;
+  btn.textContent = "{{ __('Processing payment...') }}";
+
+  // Determine if using saved card or new card
+  var cardChoice = document.querySelector('input[name="card-choice"]:checked');
+  var useSavedCard = cardChoice && cardChoice.value !== 'new';
+  var source = {};
+
+  if (useSavedCard) {
+    var savedCardId = cardChoice.value.replace('saved_', '');
+    var savedCard = (checkoutState.savedCards || []).find(function(c) { return c.id == savedCardId; });
+    if (!savedCard || !savedCard.card_token) {
+      showStepError(3, "{{ __('Saved card data not available. Please use a new card.') }}");
+      btn.classList.remove('btn-loading'); btn.disabled = false; btn.textContent = "{{ __('Pay Now') }}";
+      return;
+    }
+    source = { identifier: savedCard.card_token, subtype: 'TOKEN' };
+  } else {
+    var num = (document.getElementById('card-number')?.value || '').replace(/\s/g, '');
+    var exp = (document.getElementById('card-expiry')?.value || '').split('/');
+    var cvv = (document.getElementById('card-cvv')?.value || '').trim();
+    var name = (document.getElementById('card-name')?.value || '').trim();
+    source = {
+      identifier: num,
+      sourceholder_name: name,
+      subtype: 'CARD',
+      expiry_month: exp[0] || '',
+      expiry_year: exp[1] || '',
+      cvn: cvv,
+    };
+  }
+
+  try {
+    // Send card data directly from browser to Paymob API
+    var response = await fetch('https://accept.paymob.com/api/acceptance/payments/pay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        source: source,
+        payment_token: checkoutState.paymentToken,
+      }),
+    });
+
+    var data = await response.json();
+
+    if (data.redirect_url || data.redirection_url || data.iframe_redirection_url) {
+      // 3D Secure redirect — redirect the whole page
+      var redirectUrl = data.redirect_url || data.redirection_url || data.iframe_redirection_url;
+      showToast("{{ __('Redirecting to bank verification...') }}", 'info');
+      window.location.href = redirectUrl;
+      return;
+    }
+
+    if (data.success === true || data.is_captured === true || data.pending === false && !data.error_occured) {
+      showToast("{{ __('Payment successful! Redirecting...') }}", 'success');
+      setTimeout(function() {
+        window.location.href = '/orders/confirmation/' + checkoutState.activeOrderId + '?payment_status=success';
+      }, 1000);
+      return;
+    }
+
+    // Payment failed
+    var errMsg = data.data?.message || data.message || "{{ __('Payment was declined. Please check your card details and try again.') }}";
+    showStepError(3, errMsg);
     btn.classList.remove('btn-loading');
     btn.disabled = false;
-    btn.textContent = "{{ __('Place Order') }}";
+    btn.textContent = "{{ __('Try Again') }}";
+
+  } catch (e) {
+    console.error('Payment error:', e);
+    showStepError(3, "{{ __('Payment failed. Please check your connection and try again.') }}");
+    btn.classList.remove('btn-loading');
+    btn.disabled = false;
+    btn.textContent = "{{ __('Try Again') }}";
   }
 }
 </script>

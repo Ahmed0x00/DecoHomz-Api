@@ -14,6 +14,7 @@ Route::get('/product/{id}', function($id) {
 Route::get('/cart', fn() => view('cart'));
 Route::get('/checkout', fn() => view('checkout'));
 Route::get('/orders/confirmation/{orderId}', [App\Http\Controllers\Api\OrderController::class, 'confirmation']);
+Route::get('/payments/paymob/callback', [App\Http\Controllers\Api\PaymobController::class, 'callback']);
 Route::get('/auth', fn() => view('auth'))->name('login');
 Route::get('/account', fn() => view('account'));
 Route::get('/account/orders/{id}', [App\Http\Controllers\Api\OrderController::class, 'customerDetail']);

@@ -93,7 +93,9 @@ class OrderController extends Controller
             ($order->shippingAddress && $order->shippingAddress->session_id === $sessionId)
         );
 
-        if (!$isOwner && !$isGuest) {
+        $hasValidTxn = $request->has('txn') && $order->paymob_transaction_id && $order->paymob_transaction_id === (string)$request->query('txn');
+
+        if (!$isOwner && !$isGuest && !$hasValidTxn) {
             abort(403, 'Access denied');
         }
 
@@ -440,9 +442,32 @@ class OrderController extends Controller
 
             $order->load(['items.product', 'shippingAddress', 'coupon']);
 
+            $paymobData = null;
+            if ($validated['payment_method'] === 'card') {
+                try {
+                    $paymobService = app(\App\Services\PaymobService::class);
+                    $paymobData = $paymobService->initiatePayment($order);
+                } catch (\Exception $e) {
+                    \Log::error('Paymob payment initiation failed: ' . $e->getMessage(), [
+                        'order_id' => $order->id,
+                    ]);
+                }
+            }
+
+            // Include saved cards for logged-in users
+            $savedCards = [];
+            if ($user) {
+                $savedCards = \App\Models\SavedCard::where('user_id', $user->id)
+                    ->orderByDesc('created_at')
+                    ->get(['id', 'masked_pan', 'brand', 'expiry_month', 'expiry_year', 'card_token'])
+                    ->toArray();
+            }
+
             return response()->json([
                 'message' => 'Order placed successfully',
-                'order' => $order,
+                'order' => $order->fresh(['items.product', 'shippingAddress', 'coupon']),
+                'paymob' => $paymobData,
+                'saved_cards' => $savedCards,
             ], 201);
 
         } catch (\Exception $e) {
